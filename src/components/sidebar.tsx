@@ -1,36 +1,56 @@
-import React from 'react';
+import React, { useState } from 'react';
 
 const Sidebar: React.FC = () => {
-  return (
-    <div className="d-flex flex-column bg-success text-white vh-100 p-3" style={{ width: '250px', backgroundColor: ''}}>
-      {/* Branding */}
-      <h2 className="text-center mb-4">FieldBase</h2>
-      
-      {/* Navigation Links */}
-      <ul className="nav flex-column">
-        <li className="nav-item mb-2">
-          <a href="#" className="nav-link text-white active">
-            <i className="bi bi-briefcase me-2"></i> Projects
-          </a>
-        </li>
-        <li className="nav-item mb-2">
-          <a href="#" className="nav-link text-white">
-            <i className="bi bi-journal-text me-2"></i> Field Notes
-          </a>
-        </li>
-        <li className="nav-item mb-2">
-          <a href="#" className="nav-link text-white">
-            <i className="bi bi-bar-chart me-2"></i> Reports
-          </a>
-        </li>
-        <li className="nav-item">
-          <a href="#" className="nav-link text-white">
-            <i className="bi bi-person me-2"></i> Profile
-          </a>
-        </li>
-      </ul>
-    </div>
-  );
+    const [openDropdown, setOpenDropdown] = useState<string | null>(null);
+
+    const toggleDropdown = (dropdown: string) => {
+        setOpenDropdown((prev) => (prev === dropdown ? null : dropdown));
+    };
+
+    return (
+        <div className="d-flex flex-column vh-100 p-3" style={{ backgroundColor: '#738C40', width: '250px' }}>
+            <h2 className="text-center mb-4 text-white">FieldBase</h2>
+            <p className="text-white">Welcome, Admin</p>
+            <ul className="nav flex-column">
+                <li className="nav-item">
+                    <a href="#" className="nav-link text-white" onClick={() => toggleDropdown('organization')}>
+                        <i className="bi bi-building me-2"></i> Organization Profile
+                    </a>
+                    {openDropdown === 'organization' && (
+                        <ul className="list-unstyled ps-4">
+                            <li className="nav-item">Group Admin</li>
+                            <li className="nav-item">Team Leader</li>
+                            <li className="nav-item">Field Staff</li>
+                            <li className="nav-item">Volunteer</li>
+                            <li className="nav-item">Objectives</li>
+                        </ul>
+                    )}
+                </li>
+                <li className="nav-item">
+                <a href="#" className="nav-link text-white" onClick={() => toggleDropdown('project')}>
+                <i className="bi bi-building me-2"></i> Projects
+                    </a>
+                    {openDropdown === 'organization' && (
+                    <ul className="list-unstyled ps-4">
+                            <li>Add Project</li>
+                            <li>Search Project</li>
+                       </ul>
+                    )}
+                </li>
+                <li className="nav-item">
+                <a href="#" className="nav-link text-white" onClick={() => toggleDropdown('activity')}>
+                        <i className="bi bi-building me-2"></i> Activities Notes
+                    </a>
+                    {openDropdown === 'organization' && (
+                        <ul className="list-unstyled ps-4">
+                            <li>Add Activity</li>
+                            <li>Search Activity</li>
+                       </ul>
+                    )}
+                </li>
+            </ul>
+        </div>
+    );
 };
 
 export default Sidebar;

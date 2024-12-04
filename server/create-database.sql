@@ -1,8 +1,10 @@
 
-DROP TABLE IF EXISTS login;
-DROP TABLE IF EXISTS projects;
-DROP TABLE IF EXISTS objects;
-DROP TABLE IF EXISTS competitions;
+-- Schema fieldbase
+
+--DROP TABLE IF EXISTS login;
+--DROP TABLE IF EXISTS projects;
+--DROP TABLE IF EXISTS objects;
+--DROP TABLE IF EXISTS competitions;
 
 CREATE TABLE IF NOT EXISTS login (
     id INT AUTO_INCREMENT PRIMARY KEY,
