@@ -1,19 +1,23 @@
 import React, { useState } from 'react';
 
-const Login: React.FC = () => {
+interface LoginProps {
+    onLoginSuccess: () => void;
+}
+
+const Login: React.FC<LoginProps> = ({ onLoginSuccess }) => {
     const [username, setUsername] = useState('');
     const [password, setPassword] = useState('');
     const [error, setError] = useState('');
-    const [loading, setLoading] = useState(false); // For showing loader
-    const [rememberMe, setRememberMe] = useState(false); // For "Remember Me"
+    const [rememberMe, setRememberMe] = useState(false);
+    const [isLoading, setIsLoading] = useState(false);
 
     const handleLogin = async () => {
         if (!username || !password) {
             setError('Please enter a username and password.');
             return;
         }
-        
-        setLoading(true); // Start loader
+
+        setIsLoading(true);
         const response = await fetch('http://localhost:5000/login', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -21,14 +25,13 @@ const Login: React.FC = () => {
         });
 
         const data = await response.json();
-        setLoading(false); // Stop loader
+        setIsLoading(false);
 
         if (data.message === 'Login successful') {
+            onLoginSuccess();
             if (rememberMe) {
-                localStorage.setItem('username', username); // Save for future logins
+                localStorage.setItem('username', username); // Remember username
             }
-            window.location.href = '/dashboard'; 
-            alert('Login successful');
             setError('');
         } else {
             setError(data.message || 'Login failed. Please try again.');
@@ -46,7 +49,7 @@ const Login: React.FC = () => {
                     <input
                         type="text"
                         id="username"
-                        className={`form-control ${error && !username ? 'is-invalid' : ''}`}
+                        className={`form-control ${!username && error ? 'is-invalid' : ''}`}
                         placeholder="Enter your username"
                         value={username}
                         onChange={(e) => setUsername(e.target.value)}
@@ -57,15 +60,14 @@ const Login: React.FC = () => {
                     <input
                         type="password"
                         id="password"
-                        className={`form-control ${error && !password ? 'is-invalid' : ''}`}
+                        className={`form-control ${!password && error ? 'is-invalid' : ''}`}
                         placeholder="Enter your password"
                         value={password}
                         onChange={(e) => setPassword(e.target.value)}
                     />
                 </div>
                 {error && <div className="text-danger">{error}</div>}
-
-                <div className="form-check mb-3">
+                <div className="form-group form-check">
                     <input
                         type="checkbox"
                         id="rememberMe"
@@ -75,14 +77,13 @@ const Login: React.FC = () => {
                     />
                     <label htmlFor="rememberMe" className="form-check-label">Remember Me</label>
                 </div>
-
                 <button
                     className="btn w-100 mt-3"
                     style={{ backgroundColor: '#0094B6', color: 'white' }}
                     onClick={handleLogin}
-                    disabled={loading}
+                    disabled={isLoading}
                 >
-                    {loading ? 'Logging in...' : 'Login'}
+                    {isLoading ? 'Logging in...' : 'Login'}
                 </button>
             </div>
         </div>
