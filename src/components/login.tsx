@@ -1,4 +1,5 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
+import { FaEye, FaEyeSlash } from 'react-icons/fa' // Icons for password toggle
 
 interface LoginProps {
   onLoginSuccess: () => void
@@ -11,7 +12,20 @@ const Login: React.FC<LoginProps> = ({ onLoginSuccess }) => {
   const [rememberMe, setRememberMe] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
   const [isForgotPassword, setIsForgotPassword] = useState(false)
+  const [showPassword, setShowPassword] = useState(false) // For toggling password visibility
 
+  // Load saved username and password from localStorage
+  useEffect(() => {
+    const savedUsername = localStorage.getItem('username')
+    const savedPassword = localStorage.getItem('password')
+    if (savedUsername && savedPassword) {
+      setUsername(savedUsername)
+      setPassword(savedPassword)
+      setRememberMe(true)
+    }
+  }, [])
+
+  // Login handler
   const handleLogin = async () => {
     if (!username || !password) {
       setError('Please enter a username and password.')
@@ -20,30 +34,43 @@ const Login: React.FC<LoginProps> = ({ onLoginSuccess }) => {
 
     setIsLoading(true)
     try {
-      const response = await fetch('http://127.0.0.1:5000/login', {
+      const response = await fetch('/api/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ username, password }),
       })
+
+      if (!response.ok) {
+        const errorData = await response.json()
+        setError(errorData.message || 'Login failed.')
+        setIsLoading(false)
+        return
+      }
+
       const data = await response.json()
       setIsLoading(false)
 
       if (data.message === 'Login successful') {
         onLoginSuccess()
         if (rememberMe) {
-          localStorage.setItem('username', username) // Remember username
+          localStorage.setItem('username', username)
+          localStorage.setItem('password', password)
+        } else {
+          localStorage.removeItem('username')
+          localStorage.removeItem('password')
         }
         setError('')
       } else {
-        setError(data.message || 'Login failed. Please try again.')
+        setError(data.message || 'Login failed.')
       }
     } catch (err) {
-      console.error('Error during login or password reset:', err)
-      setIsLoading(false)
+      console.error('Error during login:', err)
       setError('Server error. Please try again.')
+      setIsLoading(false)
     }
   }
 
+  // Handle Forgot Password functionality
   const handleForgotPassword = async () => {
     if (!username) {
       setError('Please enter your email.')
@@ -52,22 +79,23 @@ const Login: React.FC<LoginProps> = ({ onLoginSuccess }) => {
 
     setIsLoading(true)
     try {
-      const response = await fetch('http://127.0.0.1:5000/forgot-password', {
+      const response = await fetch('/api/forgot-password', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email: username }),
       })
+
       const data = await response.json()
       setIsLoading(false)
 
       if (data.message === 'Password reset email sent successfully') {
-        setError('')
         alert('Password reset email sent. Check your inbox.')
+        setError('')
       } else {
-        setError(data.message || 'Failed to reset password. Try again.')
+        setError(data.message || 'Failed to send password reset email.')
       }
     } catch (err) {
-      console.error('Error during login or password reset:', err)
+      console.error('Error during password reset:', err)
       setIsLoading(false)
       setError('Server error. Please try again.')
     }
@@ -86,9 +114,10 @@ const Login: React.FC<LoginProps> = ({ onLoginSuccess }) => {
           Welcome to FieldBase
         </h2>
         <h3 className="text-center my-4" style={{ color: '#76D6E2' }}>
-          <i>{isForgotPassword ? 'Forgot Password' : 'Login'}</i>
+          {isForgotPassword ? 'Forgot Password' : 'Login'}
         </h3>
 
+        {/* Username Input */}
         <div className="form-group mb-3">
           <label htmlFor="username">Username</label>
           <input
@@ -100,20 +129,37 @@ const Login: React.FC<LoginProps> = ({ onLoginSuccess }) => {
             onChange={(e) => setUsername(e.target.value)}
           />
         </div>
+
+        {/* Password Input */}
         {!isForgotPassword && (
-          <div className="form-group mb-3">
+          <div className="form-group mb-3 position-relative">
             <label htmlFor="password">Password</label>
             <input
-              type="password"
+              type={showPassword ? 'text' : 'password'}
               id="password"
               className="form-control"
               placeholder="Enter your password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
             />
+            {/* Eye Icon */}
+            <span
+              className="position-absolute top-50 end-0 translate-middle-y pe-3"
+              style={{
+                cursor: 'pointer',
+                fontSize: '1.5rem',
+              }}
+              onClick={() => setShowPassword(!showPassword)}
+            >
+              {showPassword ? <FaEyeSlash /> : <FaEye />}
+            </span>
           </div>
         )}
+
+        {/* Error Message */}
         {error && <div className="text-danger">{error}</div>}
+
+        {/* Remember Me Checkbox */}
         {!isForgotPassword && (
           <div className="form-group form-check">
             <input
@@ -128,6 +174,8 @@ const Login: React.FC<LoginProps> = ({ onLoginSuccess }) => {
             </label>
           </div>
         )}
+
+        {/* Buttons */}
         {!isForgotPassword && (
           <button
             className="btn w-100 mt-3"
@@ -148,6 +196,8 @@ const Login: React.FC<LoginProps> = ({ onLoginSuccess }) => {
             {isLoading ? 'Sending...' : 'Send Password Reset Email'}
           </button>
         )}
+
+        {/* Forgot Password Toggle */}
         <button
           className="btn w-100 mt-3 btn-link"
           style={{ color: '#0094B6' }}
