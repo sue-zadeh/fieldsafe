@@ -2,9 +2,9 @@
 
 INSERT INTO login (username, password, role) VALUES
 ('dsharp@cvnz.org.nz', 'Ausnew#2021!', 'Admin'),
-('admin 1', '123Adminzx.', 'Admin'),
-('admin 2', '123Adminzx.', 'Admin'),
-('admin 3', '123Adminzx.', 'Admin');
+('admin 1', '$2b$10$S0L7QCgQgD6Mzs5M4QHcPOk0i3vblotdTO4haMQ/ppaKYmfPNjVn.', 'Admin'),
+('admin 2', '$2b$10$tNSIQA7/hHHD19AGey5U1Ov0bAHfUVj2cKjldk1E2kQJkTjGduxVO', 'Admin'),
+('admin 3', '$2b$10$DA0t.LhyUkIEfLorNgyCaOklJrKAIrrDoS1dyy3rnBGloyaySrGMS', 'Admin');
 
 -- Populate the table with sample data
 INSERT INTO registration (firstname, lastname, email, phone, role) VALUES
