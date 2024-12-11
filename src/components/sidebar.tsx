@@ -1,30 +1,28 @@
 import React, { useState } from 'react'
 import { Link, useLocation } from 'react-router-dom'
 
-const Sidebar: React.FC = () => {
+interface SidebarProps {
+  firstname?: string
+  lastname?: string
+}
+
+const Sidebar: React.FC<SidebarProps> = ({ firstname = '', lastname = '' }) => {
   const [isOpen, setIsOpen] = useState(true)
   const [openDropdown, setOpenDropdown] = useState<string | null>(null)
-
-  // Example user data - replace with actual user data from context or props
-  const firstName = 'John'
-  const lastName = 'Doe'
-
   const location = useLocation()
 
   const toggleDropdown = (dropdown: string) => {
     setOpenDropdown((prev) => (prev === dropdown ? null : dropdown))
   }
 
-  // A helper to check if a route is active
   const isActive = (path: string) => location.pathname === path
 
-  // Styles for active links
+  // Active link style: just bold, no color
   const activeLinkStyle: React.CSSProperties = {
-    color: '#D37B40',
     fontWeight: 'bold',
   }
 
-  // Common nav link style
+  // Common nav link style (top-level links)
   const navLinkStyle: React.CSSProperties = {
     color: '#F4F7F1',
     fontSize: '1.2rem',
@@ -32,16 +30,19 @@ const Sidebar: React.FC = () => {
     alignItems: 'center',
     textDecoration: 'none',
     padding: '0.5rem 0',
-    borderRadius: '1rem',
+    cursor: 'pointer',
   }
 
+  // Dropdown style
   const dropdownListStyle: React.CSSProperties = {
     backgroundColor: '#F4F7F1',
     listStyle: 'none',
     paddingLeft: '1rem',
     marginTop: '0.5rem',
     fontSize: '1.1rem',
-    borderRadius: '1rem',
+    borderRadius: '0.5rem',
+    paddingBottom: '0.5rem',
+    paddingTop: '0.5rem',
   }
 
   const dropdownLinkStyle: React.CSSProperties = {
@@ -51,45 +52,73 @@ const Sidebar: React.FC = () => {
     padding: '0.3rem 0',
   }
 
+  // Styles for the toggle "triangle"
+  const toggleButtonStyle: React.CSSProperties = {
+    position: 'absolute',
+    top: '20px',
+    // If open, show the toggle on the right edge; if collapsed, on the left edge outside
+    right: isOpen ? '-15px' : 'auto',
+    left: isOpen ? 'auto' : '-15px',
+    backgroundColor: '#738C40',
+    border: '2px solid #F4F7F1',
+    borderRadius: '50%',
+    width: '30px',
+    height: '30px',
+    color: '#F4F7F1',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    cursor: 'pointer',
+    zIndex: 9999,
+  }
+
+  const containerStyle: React.CSSProperties = {
+    backgroundColor: '#738C40',
+    width: isOpen ? '250px' : '60px',
+    transition: 'width 0.3s',
+    position: 'relative',
+    overflow: 'hidden', // For clean transitions
+  }
+
   return (
-    <div
-      className={`d-flex flex-column vh-100 p-3 ${isOpen ? '' : 'collapsed'}`}
-      style={{
-        backgroundColor: '#738C40',
-        width: isOpen ? '250px' : '60px',
-        transition: 'width 0.3s',
-      }}
-    >
-      <button
-        onClick={() => setIsOpen(!isOpen)}
-        className="btn btn-primary mb-3"
-        style={{ width: '100%' }}
-      >
-        {isOpen ? 'Collapse' : 'Expand'}
-      </button>
+    <div style={containerStyle} className="d-flex flex-column vh-100 p-3">
+      {/* Toggle Button (Triangles) */}
+      <div style={toggleButtonStyle} onClick={() => setIsOpen(!isOpen)}>
+        {isOpen ? (
+          <i className="bi bi-chevron-right" style={{ fontSize: '1.2rem' }}></i>
+        ) : (
+          <i className="bi bi-chevron-left" style={{ fontSize: '1.2rem' }}></i>
+        )}
+      </div>
+
+      {/* Logo and Welcome */}
       {isOpen && (
         <h2
-          className="text-center mb-4 text-white"
-          style={{ fontSize: '1.5rem' }}
+          className="text-center text-white"
+          style={{ fontSize: '1.5rem', marginBottom: '1rem' }}
         >
           FieldBase
         </h2>
       )}
-      {isOpen && (
+
+      {isOpen && firstname && lastname && (
         <p className="text-white" style={{ fontSize: '1.2rem' }}>
-          Welcome, {firstName} {lastName}
+          Welcome, {firstname} {lastname}
         </p>
       )}
-      <ul className="nav flex-column" style={{ fontSize: '1.2rem' }}>
+
+      {/* Add some margin-top to push menu items lower */}
+      <ul
+        className="nav flex-column"
+        style={{ fontSize: '1.2rem', marginTop: '2rem' }}
+      >
         {/* Organization Profile */}
         <li className="nav-item">
           <div
-            className="nav-link"
             onClick={() => toggleDropdown('organization')}
             style={{
               ...navLinkStyle,
               ...(openDropdown === 'organization' ? activeLinkStyle : {}),
-              cursor: 'pointer',
             }}
           >
             <i className="bi bi-building me-2"></i>
@@ -97,21 +126,17 @@ const Sidebar: React.FC = () => {
           </div>
           {openDropdown === 'organization' && (
             <ul style={dropdownListStyle}>
-              {/* Group Admin */}
               <li>
                 <Link
                   to="/register"
-                  className="nav-link"
                   style={{
                     ...dropdownLinkStyle,
                     ...(isActive('/register') ? activeLinkStyle : {}),
                   }}
                 >
-                  <i className="bi bi-people me-2"></i>
-                  {isOpen && 'Group Admin'}
+                  Group Admin
                 </Link>
               </li>
-
               <li>
                 <Link to="/team-leader" style={dropdownLinkStyle}>
                   Team Leader
@@ -137,14 +162,12 @@ const Sidebar: React.FC = () => {
         </li>
 
         {/* Projects */}
-        <li className="nav-item mt-2">
+        <li className="nav-item mt-3">
           <div
-            className="nav-link"
             onClick={() => toggleDropdown('project')}
             style={{
               ...navLinkStyle,
               ...(openDropdown === 'project' ? activeLinkStyle : {}),
-              cursor: 'pointer',
             }}
           >
             <i className="bi bi-folder me-2"></i>
@@ -167,14 +190,12 @@ const Sidebar: React.FC = () => {
         </li>
 
         {/* Activities Notes */}
-        <li className="nav-item mt-2">
+        <li className="nav-item mt-3">
           <div
-            className="nav-link"
             onClick={() => toggleDropdown('activity')}
             style={{
               ...navLinkStyle,
               ...(openDropdown === 'activity' ? activeLinkStyle : {}),
-              cursor: 'pointer',
             }}
           >
             <i className="bi bi-journal-text me-2"></i>
