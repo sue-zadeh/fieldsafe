@@ -20,6 +20,7 @@ db.connect((err) => {
 })
 
 const users = [
+  { username: 'dsharp@cvnz.org.nz', password: 'Ausnew#2021!', role: 'Admin' },
   { username: 'suezadeh.a@gmail.com', password: '123Adminzx.', role: 'Admin' },
   { username: 'admin1@example.com', password: '123Adminzx.', role: 'Admin' },
   { username: 'admin2@example.com', password: '123Adminzx.', role: 'Admin' },
