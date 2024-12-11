@@ -20,17 +20,21 @@ db.connect((err) => {
 })
 
 const users = [
-  { username: 'admin 1', password: '123Adminzx.', role: 'Admin' },
-  { username: 'admin 2', password: '123Adminzx.', role: 'Admin' },
-  { username: 'admin 3', password: '123Adminzx.', role: 'Admin' },
+  { username: 'suezadeh.a@gmail.com', password: '123Adminzx.', role: 'Admin' },
+  { username: 'admin1@example.com', password: '123Adminzx.', role: 'Admin' },
+  { username: 'admin2@example.com', password: '123Adminzx.', role: 'Admin' },
+  { username: 'admin3@example.com', password: '123Adminzx.', role: 'Admin' },
 ]
 
-users.forEach(async (user, index) => {
+users.forEach(async (user) => {
   const hashedPassword = await bcrypt.hash(user.password, 10)
   const query = 'INSERT INTO login (username, password, role) VALUES (?, ?, ?)'
-  db.query(query, [user.username, hashedPassword, user.role], (err) => {
-    if (err) console.error(`Error inserting user ${user.username}:`, err)
-    else console.log(`User ${user.username} inserted successfully.`)
+  db.query(query, [user.username.trim(), hashedPassword, user.role], (err) => {
+    if (err) {
+      console.error(`Error inserting user ${user.username}:`, err)
+    } else {
+      console.log(`User ${user.username} inserted successfully.`)
+    }
   })
 })
 

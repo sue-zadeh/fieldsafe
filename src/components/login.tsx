@@ -1,83 +1,98 @@
 import React, { useState, useEffect } from 'react'
-import { FaEye, FaEyeSlash } from 'react-icons/fa' // Import eye icons for password visibility toggle
-// import axios from 'axios'
+import { FaEye, FaEyeSlash } from 'react-icons/fa'
+import axios, { AxiosError } from 'axios'
 
 interface LoginProps {
   onLoginSuccess: () => void
 }
 
 const Login: React.FC<LoginProps> = ({ onLoginSuccess }) => {
-  const [username, setUsername] = useState('')
-  const [password, setPassword] = useState('')
-  const [error, setError] = useState('')
-  const [rememberMe, setRememberMe] = useState(false) // State for remembering user
-  const [isLoading, setIsLoading] = useState(false) // State to show loading during login
-  const [isForgotPassword, setIsForgotPassword] = useState(false) // State for Forgot Password toggle
-  const [showPassword, setShowPassword] = useState(false) // State for toggling password visibility
+  const [email, setEmail] = useState<string>('')
+  const [password, setPassword] = useState<string>('')
+  const [error, setError] = useState<string>('')
+  const [rememberMe, setRememberMe] = useState<boolean>(false)
+  const [isLoading, setIsLoading] = useState<boolean>(false)
+  const [isForgotPassword, setIsForgotPassword] = useState<boolean>(false)
+  const [showPassword, setShowPassword] = useState<boolean>(false)
 
-  // Load remembered username and password from localStorage on component mount
   useEffect(() => {
-    const savedUsername = localStorage.getItem('username')
-    const savedPassword = localStorage.getItem('password')
-    if (savedUsername && savedPassword) {
-      setUsername(savedUsername)
-      setPassword(savedPassword)
+    const savedEmail = localStorage.getItem('email')
+    if (savedEmail) {
+      setEmail(savedEmail)
       setRememberMe(true)
     }
   }, [])
 
-  // Function to handle login
   const handleLogin = async () => {
-    if (!username || !password) {
-      setError('Please enter a username and password.')
+    if (!email || !password) {
+      setError('Please enter your email and password.')
       return
     }
 
-    setIsLoading(true) // Show loading spinner
+    setIsLoading(true)
+    setError('')
+
     try {
-      // const user = {username, password}
-      // await axios.post('/api/login', user, {
-      const response = await fetch('/api/login', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ username, password }), // Send username and password to the server
-      })
+      const response = await axios.post('/api/login', { email, password })
 
-      if (!response.ok) {
-        const errorData = await response.json()
-        setError(errorData.message || 'Login failed. Please try again.')
-        setIsLoading(false)
-        return
-      }
-
-      const data = await response.json()
-      setIsLoading(false)
-
-      if (data.message === 'Login successful') {
+      if (response.data.message === 'Login successful') {
         onLoginSuccess()
-        setError('')
-
-        // Save username and password if "Remember Me" is checked
         if (rememberMe) {
-          localStorage.setItem('username', username)
-          localStorage.setItem('password', password)
+          localStorage.setItem('email', email)
         } else {
-          localStorage.removeItem('username')
-          localStorage.removeItem('password')
+          localStorage.removeItem('email')
         }
       } else {
-        setError(data.message || 'Login failed. Please try again.')
+        setError(response.data.message || 'Login failed. Please try again.')
       }
     } catch (err) {
-      console.error('Error during login:', err)
+      const axiosError = err as AxiosError<{ message: string }>
+      console.error('Error during login:', axiosError)
+
+      if (axiosError.response?.data?.message) {
+        setError(axiosError.response.data.message)
+      } else {
+        setError('An unexpected error occurred. Please try again.')
+      }
+    } finally {
       setIsLoading(false)
-      setError('Server error. Please try again.')
     }
   }
 
-  // Function to toggle password visibility
+  const handleForgotPassword = async () => {
+    if (!email) {
+      setError('Please enter your email.')
+      return
+    }
+
+    setIsLoading(true)
+    setError('')
+
+    try {
+      const response = await axios.post('/api/forgot-password', { email })
+
+      if (response.data.message === 'Password reset email sent successfully') {
+        alert('Password reset email sent. Check your inbox.')
+        setError('')
+      } else {
+        setError(response.data.message || 'Failed to send reset email.')
+      }
+    } catch (err) {
+      const axiosError = err as AxiosError<{ message: string }>
+      console.error('Error during forgot password:', axiosError)
+
+      if (axiosError.response?.data?.message) {
+        setError(axiosError.response.data.message)
+      } else {
+        setError('An unexpected error occurred. Please try again.')
+      }
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
   const togglePasswordVisibility = () => {
-    setShowPassword((prev) => !prev)
+    setShowPassword(!showPassword)
   }
 
   return (
@@ -89,7 +104,6 @@ const Login: React.FC<LoginProps> = ({ onLoginSuccess }) => {
         className="login-box p-4 shadow rounded"
         style={{ backgroundColor: '#FFFFFF', width: '400px' }}
       >
-        {/* Header */}
         <h2 className="text-center mb-4" style={{ color: '#76D6E2' }}>
           Welcome to FieldBase
         </h2>
@@ -97,35 +111,32 @@ const Login: React.FC<LoginProps> = ({ onLoginSuccess }) => {
           <i>{isForgotPassword ? 'Forgot Password' : 'Login'}</i>
         </h3>
 
-        {/* Username Input */}
         <div className="form-group mb-3">
-          <label htmlFor="username">Username</label>
+          <label htmlFor="email">Email</label>
           <input
-            type="text"
-            id="username"
+            type="email"
+            id="email"
             className="form-control"
-            placeholder="Enter your username"
-            value={username}
-            onChange={(e) => setUsername(e.target.value)}
+            placeholder="Enter your email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
           />
         </div>
 
-        {/* Password Input with Toggle Icon */}
         {!isForgotPassword && (
           <div className="form-group mb-3 position-relative">
             <label htmlFor="password">Password</label>
             <input
-              type={showPassword ? 'text' : 'password'} // Dynamically change input type
+              type={showPassword ? 'text' : 'password'}
               id="password"
               className="form-control"
               placeholder="Enter your password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
             />
-            {/* Eye Icon for Toggling Password Visibility */}
             <span
-              className="position-absolute top-50 end-0 translate-middle-y pe-3"
-              style={{ cursor: 'pointer', fontSize: '1.5rem' }} // Center and enlarge icon
+              className="position-absolute top-50 end-0 translate-middle-y pe-3 pt-3"
+              style={{ cursor: 'pointer', fontSize: '1.5rem' }}
               onClick={togglePasswordVisibility}
             >
               {showPassword ? <FaEyeSlash /> : <FaEye />}
@@ -133,10 +144,8 @@ const Login: React.FC<LoginProps> = ({ onLoginSuccess }) => {
           </div>
         )}
 
-        {/* Error Message */}
         {error && <div className="text-danger">{error}</div>}
 
-        {/* Remember Me Checkbox */}
         {!isForgotPassword && (
           <div className="form-group form-check">
             <input
@@ -152,19 +161,19 @@ const Login: React.FC<LoginProps> = ({ onLoginSuccess }) => {
           </div>
         )}
 
-        {/* Login Button */}
-        {!isForgotPassword && (
-          <button
-            className="btn w-100 mt-3"
-            style={{ backgroundColor: '#0094B6', color: 'white' }}
-            onClick={handleLogin}
-            disabled={isLoading}
-          >
-            {isLoading ? 'Logging in...' : 'Login'}
-          </button>
-        )}
+        <button
+          className="btn w-100 mt-3"
+          style={{ backgroundColor: '#0094B6', color: 'white' }}
+          onClick={isForgotPassword ? handleForgotPassword : handleLogin}
+          disabled={isLoading}
+        >
+          {isLoading
+            ? 'Processing...'
+            : isForgotPassword
+            ? 'Send Password Reset Email'
+            : 'Login'}
+        </button>
 
-        {/* Forgot Password Button */}
         <button
           className="btn w-100 mt-3 btn-link"
           style={{ color: '#0094B6' }}

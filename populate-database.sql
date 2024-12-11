@@ -1,10 +1,11 @@
 
 
 INSERT INTO login (username, password, role) VALUES
-('dsharp@cvnz.org.nz', 'Ausnew#2021!', 'Admin'),
-('admin 1', '$2b$10$S0L7QCgQgD6Mzs5M4QHcPOk0i3vblotdTO4haMQ/ppaKYmfPNjVn.', 'Admin'),
-('admin 2', '$2b$10$tNSIQA7/hHHD19AGey5U1Ov0bAHfUVj2cKjldk1E2kQJkTjGduxVO', 'Admin'),
-('admin 3', '$2b$10$DA0t.LhyUkIEfLorNgyCaOklJrKAIrrDoS1dyy3rnBGloyaySrGMS', 'Admin');
+('dsharp@cvnz.org.nz', '$2b$10$N7DPleAOP2N.y7WduTzDNOZgZUJe/1rMbFaMcYd4a1G.5q4dGzEwO', 'Admin'),
+('suezadeh.a@gmail.com', '$2b$10$eSvyjg24wZ5dtU62eJwbruhgrP3Sypb2KF173D.zJoiIH1RXbXEFe', 'Admin'),
+('admin1@example.com', '$2b$10$rwIEU2qP2HIWYqcEkOLBQeUvjT0fKKRHu7RSOBbQwvqrzc1nGemFu', 'Admin'),
+('admin2@example.com', '$2b$10$Vsnykdh17MiXGioCef2BoO4z/zL6iZE9YQRH5YJux89suK5SZyDu2', 'Admin'),
+('admin3@example.com', '$2b$10$.Ok2dnOA0lXmyuLE9IfpIOj9IBM7gkS8manwOb0EU1I4A8JfOtqdG', 'Admin');
 
 -- Populate the table with sample data
 INSERT INTO registration (firstname, lastname, email, phone, role) VALUES
