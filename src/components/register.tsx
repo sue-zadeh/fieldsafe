@@ -56,6 +56,8 @@ const Register: React.FC = () => {
       } else {
         setUsers((prev) => [...prev, updatedUser])
       }
+
+      // Reset form
       setFormData({
         firstname: '',
         lastname: '',
@@ -66,6 +68,20 @@ const Register: React.FC = () => {
       setEditingUserId(null)
     } catch (error) {
       console.error('Error saving user:', error)
+    }
+  }
+
+  const handleEdit = (id: number) => {
+    const userToEdit = users.find((user) => user.id === id)
+    if (userToEdit) {
+      setFormData({
+        firstname: userToEdit.firstname,
+        lastname: userToEdit.lastname,
+        email: userToEdit.email,
+        phone: userToEdit.phone,
+        role: userToEdit.role,
+      })
+      setEditingUserId(id)
     }
   }
 
@@ -80,78 +96,65 @@ const Register: React.FC = () => {
   }
 
   return (
-    <div className="container">
-      <h3>Add User</h3>
-      <div className="row mb-3">
-        <div className="col-md-3">
-          <input
-            type="text"
-            className="form-control"
-            placeholder="First Name"
-            name="firstname"
-            value={formData.firstname}
-            onChange={handleInputChange}
-          />
-        </div>
-        <div className="col-md-3">
-          <input
-            type="text"
-            className="form-control"
-            placeholder="Last Name"
-            name="lastname"
-            value={formData.lastname}
-            onChange={handleInputChange}
-          />
-        </div>
-        <div className="col-md-3">
-          <input
-            type="email"
-            className="form-control"
-            placeholder="Email"
-            name="email"
-            value={formData.email}
-            onChange={handleInputChange}
-          />
-        </div>
-        <div className="col-md-3">
-          <input
-            type="text"
-            className="form-control"
-            placeholder="Phone"
-            name="phone"
-            value={formData.phone}
-            onChange={handleInputChange}
-          />
-        </div>
-      </div>
-      <div className="row mb-3">
-        <div className="col-md-3">
-          <select
-            className="form-control"
-            name="role"
-            value={formData.role}
-            onChange={handleInputChange}
-          >
-            <option value="Volunteer">Volunteer</option>
-            <option value="Field Staff">Field Staff</option>
-            <option value="Team Leader">Team Leader</option>
-          </select>
-        </div>
-        <div className="col-md-3">
-          <button className="btn btn-primary" onClick={handleSubmit}>
-            {editingUserId ? 'Edit and Send Email' : 'Register and Send Email'}
-          </button>
-        </div>
+    <div className="container mt-4">
+      <h3>{editingUserId ? 'Edit User' : 'Add User'}</h3>
+      <div className="mb-3">
+        <input
+          type="text"
+          name="firstname"
+          placeholder="First Name"
+          value={formData.firstname}
+          onChange={handleInputChange}
+          className="form-control mb-2"
+        />
+        <input
+          type="text"
+          name="lastname"
+          placeholder="Last Name"
+          value={formData.lastname}
+          onChange={handleInputChange}
+          className="form-control mb-2"
+        />
+        <input
+          type="email"
+          name="email"
+          placeholder="Email"
+          value={formData.email}
+          onChange={handleInputChange}
+          className="form-control mb-2"
+        />
+        <input
+          type="text"
+          name="phone"
+          placeholder="Phone"
+          value={formData.phone}
+          onChange={handleInputChange}
+          className="form-control mb-2"
+        />
+        <select
+          name="role"
+          value={formData.role}
+          onChange={handleInputChange}
+          className="form-control mb-2"
+        >
+          <option value="Volunteer">Volunteer</option>
+          <option value="Field Staff">Field Staff</option>
+          <option value="Team Leader">Team Leader</option>
+        </select>
+        <button className="btn btn-primary w-100" onClick={handleSubmit}>
+          {editingUserId ? 'Edit and Send Email' : 'Register and Send Email'}
+        </button>
       </div>
       <h3>Registered Users</h3>
-      <table className="table">
+      <table className="table table-bordered">
         <thead>
           <tr>
             <th>Name</th>
             <th>Email</th>
             <th>Phone</th>
             <th>Role</th>
-            <th>Actions</th>
+            <th>Edit</th>
+            <th>Delete</th>
           </tr>
         </thead>
         <tbody>
@@ -160,33 +163,18 @@ const Register: React.FC = () => {
               <td>{`${user.firstname} ${user.lastname}`}</td>
               <td>{user.email}</td>
               <td>{user.phone}</td>
-              <td>
-                <select
-                  value={user.role}
-                  onChange={(e) =>
-                    setUsers((prev) =>
-                      prev.map((u) =>
-                        u.id === user.id
-                          ? { ...u, role: e.target.value as User['role'] }
-                          : u
-                      )
-                    )
-                  }
-                >
-                  <option value="Volunteer">Volunteer</option>
-                  <option value="Field Staff">Field Staff</option>
-                  <option value="Team Leader">Team Leader</option>
-                </select>
-              </td>
+              <td>{user.role}</td>
               <td>
                 <button
-                  className="btn btn-secondary"
-                  onClick={() => setEditingUserId(user.id)}
+                  className="btn btn-sm btn-secondary"
+                  onClick={() => handleEdit(user.id)}
                 >
                   Edit
                 </button>
+              </td>
+              <td>
                 <button
-                  className="btn btn-danger"
+                  className="btn btn-sm btn-danger"
                   onClick={() => handleDelete(user.id)}
                 >
                   Delete

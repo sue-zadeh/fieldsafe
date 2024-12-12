@@ -17,32 +17,71 @@ const Sidebar: React.FC<SidebarProps> = ({ firstname = '', lastname = '' }) => {
 
   const isActive = (path: string) => location.pathname === path
 
-  // Active link style: just bold, no color
+  const displayName =
+    firstname && lastname ? `${firstname} ${lastname}` : 'Admin'
+
+  const sidebarStyle: React.CSSProperties = {
+    backgroundColor: '#738C40',
+    width: isOpen ? '250px' : '60px',
+    transition: 'width 0.3s',
+    position: 'relative',
+    overflow: 'hidden',
+    boxShadow: '2px 0 5px rgba(0,0,0,0.1)',
+  }
+
+  const toggleButtonStyle: React.CSSProperties = {
+    position: 'absolute',
+    top: '20px',
+    left: isOpen ? '210px' : '10px',
+    backgroundColor: 'transparent',
+    border: 'none',
+    color: '#F4F7F1',
+    fontSize: '1.5rem',
+    cursor: 'pointer',
+    zIndex: 9999,
+  }
+
+  const headingStyle: React.CSSProperties = {
+    fontSize: '1.5rem',
+    marginBottom: '1rem',
+    textAlign: 'center',
+    color: '#F4F7F1',
+  }
+
+  const welcomeStyle: React.CSSProperties = {
+    fontSize: '1.2rem',
+    color: '#F4F7F1',
+    textAlign: 'center',
+    marginBottom: '2rem',
+  }
+
+  const navItemContainerStyle: React.CSSProperties = {
+    marginTop: '3rem',
+  }
+
+  const navLinkStyle: React.CSSProperties = {
+    color: '#F4F7F1',
+    fontSize: '1.1rem',
+    textDecoration: 'none',
+    display: 'flex',
+    alignItems: 'center',
+    padding: '0.5rem 1rem',
+    cursor: 'pointer',
+    borderRadius: '0.5rem',
+    transition: 'background-color 0.2s',
+    whiteSpace: 'nowrap',
+  }
+
   const activeLinkStyle: React.CSSProperties = {
     fontWeight: 'bold',
   }
 
-  // Common nav link style (top-level links)
-  const navLinkStyle: React.CSSProperties = {
-    color: '#F4F7F1',
-    fontSize: '1.2rem',
-    display: 'flex',
-    alignItems: 'center',
-    textDecoration: 'none',
-    padding: '0.5rem 0',
-    cursor: 'pointer',
-  }
-
-  // Dropdown style
   const dropdownListStyle: React.CSSProperties = {
     backgroundColor: '#F4F7F1',
     listStyle: 'none',
-    paddingLeft: '1rem',
-    marginTop: '0.5rem',
-    fontSize: '1.1rem',
+    margin: '0.5rem 0 0 0',
+    padding: '0.5rem 1rem',
     borderRadius: '0.5rem',
-    paddingBottom: '0.5rem',
-    paddingTop: '0.5rem',
   }
 
   const dropdownLinkStyle: React.CSSProperties = {
@@ -50,173 +89,139 @@ const Sidebar: React.FC<SidebarProps> = ({ firstname = '', lastname = '' }) => {
     textDecoration: 'none',
     display: 'block',
     padding: '0.3rem 0',
+    transition: 'background-color 0.2s',
   }
 
-  // Styles for the toggle "triangle"
-  const toggleButtonStyle: React.CSSProperties = {
-    position: 'absolute',
-    top: '20px',
-    // If open, show the toggle on the right edge; if collapsed, on the left edge outside
-    right: isOpen ? '-15px' : 'auto',
-    left: isOpen ? 'auto' : '-15px',
-    backgroundColor: '#738C40',
-    border: '2px solid #F4F7F1',
-    borderRadius: '50%',
-    width: '30px',
-    height: '30px',
-    color: '#F4F7F1',
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    cursor: 'pointer',
-    zIndex: 9999,
+  const topNavHoverBg = 'rgba(244,247,241,0.2)'
+  const dropdownHoverBg = '#e0e0e0'
+
+  const mergeStyles = (
+    ...styles: (React.CSSProperties | undefined)[]
+  ): React.CSSProperties => Object.assign({}, ...styles)
+
+  const NavItem: React.FC<{
+    icon: string
+    label: string
+    dropdownId?: string
+    marginTop?: string
+    children?: React.ReactNode
+  }> = ({ icon, label, dropdownId, marginTop, children }) => {
+    const isDropdownOpen = dropdownId && openDropdown === dropdownId
+    const handleClick = () => {
+      if (dropdownId) toggleDropdown(dropdownId)
+    }
+
+    return (
+      <>
+        <div
+          onClick={dropdownId ? handleClick : undefined}
+          title={!isOpen ? label : ''} // Tooltip when collapsed
+          style={mergeStyles(
+            navLinkStyle,
+            marginTop ? { marginTop } : {},
+            isDropdownOpen ? activeLinkStyle : {}
+          )}
+          onMouseEnter={(e) =>
+            (e.currentTarget.style.backgroundColor = topNavHoverBg)
+          }
+          onMouseLeave={(e) =>
+            (e.currentTarget.style.backgroundColor = 'transparent')
+          }
+        >
+          <i className={`${icon} me-2`}></i>
+          {isOpen && label}
+        </div>
+        {isOpen && children}
+      </>
+    )
   }
 
-  const containerStyle: React.CSSProperties = {
-    backgroundColor: '#738C40',
-    width: isOpen ? '250px' : '60px',
-    transition: 'width 0.3s',
-    position: 'relative',
-    overflow: 'hidden', // For clean transitions
+  const DropdownLink: React.FC<{ to: string; label: string }> = ({
+    to,
+    label,
+  }) => {
+    return (
+      <li>
+        <Link
+          to={to}
+          style={dropdownLinkStyle}
+          onMouseEnter={(e) =>
+            (e.currentTarget.style.backgroundColor = dropdownHoverBg)
+          }
+          onMouseLeave={(e) =>
+            (e.currentTarget.style.backgroundColor = 'transparent')
+          }
+          className={isActive(to) ? 'active' : ''}
+        >
+          {label}
+        </Link>
+      </li>
+    )
   }
 
   return (
-    <div style={containerStyle} className="d-flex flex-column vh-100 p-3">
-      {/* Toggle Button (Triangles) */}
-      <div style={toggleButtonStyle} onClick={() => setIsOpen(!isOpen)}>
-        {isOpen ? (
-          <i className="bi bi-chevron-right" style={{ fontSize: '1.2rem' }}></i>
-        ) : (
-          <i className="bi bi-chevron-left" style={{ fontSize: '1.2rem' }}></i>
-        )}
-      </div>
-
-      {/* Logo and Welcome */}
-      {isOpen && (
-        <h2
-          className="text-center text-white"
-          style={{ fontSize: '1.5rem', marginBottom: '1rem' }}
-        >
-          FieldBase
-        </h2>
-      )}
-
-      {isOpen && firstname && lastname && (
-        <p className="text-white" style={{ fontSize: '1.2rem' }}>
-          Welcome, {firstname} {lastname}
-        </p>
-      )}
-
-      {/* Add some margin-top to push menu items lower */}
-      <ul
-        className="nav flex-column"
-        style={{ fontSize: '1.2rem', marginTop: '2rem' }}
+    <div style={sidebarStyle} className="d-flex flex-column vh-100">
+      <button
+        style={toggleButtonStyle}
+        onClick={() => setIsOpen(!isOpen)}
+        title="Toggle Menu"
       >
-        {/* Organization Profile */}
-        <li className="nav-item">
-          <div
-            onClick={() => toggleDropdown('organization')}
-            style={{
-              ...navLinkStyle,
-              ...(openDropdown === 'organization' ? activeLinkStyle : {}),
-            }}
-          >
-            <i className="bi bi-building me-2"></i>
-            {isOpen && 'Organization Profile'}
-          </div>
+        <i className="bi bi-list"></i>
+      </button>
+
+      {isOpen && (
+        <>
+          <h2 style={headingStyle}>FieldBase</h2>
+          <p style={welcomeStyle}>Welcome, {displayName}</p>
+        </>
+      )}
+
+      <div style={navItemContainerStyle}>
+        <NavItem
+          icon="bi bi-building"
+          label="Organization Profile"
+          dropdownId="organization"
+          marginTop="5.5em"
+        >
           {openDropdown === 'organization' && (
             <ul style={dropdownListStyle}>
-              <li>
-                <Link
-                  to="/register"
-                  style={{
-                    ...dropdownLinkStyle,
-                    ...(isActive('/register') ? activeLinkStyle : {}),
-                  }}
-                >
-                  Group Admin
-                </Link>
-              </li>
-              <li>
-                <Link to="/team-leader" style={dropdownLinkStyle}>
-                  Team Leader
-                </Link>
-              </li>
-              <li>
-                <Link to="/field-staff" style={dropdownLinkStyle}>
-                  Field Staff
-                </Link>
-              </li>
-              <li>
-                <Link to="/volunteer" style={dropdownLinkStyle}>
-                  Volunteer
-                </Link>
-              </li>
-              <li>
-                <Link to="/objectives" style={dropdownLinkStyle}>
-                  Objectives
-                </Link>
-              </li>
+              <DropdownLink to="/register" label="Group Admin" />
+              <DropdownLink to="/team-leader" label="Team Leader" />
+              <DropdownLink to="/field-staff" label="Field Staff" />
+              <DropdownLink to="/volunteer" label="Volunteer" />
+              <DropdownLink to="/objectives" label="Objectives" />
             </ul>
           )}
-        </li>
+        </NavItem>
 
-        {/* Projects */}
-        <li className="nav-item mt-3">
-          <div
-            onClick={() => toggleDropdown('project')}
-            style={{
-              ...navLinkStyle,
-              ...(openDropdown === 'project' ? activeLinkStyle : {}),
-            }}
-          >
-            <i className="bi bi-folder me-2"></i>
-            {isOpen && 'Projects'}
-          </div>
+        <NavItem
+          icon="bi bi-folder"
+          label="Projects"
+          dropdownId="project"
+          marginTop="1.5rem"
+        >
           {openDropdown === 'project' && (
             <ul style={dropdownListStyle}>
-              <li>
-                <Link to="/projects/add" style={dropdownLinkStyle}>
-                  Add Project
-                </Link>
-              </li>
-              <li>
-                <Link to="/projects/search" style={dropdownLinkStyle}>
-                  Search Project
-                </Link>
-              </li>
+              <DropdownLink to="/projects/add" label="Add Project" />
+              <DropdownLink to="/projects/search" label="Search Project" />
             </ul>
           )}
-        </li>
+        </NavItem>
 
-        {/* Activities Notes */}
-        <li className="nav-item mt-3">
-          <div
-            onClick={() => toggleDropdown('activity')}
-            style={{
-              ...navLinkStyle,
-              ...(openDropdown === 'activity' ? activeLinkStyle : {}),
-            }}
-          >
-            <i className="bi bi-journal-text me-2"></i>
-            {isOpen && 'Activities Notes'}
-          </div>
+        <NavItem
+          icon="bi bi-journal-text"
+          label="Activities Notes"
+          dropdownId="activity"
+          marginTop="1.5rem"
+        >
           {openDropdown === 'activity' && (
             <ul style={dropdownListStyle}>
-              <li>
-                <Link to="/activities/add" style={dropdownLinkStyle}>
-                  Add Activity
-                </Link>
-              </li>
-              <li>
-                <Link to="/activities/search" style={dropdownLinkStyle}>
-                  Search Activity
-                </Link>
-              </li>
+              <DropdownLink to="/activities/add" label="Add Activity" />
+              <DropdownLink to="/activities/search" label="Search Activity" />
             </ul>
           )}
-        </li>
-      </ul>
+        </NavItem>
+      </div>
     </div>
   )
 }

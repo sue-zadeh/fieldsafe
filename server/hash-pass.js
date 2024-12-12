@@ -20,16 +20,47 @@ db.connect((err) => {
 })
 
 const users = [
-  { username: 'dsharp@cvnz.org.nz', password: 'Ausnew#2021!', role: 'Admin' },
-  { username: 'suezadeh.a@gmail.com', password: '123Adminzx.', role: 'Admin' },
-  { username: 'admin1@example.com', password: '123Adminzx.', role: 'Admin' },
-  { username: 'admin2@example.com', password: '123Adminzx.', role: 'Admin' },
-  { username: 'admin3@example.com', password: '123Adminzx.', role: 'Admin' },
+  {
+    firstname: 'Dave',
+    lastname: 'Sharp',
+    username: 'dsharp@cvnz.org.nz',
+    password: 'Ausnew#2021!',
+    role: 'Admin',
+  },
+  {
+    firstname: 'Sue',
+    lastname: 'Zadeh',
+    username: 'suezadeh.a@gmail.com',
+    password: '123Adminzx.',
+    role: 'Admin',
+  },
+  {
+    firstname: 'john',
+    lastname: 'Doe',
+    username: 'admin1@example.com',
+    password: '123Adminzx.',
+    role: 'Admin',
+  },
+  {
+    firstname: 'Helen',
+    lastname: 'voly',
+    username: 'admin2@example.com',
+    password: '123Adminzx.',
+    role: 'Admin',
+  },
+  {
+    firstname: 'Bill',
+    lastname: 'Hey',
+    username: 'admin3@example.com',
+    password: '123Adminzx.',
+    role: 'Admin',
+  },
 ]
 
 users.forEach(async (user) => {
   const hashedPassword = await bcrypt.hash(user.password, 10)
-  const query = 'INSERT INTO login (username, password, role) VALUES (?, ?, ?)'
+  const query =
+    'INSERT INTO login (username, password, role) VALUES (?, ?, ?, ?, ?)'
   db.query(query, [user.username.trim(), hashedPassword, user.role], (err) => {
     if (err) {
       console.error(`Error inserting user ${user.username}:`, err)
