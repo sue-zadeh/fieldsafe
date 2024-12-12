@@ -3,6 +3,7 @@ import express from 'express'
 import bcrypt from 'bcrypt'
 import dotenv from 'dotenv'
 import nodemailer from 'nodemailer'
+import jwt from 'jsonwebtoken'  // Added import for JWT
 
 dotenv.config()
 
@@ -43,6 +44,7 @@ app.post('/api/login', async (req, res) => {
     const [rows] = await pool.query('SELECT * FROM login WHERE username = ?', [
       email,
     ])
+
     if (rows.length === 0) {
       return res.status(401).json({ message: 'Invalid email or password' })
     }
@@ -53,9 +55,22 @@ app.post('/api/login', async (req, res) => {
       return res.status(401).json({ message: 'Invalid email or password' })
     }
 
+    // Generate JWT token on successful login
+    if (!process.env.JWT_SECRET) {
+      console.error('JWT_SECRET is not defined in .env')
+      return res.status(500).json({ message: 'Server configuration error' })
+    }
+
+    const token = jwt.sign(
+      { userId: user.id, role: user.role },
+      process.env.JWT_SECRET,
+      { expiresIn: '1h' }
+    )
+
     return res.json({
       message: 'Login successful',
-      user: { id: user.id, role: user.role },
+      token: token,
+      user: { id: user.id, role: user.role } // Optional to include user details
     })
   } catch (err) {
     console.error('Error during login:', err.message)

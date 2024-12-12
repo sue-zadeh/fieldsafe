@@ -35,13 +35,19 @@ const Login: React.FC<LoginProps> = ({ onLoginSuccess }) => {
     try {
       const response = await axios.post('/api/login', { email, password })
 
-      if (response.data.message === 'Login successful') {
-        onLoginSuccess()
+      if (response.data.message === 'Login successful' && response.data.token) {
+        // Store the token in localStorage
+        localStorage.setItem('authToken', response.data.token)
+
+        // Optionally store email if remember me is checked
         if (rememberMe) {
           localStorage.setItem('email', email)
         } else {
           localStorage.removeItem('email')
         }
+
+        // Notify the parent component that login succeeded
+        onLoginSuccess()
       } else {
         setError(response.data.message || 'Login failed. Please try again.')
       }

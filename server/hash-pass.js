@@ -58,17 +58,34 @@ const users = [
 ]
 
 users.forEach(async (user) => {
-  const hashedPassword = await bcrypt.hash(user.password, 10)
-  const query =
-    'INSERT INTO login (username, password, role) VALUES (?, ?, ?, ?, ?)'
-  db.query(query, [user.username.trim(), hashedPassword, user.role], (err) => {
-    if (err) {
-      console.error(`Error inserting user ${user.username}:`, err)
-    } else {
-      console.log(`User ${user.username} inserted successfully.`)
-    }
-  })
+  try {
+    const hashedPassword = await bcrypt.hash(user.password, 10)
+    const query = `
+      INSERT INTO login (firstname, lastname, username, password, role) 
+      VALUES (?, ?, ?, ?, ?)
+    `
+
+    db.query(
+      query,
+      [
+        user.firstname.trim(),
+        user.lastname.trim(),
+        user.username.trim(),
+        hashedPassword,
+        user.role,
+      ],
+      (err) => {
+        if (err) {
+          console.error(`Error inserting user ${user.username}:`, err)
+        } else {
+          console.log(`User ${user.username} inserted successfully.`)
+        }
+      }
+    )
+  } catch (err) {
+    console.error(`Error hashing password for ${user.username}:`, err)
+  }
 })
 
-// Close the connection after all users are inserted
+// Close the connection after a short delay to ensure all inserts are done
 setTimeout(() => db.end(), 5000)
