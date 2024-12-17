@@ -18,12 +18,12 @@ CREATE TABLE IF NOT EXISTS login (
 
 
 -- the registration table
-CREATE TABLE registration (
+CREATE TABLE IF NOT EXISTS registration (
     id INT AUTO_INCREMENT PRIMARY KEY,
     firstname VARCHAR(50) NOT NULL,
     lastname VARCHAR(50) NOT NULL,
     email VARCHAR(100) UNIQUE NOT NULL,
     phone VARCHAR(15),
-    role ENUM('Volunteer', 'Field Staff', 'Team Leader') NOT NULL
+    role ENUM('Volunteer', 'Field Staff', 'Team Leader', 'Group Admin') NOT NULL
 );
 

@@ -2,84 +2,92 @@ import React, { useState } from 'react'
 import { Link, useLocation } from 'react-router-dom'
 
 interface SidebarProps {
+  isOpen: boolean // State for sidebar open/collapse
+  toggleSidebar: () => void // Callback to toggle sidebar
   firstname?: string
   lastname?: string
 }
 
-const Sidebar: React.FC<SidebarProps> = ({ firstname = '', lastname = '' }) => {
-  const [isOpen, setIsOpen] = useState(true)
+const Sidebar: React.FC<SidebarProps> = ({
+  isOpen,
+  toggleSidebar,
+  firstname = '',
+  lastname = '',
+}) => {
   const [openDropdown, setOpenDropdown] = useState<string | null>(null)
   const location = useLocation()
 
+  // Toggles the dropdown menu
   const toggleDropdown = (dropdown: string) => {
     setOpenDropdown((prev) => (prev === dropdown ? null : dropdown))
   }
 
-  const isActive = (path: string) => location.pathname === path
-
+  // Display admin's name or fallback to "Admin"
   const displayName =
     firstname && lastname ? `${firstname} ${lastname}` : 'Admin'
 
+  // Check if path is active
+  const isActive = (path: string) => location.pathname === path
+
+  // Sidebar container styling
   const sidebarStyle: React.CSSProperties = {
     backgroundColor: '#738C40',
-    width: isOpen ? '250px' : '60px',
+    width: isOpen ? '250px' : '25px',
     transition: 'width 0.3s',
-    position: 'relative',
-    overflow: 'hidden',
+    position: 'fixed',
+    height: '100%',
+    overflowY: 'auto',
     boxShadow: '2px 0 5px rgba(0,0,0,0.1)',
+    zIndex: 1000,
   }
 
   const toggleButtonStyle: React.CSSProperties = {
     position: 'absolute',
-    top: '20px',
-    left: isOpen ? '210px' : '10px',
-    backgroundColor: 'transparent',
+    top: '10px',
+    right: '-15px',
+    backgroundColor: '#F4F7F1',
     border: 'none',
-    color: '#F4F7F1',
+    color: '#738C40',
     fontSize: '1.5rem',
     cursor: 'pointer',
-    zIndex: 9999,
+    padding: '0.25rem',
+    borderRadius: '50%',
   }
 
   const headingStyle: React.CSSProperties = {
-    fontSize: '1.5rem',
-    marginBottom: '1rem',
-    textAlign: 'center',
+    fontSize: '2.5rem',
+    fontWeight: 'bold',
     color: '#F4F7F1',
+    marginBottom: '1rem',
+    marginLeft: '1rem',
+    marginTop: '3rem',
+    textAlign: 'left',
   }
 
   const welcomeStyle: React.CSSProperties = {
     fontSize: '1.2rem',
     color: '#F4F7F1',
     textAlign: 'center',
-    marginBottom: '2rem',
+    marginBottom: '4rem',
   }
 
-  const navItemContainerStyle: React.CSSProperties = {
-    marginTop: '3rem',
-  }
-
-  const navLinkStyle: React.CSSProperties = {
+  const navItemStyle = (isActive: boolean): React.CSSProperties => ({
     color: '#F4F7F1',
-    fontSize: '1.1rem',
+    fontSize: '1.25rem',
     textDecoration: 'none',
     display: 'flex',
     alignItems: 'center',
     padding: '0.5rem 1rem',
     cursor: 'pointer',
     borderRadius: '0.5rem',
-    transition: 'background-color 0.2s',
-    whiteSpace: 'nowrap',
-  }
-
-  const activeLinkStyle: React.CSSProperties = {
-    fontWeight: 'bold',
-  }
+    fontWeight: isActive ? 'bold' : 'normal',
+    backgroundColor: isActive ? 'rgba(244,247,241,0.2)' : 'transparent',
+  })
 
   const dropdownListStyle: React.CSSProperties = {
     backgroundColor: '#F4F7F1',
     listStyle: 'none',
-    margin: '0.5rem 0 0 0',
+    margin: '0.5rem 0',
     padding: '0.5rem 1rem',
     borderRadius: '0.5rem',
   }
@@ -89,24 +97,14 @@ const Sidebar: React.FC<SidebarProps> = ({ firstname = '', lastname = '' }) => {
     textDecoration: 'none',
     display: 'block',
     padding: '0.3rem 0',
-    transition: 'background-color 0.2s',
+    fontSize: '1rem',
   }
 
-  const topNavHoverBg = 'rgba(244,247,241,0.2)'
-  const dropdownHoverBg = '#e0e0e0'
-
-  const mergeStyles = (
-    ...styles: (React.CSSProperties | undefined)[]
-  ): React.CSSProperties => Object.assign({}, ...styles)
-
   const NavItem: React.FC<{
-    icon: string
     label: string
     dropdownId?: string
-    marginTop?: string
     children?: React.ReactNode
-  }> = ({ icon, label, dropdownId, marginTop, children }) => {
-    const isDropdownOpen = dropdownId && openDropdown === dropdownId
+  }> = ({ label, dropdownId, children }) => {
     const handleClick = () => {
       if (dropdownId) toggleDropdown(dropdownId)
     }
@@ -115,58 +113,21 @@ const Sidebar: React.FC<SidebarProps> = ({ firstname = '', lastname = '' }) => {
       <>
         <div
           onClick={dropdownId ? handleClick : undefined}
-          title={!isOpen ? label : ''} // Tooltip when collapsed
-          style={mergeStyles(
-            navLinkStyle,
-            marginTop ? { marginTop } : {},
-            isDropdownOpen ? activeLinkStyle : {}
-          )}
-          onMouseEnter={(e) =>
-            (e.currentTarget.style.backgroundColor = topNavHoverBg)
-          }
-          onMouseLeave={(e) =>
-            (e.currentTarget.style.backgroundColor = 'transparent')
-          }
+          style={navItemStyle(openDropdown === dropdownId)}
         >
-          <i className={`${icon} me-2`}></i>
           {isOpen && label}
         </div>
-        {isOpen && children}
+        {isOpen && openDropdown === dropdownId && (
+          <div style={{ paddingLeft: '1rem' }}>{children}</div>
+        )}
       </>
     )
   }
 
-  const DropdownLink: React.FC<{ to: string; label: string }> = ({
-    to,
-    label,
-  }) => {
-    return (
-      <li>
-        <Link
-          to={to}
-          style={dropdownLinkStyle}
-          onMouseEnter={(e) =>
-            (e.currentTarget.style.backgroundColor = dropdownHoverBg)
-          }
-          onMouseLeave={(e) =>
-            (e.currentTarget.style.backgroundColor = 'transparent')
-          }
-          className={isActive(to) ? 'active' : ''}
-        >
-          {label}
-        </Link>
-      </li>
-    )
-  }
-
   return (
-    <div style={sidebarStyle} className="d-flex flex-column vh-100">
-      <button
-        style={toggleButtonStyle}
-        onClick={() => setIsOpen(!isOpen)}
-        title="Toggle Menu"
-      >
-        <i className="bi bi-list"></i>
+    <div style={sidebarStyle}>
+      <button style={toggleButtonStyle} onClick={toggleSidebar}>
+        {isOpen ? '←' : '→'}
       </button>
 
       {isOpen && (
@@ -176,50 +137,71 @@ const Sidebar: React.FC<SidebarProps> = ({ firstname = '', lastname = '' }) => {
         </>
       )}
 
-      <div style={navItemContainerStyle}>
-        <NavItem
-          icon="bi bi-building"
-          label="Organization Profile"
-          dropdownId="organization"
-          marginTop="5.5em"
-        >
-          {openDropdown === 'organization' && (
-            <ul style={dropdownListStyle}>
-              <DropdownLink to="/register" label="Group Admin" />
-              <DropdownLink to="/team-leader" label="Team Leader" />
-              <DropdownLink to="/field-staff" label="Field Staff" />
-              <DropdownLink to="/volunteer" label="Volunteer" />
-              <DropdownLink to="/objectives" label="Objectives" />
-            </ul>
-          )}
+      <div>
+        <NavItem label="Organization Profile" dropdownId="organization">
+          <ul style={dropdownListStyle}>
+            <li>
+              <Link
+                to="/register"
+                style={{
+                  ...dropdownLinkStyle,
+                  ...(isActive('/register')
+                    ? { fontWeight: 'bold', color: '#000' }
+                    : {}),
+                }}
+              >
+                Add User
+              </Link>
+            </li>
+            <li>
+              <Link to="/groupadmin" style={dropdownLinkStyle}>
+                Group Admin
+              </Link>
+            </li>
+            <li>
+              <Link to="/teamleader" style={dropdownLinkStyle}>
+                Team Leader
+              </Link>
+            </li>
+            <li>
+              <Link to="/fieldstaff" style={dropdownLinkStyle}>
+                Field Staff
+              </Link>
+            </li>
+            <li>
+              <Link to="/volunteer" style={dropdownLinkStyle}>
+                Volunteer
+              </Link>
+            </li>
+          </ul>
         </NavItem>
-
-        <NavItem
-          icon="bi bi-folder"
-          label="Projects"
-          dropdownId="project"
-          marginTop="1.5rem"
-        >
-          {openDropdown === 'project' && (
-            <ul style={dropdownListStyle}>
-              <DropdownLink to="/projects/add" label="Add Project" />
-              <DropdownLink to="/projects/search" label="Search Project" />
-            </ul>
-          )}
+        <NavItem label="Projects" dropdownId="project">
+          <ul style={dropdownListStyle}>
+            <li>
+              <Link to="/projects/add" style={dropdownLinkStyle}>
+                Add Project
+              </Link>
+            </li>
+            <li>
+              <Link to="/projects/search" style={dropdownLinkStyle}>
+                Search Project
+              </Link>
+            </li>
+          </ul>
         </NavItem>
-
-        <NavItem
-          icon="bi bi-journal-text"
-          label="Activities Notes"
-          dropdownId="activity"
-          marginTop="1.5rem"
-        >
-          {openDropdown === 'activity' && (
-            <ul style={dropdownListStyle}>
-              <DropdownLink to="/activities/add" label="Add Activity" />
-              <DropdownLink to="/activities/search" label="Search Activity" />
-            </ul>
-          )}
+        <NavItem label="Activities Notes" dropdownId="activity">
+          <ul style={dropdownListStyle}>
+            <li>
+              <Link to="/activities/add" style={dropdownLinkStyle}>
+                Add Activity
+              </Link>
+            </li>
+            <li>
+              <Link to="/activities/search" style={dropdownLinkStyle}>
+                Search Activity
+              </Link>
+            </li>
+          </ul>
         </NavItem>
       </div>
     </div>

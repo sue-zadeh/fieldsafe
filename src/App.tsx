@@ -9,61 +9,73 @@ const App: React.FC = () => {
   const [isLoggedIn, setIsLoggedIn] = useState(false)
   const [logoutMessage, setLogoutMessage] = useState<string | null>(null)
   const [isLoggingOut, setIsLoggingOut] = useState(false)
-  const [isLoading, setIsLoading] = useState(true) // Track loading state while checking the token
+  const [isLoading, setIsLoading] = useState(true)
+  const [isSidebarOpen, setIsSidebarOpen] = useState(window.innerWidth >= 768) // Responsive sidebar
   const navigate = useNavigate()
 
+  // Handle window resize for sidebar responsiveness
   useEffect(() => {
-    const token = localStorage.getItem('authToken')
+    const handleResize = () => setIsSidebarOpen(window.innerWidth >= 768)
+    window.addEventListener('resize', handleResize)
+    return () => window.removeEventListener('resize', handleResize)
+  }, [])
 
-    if (token) {
-      // Simulate token validation (mocked API call or basic check)
-      fetch('/api/validate-token', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`,
-        },
-      })
-        .then((response) => {
-          setIsLoading(false)
+  // Token validation on page load
+  useEffect(() => {
+    const validateToken = async () => {
+      const token = localStorage.getItem('authToken')
+      if (token) {
+        try {
+          const response = await fetch('/api/validate-token', {
+            method: 'GET',
+            headers: {
+              'Content-Type': 'application/json',
+              Authorization: `Bearer ${token}`,
+            },
+          })
           if (response.ok) {
-            setIsLoggedIn(true) // Token is valid
+            setIsLoggedIn(true)
           } else {
-            localStorage.removeItem('authToken') // Invalid token, clear it
+            console.error('Invalid token or session expired')
+            localStorage.removeItem('authToken')
           }
-        })
-        .catch(() => {
-          setIsLoading(false)
-          localStorage.removeItem('authToken') // Error or invalid token
-        })
-    } else {
-      // No token present in localStorage
-      setIsLoading(false) // Ensure the loading state ends
+        } catch (error) {
+          console.error('Error validating token:', error)
+          localStorage.removeItem('authToken')
+        }
+      }
+      setIsLoading(false)
     }
+    validateToken()
   }, [])
 
   const handleLoginSuccess = () => {
     setIsLoggedIn(true)
-    navigate('/') // Redirect to the home page after login
+    navigate('/')
   }
 
   const handleLogout = () => {
-    setIsLoggingOut(true) // Disable the logout button
+    setIsLoggingOut(true)
     localStorage.removeItem('authToken')
     setIsLoggedIn(false)
-    setLogoutMessage('You have successfully logged out.') // Set the confirmation message
+    setLogoutMessage('You have successfully logged out.')
 
-    // Reset logout message and navigate to login page after 2 seconds
     setTimeout(() => {
       setLogoutMessage(null)
       setIsLoggingOut(false)
-      navigate('/') // Redirect to login
+      navigate('/')
     }, 2000)
   }
 
-  if (isLoading) {
-    return <div>Loading...</div> // Display a loading state while the token is being validated
+  const toggleSidebar = () => setIsSidebarOpen((prev) => !prev)
+
+  const mainContentStyle: React.CSSProperties = {
+    marginLeft: isSidebarOpen ? '250px' : '60px',
+    transition: 'all 0.3s ease',
+    padding: '20px',
   }
+
+  if (isLoading) return <div>Loading...</div>
 
   return (
     <div>
@@ -80,11 +92,14 @@ const App: React.FC = () => {
             isLoggingOut={isLoggingOut}
           />
           <div className="d-flex flex-grow-1">
-            <Sidebar />
-            <div className="p-4 flex-grow-1">
+            <Sidebar isOpen={isSidebarOpen} toggleSidebar={toggleSidebar} />
+            <div style={mainContentStyle}>
               <Routes>
-                <Route path="/register" element={<Register />} />
-                {/* Add more protected routes as needed */}
+                <Route
+                  path="/register"
+                  element={<Register isSidebarOpen={isSidebarOpen} />}
+                />
+                {/* Add more routes as needed */}
               </Routes>
             </div>
           </div>

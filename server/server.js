@@ -3,7 +3,7 @@ import express from 'express'
 import bcrypt from 'bcrypt'
 import dotenv from 'dotenv'
 import nodemailer from 'nodemailer'
-import jwt from 'jsonwebtoken'  // Added import for JWT
+import jwt from 'jsonwebtoken'
 
 dotenv.config()
 
@@ -56,11 +56,6 @@ app.post('/api/login', async (req, res) => {
     }
 
     // Generate JWT token on successful login
-    if (!process.env.JWT_SECRET) {
-      console.error('JWT_SECRET is not defined in .env')
-      return res.status(500).json({ message: 'Server configuration error' })
-    }
-
     const token = jwt.sign(
       { userId: user.id, role: user.role },
       process.env.JWT_SECRET,
@@ -70,11 +65,54 @@ app.post('/api/login', async (req, res) => {
     return res.json({
       message: 'Login successful',
       token: token,
-      user: { id: user.id, role: user.role } // Optional to include user details
+      user: { id: user.id, role: user.role }, // Optional user details
     })
   } catch (err) {
     console.error('Error during login:', err.message)
     return res.status(500).json({ message: 'Server error' })
+  }
+})
+
+// Token Validation API
+app.get('/api/validate-token', async (req, res) => {
+  const token = req.headers.authorization?.split(' ')[1]
+
+  if (!token) {
+    return res.status(401).json({ message: 'No token provided' })
+  }
+
+  try {
+    // Verify the token
+    const decoded = jwt.verify(token, process.env.JWT_SECRET)
+    return res.status(200).json({
+      message: 'Token is valid',
+      user: decoded, // Return decoded user data
+    })
+  } catch (err) {
+    console.error('Token validation failed:', err.message)
+    return res.status(401).json({ message: 'Invalid or expired token' })
+  }
+})
+
+// Register API
+app.post('/api/users', async (req, res) => {
+  const { firstname, lastname, email, phone, role } = req.body
+  const query =
+    'INSERT INTO registration (firstname, lastname, email, phone, role) VALUES (?, ?, ?, ?, ?)'
+  try {
+    const result = await pool.execute(query, [
+      firstname,
+      lastname,
+      email,
+      phone,
+      role,
+    ])
+    res
+      .status(201)
+      .json({ id: result.insertId, firstname, lastname, email, phone, role })
+  } catch (error) {
+    console.error(error)
+    res.status(500).send('Error adding user')
   }
 })
 
@@ -103,6 +141,7 @@ app.post('/api/forgot-password', async (req, res) => {
       user.id,
     ])
 
+    // Sending email for password reset
     const transporter = nodemailer.createTransport({
       service: 'gmail',
       auth: { user: process.env.EMAIL_USER, pass: process.env.EMAIL_PASS },
