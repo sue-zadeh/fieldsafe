@@ -1,5 +1,8 @@
 import React, { useState } from 'react'
 import { Link, useLocation } from 'react-router-dom'
+import { FaUserPlus, FaUsers, FaTasks, FaUserCog } from 'react-icons/fa'
+import { MdGroups, MdVolunteerActivism, MdLocalActivity } from 'react-icons/md'
+import { BsCalendar2Plus, BsCalendarCheck } from 'react-icons/bs'
 
 interface SidebarProps {
   isOpen: boolean // State for sidebar open/collapse
@@ -32,7 +35,7 @@ const Sidebar: React.FC<SidebarProps> = ({
   // Sidebar container styling
   const sidebarStyle: React.CSSProperties = {
     backgroundColor: '#738C40',
-    width: isOpen ? '250px' : '25px',
+    width: isOpen ? '225px' : '25px',
     transition: 'width 0.3s',
     position: 'fixed',
     height: '100%',
@@ -43,14 +46,14 @@ const Sidebar: React.FC<SidebarProps> = ({
 
   const toggleButtonStyle: React.CSSProperties = {
     position: 'absolute',
-    top: '10px',
-    right: '-15px',
+    top: '12px',
+    right: '-9px',
     backgroundColor: '#F4F7F1',
     border: 'none',
     color: '#738C40',
-    fontSize: '1.5rem',
+    fontSize: '1.75rem',
     cursor: 'pointer',
-    padding: '0.25rem',
+    // padding: '0.35rem',
     borderRadius: '50%',
   }
 
@@ -150,26 +153,63 @@ const Sidebar: React.FC<SidebarProps> = ({
                     : {}),
                 }}
               >
-                Add User
+                <FaUserPlus style={{ marginRight: '8px' }} /> Add User
               </Link>
             </li>
             <li>
-              <Link to="/groupadmin" style={dropdownLinkStyle}>
+              <Link
+                to="/groupadmin"
+                style={{
+                  ...dropdownLinkStyle,
+                  ...(isActive('/groupadmin')
+                    ? { fontWeight: 'bold', color: '#000' }
+                    : {}),
+                }}
+              >
+                <i className=" fa-solid fa-user-group-crown"></i>
+                <MdGroups style={{ marginRight: '8px' }} />
                 Group Admin
               </Link>
             </li>
             <li>
-              <Link to="/teamleader" style={dropdownLinkStyle}>
+              <Link
+                to="/teamlead"
+                style={{
+                  ...dropdownLinkStyle,
+                  ...(isActive('/teamlead')
+                    ? { fontWeight: 'bold', color: '#000' }
+                    : {}),
+                }}
+              >
+                <FaUsers style={{ marginRight: '8px' }} />
                 Team Leader
               </Link>
             </li>
             <li>
-              <Link to="/fieldstaff" style={dropdownLinkStyle}>
+              <Link
+                to="/fieldstaff"
+                style={{
+                  ...dropdownLinkStyle,
+                  ...(isActive('/fieldstaff')
+                    ? { fontWeight: 'bold', color: '#000' }
+                    : {}),
+                }}
+              >
+                <FaUserCog style={{ marginRight: '8px' }} />
                 Field Staff
               </Link>
             </li>
             <li>
-              <Link to="/volunteer" style={dropdownLinkStyle}>
+              <Link
+                to="/volunteer"
+                style={{
+                  ...dropdownLinkStyle,
+                  ...(isActive('/volunteer')
+                    ? { fontWeight: 'bold', color: '#000' }
+                    : {}),
+                }}
+              >
+                <MdVolunteerActivism style={{ marginRight: '8px' }} />
                 Volunteer
               </Link>
             </li>
@@ -178,12 +218,32 @@ const Sidebar: React.FC<SidebarProps> = ({
         <NavItem label="Projects" dropdownId="project">
           <ul style={dropdownListStyle}>
             <li>
-              <Link to="/projects/add" style={dropdownLinkStyle}>
+              <Link
+                to="/projects/addproject"
+                style={{
+                  ...dropdownLinkStyle,
+                  ...(isActive('/projects/addproject')
+                    ? { fontWeight: 'bold', color: '#000' }
+                    : {}),
+                }}
+              >
+                {' '}
+                <BsCalendar2Plus style={{ marginRight: '8px' }} />
                 Add Project
               </Link>
             </li>
             <li>
-              <Link to="/projects/search" style={dropdownLinkStyle}>
+              <Link
+                to="/projects/searchproject"
+                style={{
+                  ...dropdownLinkStyle,
+                  ...(isActive('/projects/searchproject')
+                    ? { fontWeight: 'bold', color: '#000' }
+                    : {}),
+                }}
+              >
+                {' '}
+                <BsCalendarCheck style={{ marginRight: '8px' }} />
                 Search Project
               </Link>
             </li>
@@ -192,12 +252,30 @@ const Sidebar: React.FC<SidebarProps> = ({
         <NavItem label="Activities Notes" dropdownId="activity">
           <ul style={dropdownListStyle}>
             <li>
-              <Link to="/activities/add" style={dropdownLinkStyle}>
+              <Link
+                to="/activities/addactivity"
+                style={{
+                  ...dropdownLinkStyle,
+                  ...(isActive('/activities/addactivity')
+                    ? { fontWeight: 'bold', color: '#000' }
+                    : {}),
+                }}
+              >
+                <MdLocalActivity style={{ marginRight: '8px' }} />
                 Add Activity
               </Link>
             </li>
             <li>
-              <Link to="/activities/search" style={dropdownLinkStyle}>
+              <Link
+                to="/activities/searchactivity"
+                style={{
+                  ...dropdownLinkStyle,
+                  ...(isActive('/activities/searchactivity')
+                    ? { fontWeight: 'bold', color: '#000' }
+                    : {}),
+                }}
+              >
+                <FaTasks style={{ marginRight: '8px' }} />
                 Search Activity
               </Link>
             </li>

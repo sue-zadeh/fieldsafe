@@ -20,7 +20,7 @@ const Navbar: React.FC<NavbarProps> = ({
         padding: '0.5rem 1rem', // Add padding for better spacing
       }}
     >
-      <div className="container-fluid">
+      <div className="container-fluid ">
         <img
           src={Logo}
           alt="logo"

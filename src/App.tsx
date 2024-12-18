@@ -4,6 +4,10 @@ import Sidebar from './components/sidebar'
 import Navbar from './components/navbar'
 import Login from './components/login'
 import Register from './components/register'
+import Volunteer from './components/volunteer'
+import Groupadmin from './components/groupadmin'
+// import Fieldstaff from './components/fieldstaff'
+// import Teamlead from './components/teamlead'
 
 const App: React.FC = () => {
   const [isLoggedIn, setIsLoggedIn] = useState(false)
@@ -99,7 +103,22 @@ const App: React.FC = () => {
                   path="/register"
                   element={<Register isSidebarOpen={isSidebarOpen} />}
                 />
-                {/* Add more routes as needed */}
+                  <Route
+                    path="/groupadmin"
+                    element={<Groupadmin isSidebarOpen={isSidebarOpen} />}
+                  />
+                <Route
+                  path="/volunteer"
+                  element={<Volunteer isSidebarOpen={isSidebarOpen} />}
+                />
+                {/* <Route
+                  path="/fieldstaff"
+                  element={<Fieldstaff isSidebarOpen={isSidebarOpen} />}
+                />{' '}
+                <Route
+                  path="/teamlead"
+                  element={<Teamlead isSidebarOpen={isSidebarOpen} />}
+                />{' '} */}
               </Routes>
             </div>
           </div>

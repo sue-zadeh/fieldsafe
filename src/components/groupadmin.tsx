@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react'
 
-interface Volunteer {
+interface Groupadmin {
   id: number
   firstname: string
   lastname: string
@@ -8,48 +8,44 @@ interface Volunteer {
   phone: string
   role: 'Volunteer' | 'Field Staff' | 'Team Leader' | 'Group Admin'
 }
-interface VolunteerPageProps {
+
+interface GroupadminsPageProps {
   isSidebarOpen: boolean
 }
 
-const VolunteerPage: React.FC<VolunteerPageProps> = ({ isSidebarOpen }) => {
-  const [volunteers, setVolunteers] = useState<Volunteer[]>([])
+
+const GroupadminPage: React.FC<GroupadminsPageProps> = ({ isSidebarOpen }) => {
+  const [groupadmins, setGroupadmins] = useState<Groupadmin[]>([])
 
   useEffect(() => {
-    fetch('/api/volunteers')
+    fetch('/api/groupadmins')
       .then((response) => response.json())
-      .then((data) => setVolunteers(data))
-      .catch((error) => console.error('Error fetching volunteers:', error))
+      .then((data) => setGroupadmins(data))
+      .catch((error) => console.error('Error fetching groupadmins:', error))
   }, [])
 
-  const handleRoleChange = (id: number, newRole: Volunteer['role']) => {
-    setVolunteers((prev) =>
-      prev.map((volunteer) =>
-        volunteer.id === id ? { ...volunteer, role: newRole } : volunteer
+  const handleRoleChange = (id: number, newRole: Groupadmin['role']) => {
+    setGroupadmins((prev) =>
+      prev.map((groupadmin) =>
+        groupadmin.id === id ? { ...groupadmin, role: newRole } : groupadmin
       )
     )
   }
 
   const handleEdit = (id: number) => {
-    const volunteerToEdit = volunteers.find((v) => v.id === id)
-    console.log('Editing volunteer:', volunteerToEdit)
+    const groupadminToEdit = groupadmins.find((v) => v.id === id)
+    console.log('Editing groupadmin:', groupadminToEdit)
   }
 
   const handleDelete = (id: number) => {
     if (window.confirm('Are you sure you want to delete this volunteer?')) {
-      setVolunteers((prev) => prev.filter((v) => v.id !== id))
+      setGroupadmins((prev) => prev.filter((v) => v.id !== id))
     }
   }
 
   return (
-    <div
-      style={{
-        marginLeft: isSidebarOpen ? '20px' : '10px',
-        transition: 'all 0.3s ease',
-      }}
-    >
-      
-      <h3 className="mt-5">Volunteers</h3>
+    <div style={{ marginLeft: isSidebarOpen ? '20px' : '10px', transition: 'all 0.3s ease' }}>
+      <h3 className="mt-5">Group Admin</h3>
       <input
         type="text"
         placeholder="Search volunteers..."
@@ -68,18 +64,18 @@ const VolunteerPage: React.FC<VolunteerPageProps> = ({ isSidebarOpen }) => {
             </tr>
           </thead>
           <tbody>
-            {volunteers.map((volunteer) => (
-              <tr key={volunteer.id}>
-                <td>{`${volunteer.firstname} ${volunteer.lastname}`}</td>
-                <td>{volunteer.email}</td>
-                <td>{volunteer.phone}</td>
+            {groupadmins.map((groupadmin) => (
+              <tr key={groupadmin.id}>
+                <td>{`${groupadmin.firstname} ${groupadmin.lastname}`}</td>
+                <td>{groupadmin.email}</td>
+                <td>{groupadmin.phone}</td>
                 <td>
                   <select
-                    value={volunteer.role}
+                    value={groupadmin.role}
                     onChange={(e) =>
                       handleRoleChange(
-                        volunteer.id,
-                        e.target.value as Volunteer['role']
+                        groupadmin.id,
+                        e.target.value as Groupadmin['role']
                       )
                     }
                     className="form-select"
@@ -93,7 +89,7 @@ const VolunteerPage: React.FC<VolunteerPageProps> = ({ isSidebarOpen }) => {
                 <td>
                   <button
                     className="btn btn-warning btn-sm"
-                    onClick={() => handleEdit(volunteer.id)}
+                    onClick={() => handleEdit(groupadmin.id)}
                   >
                     Edit
                   </button>
@@ -101,7 +97,7 @@ const VolunteerPage: React.FC<VolunteerPageProps> = ({ isSidebarOpen }) => {
                 <td>
                   <button
                     className="btn btn-danger btn-sm"
-                    onClick={() => handleDelete(volunteer.id)}
+                    onClick={() => handleDelete(groupadmin.id)}
                   >
                     Delete
                   </button>
@@ -115,4 +111,4 @@ const VolunteerPage: React.FC<VolunteerPageProps> = ({ isSidebarOpen }) => {
   )
 }
 
-export default VolunteerPage
+export default GroupadminPage
