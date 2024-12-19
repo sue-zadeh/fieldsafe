@@ -78,8 +78,37 @@ const Register: React.FC<RegisterProps> = ({ isSidebarOpen }) => {
       setNotification(error)
       return
     }
-
+    // Check if email is unique
+    const isEmailTaken = users.some(
+      (user) => user.email === formData.email && user.id !== editingUserId
+    )
+    if (isEmailTaken) {
+      setNotification(
+        'The email address is already in use. Please use a unique email.'
+      )
+      return
+    }
     if (editingUserId) {
+      const originalUser = users.find((user) => user.id === editingUserId)
+      // Check if there are any changes
+      if (
+        originalUser &&
+        originalUser.firstname === formData.firstname &&
+        originalUser.lastname === formData.lastname &&
+        originalUser.email === formData.email &&
+        originalUser.phone === formData.phone &&
+        originalUser.role === formData.role
+      ) {
+        // Ask for confirmation if no changes are made
+        const confirmNoChanges = window.confirm(
+          'No changes detected. Are you okay with saving without any edits?'
+        )
+        if (!confirmNoChanges) {
+          return
+        }
+      }
+
+      // Update existing user
       setUsers((prev) =>
         prev.map((user) =>
           user.id === editingUserId ? { ...formData, id: editingUserId } : user
@@ -132,7 +161,7 @@ const Register: React.FC<RegisterProps> = ({ isSidebarOpen }) => {
     }
   }
 
-  // Auto-clear notifications after 15 seconds
+  // Auto-clear notifications after 5 seconds
   useEffect(() => {
     if (notification) {
       const timeout = setTimeout(() => setNotification(''), 5000)
