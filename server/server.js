@@ -69,7 +69,9 @@ app.post('/api/login', async (req, res) => {
     return res.json({
       message: 'Login successful',
       token: token,
-      user: { id: user.id, role: user.role }, // Optional user details
+      // firstname and lastname  to the response for Welcome admin
+      firstname: user.firstname,
+      lastname: user.lastname,
     })
   } catch (err) {
     console.error('Error during login:', err.message)
