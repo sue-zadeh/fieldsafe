@@ -3,9 +3,11 @@ import { Routes, Route, useNavigate } from 'react-router-dom'
 import Sidebar from './components/sidebar'
 import Navbar from './components/navbar'
 import Login from './components/login'
-import Register from './components/register'
+import Register from './components/registerroles'
 import Volunteer from './components/volunteer'
 import Groupadmin from './components/groupadmin'
+import Usertable from './components/usertable'
+
 // import Fieldstaff from './components/fieldstaff'
 // import Teamlead from './components/teamlead'
 
@@ -74,9 +76,9 @@ const App: React.FC = () => {
   const toggleSidebar = () => setIsSidebarOpen((prev) => !prev)
 
   const mainContentStyle: React.CSSProperties = {
-    marginLeft: isSidebarOpen ? '250px' : '60px',
+    marginLeft: isSidebarOpen ? '225px' : '25px',
     transition: 'all 0.3s ease',
-    padding: '20px',
+    padding: '10px',
   }
 
   if (isLoading) return <div>Loading...</div>
@@ -103,10 +105,15 @@ const App: React.FC = () => {
                   path="/register"
                   element={<Register isSidebarOpen={isSidebarOpen} />}
                 />
-                  <Route
-                    path="/groupadmin"
-                    element={<Groupadmin isSidebarOpen={isSidebarOpen} />}
-                  />
+
+                <Route
+                  path="/:role"
+                  element={<Usertable isSidebarOpen={isSidebarOpen} />}
+                />
+                <Route
+                  path="/groupadmin"
+                  element={<Groupadmin isSidebarOpen={isSidebarOpen} />}
+                />
                 <Route
                   path="/volunteer"
                   element={<Volunteer isSidebarOpen={isSidebarOpen} />}

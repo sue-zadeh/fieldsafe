@@ -39,6 +39,10 @@ const Login: React.FC<LoginProps> = ({ onLoginSuccess }) => {
         // Store the token in localStorage
         localStorage.setItem('authToken', response.data.token)
 
+        // Store firstname and lastname in localStorage - used for welcome in sidebar
+      localStorage.setItem('firstname', response.data.firstname); 
+      localStorage.setItem('lastname', response.data.lastname);
+
         // Optionally store email if remember me is checked
         if (rememberMe) {
           localStorage.setItem('email', email)

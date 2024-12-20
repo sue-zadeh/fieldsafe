@@ -2,7 +2,11 @@ import React, { useState } from 'react'
 import { Link, useLocation } from 'react-router-dom'
 import { FaUserPlus, FaUsers, FaTasks, FaUserCog } from 'react-icons/fa'
 import { MdGroups, MdVolunteerActivism, MdLocalActivity } from 'react-icons/md'
-import { BsCalendar2Plus, BsCalendarCheck } from 'react-icons/bs'
+import {
+  BsCalendar2Plus,
+  BsCalendarCheck,
+  BsPersonFillAdd,
+} from 'react-icons/bs'
 
 interface SidebarProps {
   isOpen: boolean // State for sidebar open/collapse
@@ -11,23 +15,24 @@ interface SidebarProps {
   lastname?: string
 }
 
-const Sidebar: React.FC<SidebarProps> = ({
-  isOpen,
-  toggleSidebar,
-  firstname = '',
-  lastname = '',
-}) => {
+const Sidebar: React.FC<SidebarProps> = ({ isOpen, toggleSidebar }) => {
   const [openDropdown, setOpenDropdown] = useState<string | null>(null)
   const location = useLocation()
+
+  // Retrieve admin's name from localStorage
+  const firstname = localStorage.getItem('firstname') || 'Admin'
+  const lastname = localStorage.getItem('lastname') || ''
+  console.log('Retrieved Firstname:', firstname) // Debugging
+  console.log('Retrieved Lastname:', lastname) // Debugging
+
+  // Display admin's name or fallback to "Admin"
+  const displayName =
+    firstname && lastname ? `${firstname} ${lastname}` : 'Admin'
 
   // Toggles the dropdown menu
   const toggleDropdown = (dropdown: string) => {
     setOpenDropdown((prev) => (prev === dropdown ? null : dropdown))
   }
-
-  // Display admin's name or fallback to "Admin"
-  const displayName =
-    firstname && lastname ? `${firstname} ${lastname}` : 'Admin'
 
   // Check if path is active
   const isActive = (path: string) => location.pathname === path
@@ -199,6 +204,26 @@ const Sidebar: React.FC<SidebarProps> = ({
                 Field Staff
               </Link>
             </li>
+          </ul>
+        </NavItem>
+
+        <NavItem label="Volunteer" dropdownId="volunteer">
+          <ul style={dropdownListStyle}>
+            <li>
+              <Link
+                to="/registervolunteer"
+                style={{
+                  ...dropdownLinkStyle,
+                  ...(isActive('/registervolunteer')
+                    ? { fontWeight: 'bold', color: '#000' }
+                    : {}),
+                }}
+              >
+                <BsPersonFillAdd style={{ marginRight: '8px' }} />
+                Add Volunteer
+              </Link>
+            </li>
+
             <li>
               <Link
                 to="/volunteer"
@@ -215,6 +240,7 @@ const Sidebar: React.FC<SidebarProps> = ({
             </li>
           </ul>
         </NavItem>
+
         <NavItem label="Projects" dropdownId="project">
           <ul style={dropdownListStyle}>
             <li>

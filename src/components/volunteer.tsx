@@ -95,32 +95,33 @@ const VolunteerPage: React.FC<VolunteerPageProps> = ({ isSidebarOpen }) => {
       </div>
 
       {/* Volunteers Table */}
-      <div className="table-responsive">
-        <table className="table table-bordered table-hover table-striped text-center">
-          <thead className="table-dark">
-            <tr>
-              <th>Name</th>
-              <th>Email</th>
-              <th>Phone</th>
-              <th>Role</th>
-              <th>Edit</th>
-              <th>Delete</th>
-            </tr>
-          </thead>
-          <tbody>
-            {filteredVolunteers.length > 0 ? (
-              filteredVolunteers.map((volunteer) => (
-                <tr key={volunteer.id}>
-                  <td>{`${volunteer.firstname} ${volunteer.lastname}`}</td>
-                  <td>{volunteer.email}</td>
-                  <td>{volunteer.phone}</td>
+      <div className="mt-5">
+        <h3 className="text-left py-3">Registered Users</h3>
+        <div className="table-responsive">
+          <table className="table table-striped table-hover text-center p-5">
+            <thead className="table-light">
+              <tr>
+                <th className="px-4">Name</th>
+                <th className="px-4">Email</th>
+                <th className="px-4">Phone</th>
+                <th className="px-4">Role</th>
+                <th className="px-4">Edit</th>
+                <th className="px-4">Delete</th>
+              </tr>
+            </thead>
+            <tbody>
+              {users.map((user) => (
+                <tr key={user.id}>
+                  <td>{`${user.firstname} ${user.lastname}`}</td>
+                  <td>{user.email}</td>
+                  <td>{user.phone}</td>
                   <td>
                     <select
-                      value={volunteer.role}
+                      value={user.role}
                       onChange={(e) =>
                         handleRoleChange(
-                          volunteer.id,
-                          e.target.value as Volunteer['role']
+                          user.id,
+                          e.target.value as User['role']
                         )
                       }
                       className="form-select"
@@ -134,11 +135,7 @@ const VolunteerPage: React.FC<VolunteerPageProps> = ({ isSidebarOpen }) => {
                   <td>
                     <button
                       className="btn btn-warning btn-sm"
-                      onClick={() =>
-                        alert(
-                          `Editing volunteer: ${volunteer.firstname} ${volunteer.lastname}`
-                        )
-                      }
+                      onClick={() => handleEdit(user.id)}
                     >
                       Edit
                     </button>
@@ -146,22 +143,18 @@ const VolunteerPage: React.FC<VolunteerPageProps> = ({ isSidebarOpen }) => {
                   <td>
                     <button
                       className="btn btn-danger btn-sm"
-                      onClick={() => handleDelete(volunteer.id)}
+                      onClick={() => handleDelete(user.id)}
                     >
                       Delete
                     </button>
                   </td>
                 </tr>
-              ))
-            ) : (
-              <tr>
-                <td colSpan={6}>No volunteers found.</td>
-              </tr>
-            )}
-          </tbody>
-        </table>
+              ))}
+            </tbody>
+          </table>
+        </div>
       </div>
-    </div>
+      </div>
   )
 }
 

@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react'
+import axios from 'axios'
 
 // Props for sidebar state
 interface RegisterProps {
@@ -28,27 +29,27 @@ const Register: React.FC<RegisterProps> = ({ isSidebarOpen }) => {
   const [editingUserId, setEditingUserId] = useState<number | null>(null)
   const [notification, setNotification] = useState<string>('')
 
-  // Load users from localStorage on mount
+  // Fetch users from the backend on component mount
   useEffect(() => {
-    const savedUsers = JSON.parse(
-      localStorage.getItem('users') || '[]'
-    ) as User[]
-    setUsers(savedUsers)
+    fetchUsers()
   }, [])
 
-  // Save users to localStorage whenever the users list changes
-  useEffect(() => {
-    localStorage.setItem('users', JSON.stringify(users))
-  }, [users])
+  const fetchUsers = async () => {
+    try {
+      const response = await axios.get('/api/users')
+      setUsers(response.data)
+    } catch (error: unknown) {
+      console.error('Error fetching users:', (error as Error).message)
+      setNotification('Failed to load users.')
+    }
+  }
 
-  // Handle form input changes
   const handleInputChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
   ) => {
     setFormData({ ...formData, [e.target.name]: e.target.value })
   }
 
-  // Validate form fields
   const validateForm = (): string => {
     const { firstname, lastname, email, phone } = formData
     if (!firstname || !lastname || !email || !phone)
@@ -58,7 +59,6 @@ const Register: React.FC<RegisterProps> = ({ isSidebarOpen }) => {
     return ''
   }
 
-  // Reset form
   const resetForm = () => {
     setFormData({
       id: 0,
@@ -71,8 +71,7 @@ const Register: React.FC<RegisterProps> = ({ isSidebarOpen }) => {
     setEditingUserId(null)
   }
 
-  // Add or update user
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     const error = validateForm()
     if (error) {
       setNotification(error)
@@ -88,55 +87,56 @@ const Register: React.FC<RegisterProps> = ({ isSidebarOpen }) => {
       )
       return
     }
-    if (editingUserId) {
-      const originalUser = users.find((user) => user.id === editingUserId)
-      // Check if there are any changes
-      if (
-        originalUser &&
-        originalUser.firstname === formData.firstname &&
-        originalUser.lastname === formData.lastname &&
-        originalUser.email === formData.email &&
-        originalUser.phone === formData.phone &&
-        originalUser.role === formData.role
-      ) {
-        // Ask for confirmation if no changes are made
-        const confirmNoChanges = window.confirm(
-          'No changes detected. Are you okay with saving without any edits?'
-        )
-        if (!confirmNoChanges) {
-          return
+
+    try {
+      if (editingUserId) {
+        const originalUser = users.find((user) => user.id === editingUserId)
+        if (
+          originalUser &&
+          originalUser.firstname === formData.firstname &&
+          originalUser.lastname === formData.lastname &&
+          originalUser.email === formData.email &&
+          originalUser.phone === formData.phone &&
+          originalUser.role === formData.role
+        ) {
+          const confirmNoChanges = window.confirm(
+            'No changes detected. Are you okay with saving without any edits?'
+          )
+          if (!confirmNoChanges) return
         }
-      }
 
-      // Update existing user
-      setUsers((prev) =>
-        prev.map((user) =>
-          user.id === editingUserId ? { ...formData, id: editingUserId } : user
+        await axios.put(`/api/users/${editingUserId}`, formData)
+        setNotification(
+          `${formData.firstname} ${formData.lastname} updated successfully!`
         )
-      )
-      setNotification(
-        `${formData.firstname} ${formData.lastname} updated successfully!`
-      )
-    } else {
-      const newUser: User = { ...formData, id: Date.now() }
-      setUsers((prev) => [...prev, newUser])
-      setNotification(
-        `${formData.firstname} ${formData.lastname} added successfully!`
-      )
+      } else {
+        await axios.post('/api/users', formData)
+        setNotification(
+          `${formData.firstname} ${formData.lastname} added successfully!`
+        )
+      }
+      fetchUsers()
+      resetForm()
+    } catch (error: unknown) {
+      console.error('Error saving user:', (error as Error).message)
+      setNotification('Failed to save user.')
     }
-
-    resetForm()
   }
 
-  // Change role
-  const handleRoleChange = (id: number, newRole: User['role']) => {
-    setUsers((prev) =>
-      prev.map((user) => (user.id === id ? { ...user, role: newRole } : user))
-    )
-    setNotification(`Role updated to ${newRole} successfully!`)
+  const handleRoleChange = async (id: number, newRole: User['role']) => {
+    try {
+      await axios.put(`/api/users/${id}`, {
+        ...users.find((u) => u.id === id),
+        role: newRole,
+      })
+      setNotification(`Role updated to ${newRole} successfully!`)
+      fetchUsers()
+    } catch (error: unknown) {
+      console.error('Error updating role:', (error as Error).message)
+      setNotification('Failed to update role.')
+    }
   }
 
-  // Edit user
   const handleEdit = (id: number) => {
     const userToEdit = users.find((user) => user.id === id)
     if (userToEdit) {
@@ -145,28 +145,35 @@ const Register: React.FC<RegisterProps> = ({ isSidebarOpen }) => {
     }
   }
 
-  // Delete user
-  const handleDelete = (id: number) => {
+  const handleDelete = async (id: number) => {
     const userToDelete = users.find((user) => user.id === id)
     if (
       window.confirm(
         `Are you sure you want to delete ${userToDelete?.firstname} ${userToDelete?.lastname}?`
       )
     ) {
-      setUsers((prev) => prev.filter((user) => user.id !== id))
-
-      setNotification(
-        `${userToDelete?.firstname} ${userToDelete?.lastname} deleted successfully!`
-      )
+      try {
+        await axios.delete(`/api/users/${id}`)
+        setNotification(
+          `${userToDelete?.firstname} ${userToDelete?.lastname} deleted successfully!`
+        )
+        fetchUsers()
+      } catch (error: unknown) {
+        if (error instanceof Error) {
+          console.error('Error deleting user:', error.message)
+          setNotification('Failed to delete user.')
+        } else {
+          console.error('Unknown error:', error)
+          setNotification('An unknown error occurred.')
+        }
+      }
     }
   }
 
   // Auto-clear notifications after 5 seconds
   useEffect(() => {
-    if (notification) {
-      const timeout = setTimeout(() => setNotification(''), 5000)
-      return () => clearTimeout(timeout)
-    }
+    const timeout = setTimeout(() => setNotification(''), 5000)
+    return () => clearTimeout(timeout)
   }, [notification])
   return (
     <div
@@ -174,13 +181,11 @@ const Register: React.FC<RegisterProps> = ({ isSidebarOpen }) => {
         isSidebarOpen ? 'content-expanded' : 'content-collapsed'
       }`}
     >
-      {/* Notification Section */}
       {notification && (
         <div className="alert alert-success" role="alert">
           {notification}
         </div>
       )}
-      {/* Form Section */}
       <div style={{ maxWidth: '500px', margin: 'auto' }}>
         <h3 className="text-center my-3">
           {editingUserId ? 'Edit User' : 'Add User'}
@@ -246,67 +251,7 @@ const Register: React.FC<RegisterProps> = ({ isSidebarOpen }) => {
           </div>
         </form>
       </div>
-
-      {/* Table Section */}
-      <div className="mt-5">
-        <h3 className="text-left py-3">Registered Users</h3>
-        <div className="table-responsive">
-          <table className="table table-striped table-hover text-center p-5">
-            <thead className="table-light">
-              <tr>
-                <th className="px-4">Name</th>
-                <th className="px-4">Email</th>
-                <th className="px-4">Phone</th>
-                <th className="px-4">Role</th>
-                <th className="px-4">Edit</th>
-                <th className="px-4">Delete</th>
-              </tr>
-            </thead>
-            <tbody>
-              {users.map((user) => (
-                <tr key={user.id}>
-                  <td>{`${user.firstname} ${user.lastname}`}</td>
-                  <td>{user.email}</td>
-                  <td>{user.phone}</td>
-                  <td>
-                    <select
-                      value={user.role}
-                      onChange={(e) =>
-                        handleRoleChange(
-                          user.id,
-                          e.target.value as User['role']
-                        )
-                      }
-                      className="form-select"
-                    >
-                      <option value="Volunteer">Volunteer</option>
-                      <option value="Field Staff">Field Staff</option>
-                      <option value="Team Leader">Team Leader</option>
-                      <option value="Group Admin">Group Admin</option>
-                    </select>
-                  </td>
-                  <td>
-                    <button
-                      className="btn btn-warning btn-sm"
-                      onClick={() => handleEdit(user.id)}
-                    >
-                      Edit
-                    </button>
-                  </td>
-                  <td>
-                    <button
-                      className="btn btn-danger btn-sm"
-                      onClick={() => handleDelete(user.id)}
-                    >
-                      Delete
-                    </button>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      </div>
+     
     </div>
   )
 }

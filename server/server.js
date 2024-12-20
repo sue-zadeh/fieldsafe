@@ -4,11 +4,15 @@ import bcrypt from 'bcrypt'
 import dotenv from 'dotenv'
 import nodemailer from 'nodemailer'
 import jwt from 'jsonwebtoken'
+import registerRoutes from './register.js'
 
 dotenv.config()
 
 const app = express()
 app.use(express.json())
+
+// Use the register routes
+app.use('/api', registerRoutes)
 
 // MySQL connection pool
 const pool = mysql.createPool({
@@ -91,28 +95,6 @@ app.get('/api/validate-token', async (req, res) => {
   } catch (err) {
     console.error('Token validation failed:', err.message)
     return res.status(401).json({ message: 'Invalid or expired token' })
-  }
-})
-
-// Register API
-app.post('/api/users', async (req, res) => {
-  const { firstname, lastname, email, phone, role } = req.body
-  const query =
-    'INSERT INTO registration (firstname, lastname, email, phone, role) VALUES (?, ?, ?, ?, ?)'
-  try {
-    const result = await pool.execute(query, [
-      firstname,
-      lastname,
-      email,
-      phone,
-      role,
-    ])
-    res
-      .status(201)
-      .json({ id: result.insertId, firstname, lastname, email, phone, role })
-  } catch (error) {
-    console.error(error)
-    res.status(500).send('Error adding user')
   }
 })
 
