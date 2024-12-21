@@ -1,114 +1,144 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect } from 'react';
+import axios from 'axios';
+import { useNavigate } from 'react-router-dom';
 
-interface Groupadmin {
-  id: number
-  firstname: string
-  lastname: string
-  email: string
-  phone: string
-  role: 'Volunteer' | 'Field Staff' | 'Team Leader' | 'Group Admin'
+interface User {
+  id: number;
+  firstname: string;
+  lastname: string;
+  email: string;
+  phone: string;
+  role: string;
 }
 
-interface GroupadminsPageProps {
-  isSidebarOpen: boolean
-}
+const GroupAdmin: React.FC = () => {
+  const [users, setUsers] = useState<User[]>([]);
+  const [search, setSearch] = useState<string>('');
+  const [notification, setNotification] = useState<string | null>(null);
+  const navigate = useNavigate();
 
+  const fetchUsers = async () => {
+    try {
+      const response = await axios.get('/api/users', {
+        params: { role: 'Group Admin', search },
+      });
+      setUsers(response.data);
+    } catch (error) {
+      console.error('Error fetching users:', error);
+    }
+  };
 
-const GroupadminPage: React.FC<GroupadminsPageProps> = ({ isSidebarOpen }) => {
-  const [groupadmins, setGroupadmins] = useState<Groupadmin[]>([])
+  const handleEdit = (user: User) => {
+    navigate('/registerroles', { state: { user, isEdit: true } });
+  };
+
+  const handleDelete = async (id: number, firstname: string, lastname: string) => {
+    if (window.confirm(`Are you sure you want to delete ${firstname} ${lastname}?`)) {
+      try {
+        await axios.delete(`/api/users/${id}`);
+        setNotification(`${firstname} ${lastname} deleted successfully!`);
+        fetchUsers();
+      } catch (error) {
+        console.error('Error deleting user:', error);
+        setNotification('Failed to delete user.');
+      }
+    }
+  };
+
+  const handleRoleChange = async (id: number, newRole: string) => {
+    try {
+      await axios.put(`/api/users/${id}`, { role: newRole });
+      setUsers((prev) => prev.filter((user) => user.id !== id));
+      setNotification(`Role updated to ${newRole} successfully!`);
+      navigate(`/${newRole.toLowerCase().replace(' ', '')}`);
+    } catch (error) {
+      console.error('Error updating role:', error);
+      setNotification('Failed to update role.');
+    }
+  };
 
   useEffect(() => {
-    fetch('/api/groupadmins')
-      .then((response) => response.json())
-      .then((data) => setGroupadmins(data))
-      .catch((error) => console.error('Error fetching groupadmins:', error))
-  }, [])
+    fetchUsers();
+  }, [search]);
 
-  const handleRoleChange = (id: number, newRole: Groupadmin['role']) => {
-    setGroupadmins((prev) =>
-      prev.map((groupadmin) =>
-        groupadmin.id === id ? { ...groupadmin, role: newRole } : groupadmin
-      )
-    )
-  }
-
-  const handleEdit = (id: number) => {
-    const groupadminToEdit = groupadmins.find((v) => v.id === id)
-    console.log('Editing groupadmin:', groupadminToEdit)
-  }
-
-  const handleDelete = (id: number) => {
-    if (window.confirm('Are you sure you want to delete this volunteer?')) {
-      setGroupadmins((prev) => prev.filter((v) => v.id !== id))
+  useEffect(() => {
+    if (notification) {
+      const timer = setTimeout(() => setNotification(null), 5000);
+      return () => clearTimeout(timer);
     }
-  }
+  }, [notification]);
 
   return (
-    <div style={{ marginLeft: isSidebarOpen ? '20px' : '10px', transition: 'all 0.3s ease' }}>
-      <h3 className="mt-5">Group Admin</h3>
-      <input
-        type="text"
-        placeholder="Search volunteers..."
-        className="form-control mb-3"
-      />
-      <div className="table-responsive">
-        <table className="table table-bordered table-hover text-center">
-          <thead className="table-light">
-            <tr>
-              <th>Name</th>
-              <th>Email</th>
-              <th>Phone</th>
-              <th>Role</th>
-              <th>Edit</th>
-              <th>Delete</th>
-            </tr>
-          </thead>
-          <tbody>
-            {groupadmins.map((groupadmin) => (
-              <tr key={groupadmin.id}>
-                <td>{`${groupadmin.firstname} ${groupadmin.lastname}`}</td>
-                <td>{groupadmin.email}</td>
-                <td>{groupadmin.phone}</td>
-                <td>
-                  <select
-                    value={groupadmin.role}
-                    onChange={(e) =>
-                      handleRoleChange(
-                        groupadmin.id,
-                        e.target.value as Groupadmin['role']
-                      )
-                    }
-                    className="form-select"
-                  >
-                    <option value="Volunteer">Volunteer</option>
-                    <option value="Field Staff">Field Staff</option>
-                    <option value="Team Leader">Team Leader</option>
-                    <option value="Group Admin">Group Admin</option>
-                  </select>
-                </td>
-                <td>
-                  <button
-                    className="btn btn-warning btn-sm"
-                    onClick={() => handleEdit(groupadmin.id)}
-                  >
-                    Edit
-                  </button>
-                </td>
-                <td>
-                  <button
-                    className="btn btn-danger btn-sm"
-                    onClick={() => handleDelete(groupadmin.id)}
-                  >
-                    Delete
-                  </button>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
+    <div className="container">
+      <h2>Group Admin Users</h2>
+      {notification && (
+        <div className="alert alert-primary text-center">{notification}</div>
+      )}
+      <div className="d-flex my-3">
+        <input
+          type="text"
+          placeholder="Search by name..."
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          className="form-control"
+        />
+        <button className="btn btn-primary ms-2" onClick={fetchUsers}>
+          Search
+        </button>
       </div>
+      <table className="table table-striped">
+        <thead>
+          <tr>
+            <th>Name</th>
+            <th>Email</th>
+            <th>Phone</th>
+            <th>Role</th>
+            <th>Edit</th>
+            <th>Delete</th>
+          </tr>
+        </thead>
+        <tbody>
+          {users.map((user) => (
+            <tr key={user.id}>
+              <td>{`${user.firstname} ${user.lastname}`}</td>
+              <td>{user.email}</td>
+              <td>{user.phone}</td>
+              <td>
+                <select
+                  value={user.role}
+                  onChange={(e) => handleRoleChange(user.id, e.target.value)}
+                  className="form-select form-select-sm"
+                >
+                  <option value="Group Admin">Group Admin</option>
+                  <option value="Field Staff">Field Staff</option>
+                  <option value="Team Leader">Team Leader</option>
+                  <option value="Volunteer">Volunteer</option>
+                </select>
+              </td>
+              <td>
+                <button
+                  className="btn btn-warning btn-sm"
+                  onClick={() => handleEdit(user)}
+                >
+                  Edit
+                </button>
+              </td>
+              <td>
+                <button
+                  className="btn btn-danger btn-sm"
+                  onClick={() =>
+                    handleDelete(user.id, user.firstname, user.lastname)
+                  }
+                >
+                  Delete
+                </button>
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
     </div>
-  )
-}
+  );
+};
 
-export default GroupadminPage
+export default GroupAdmin;

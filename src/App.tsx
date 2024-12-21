@@ -3,13 +3,13 @@ import { Routes, Route, useNavigate } from 'react-router-dom'
 import Sidebar from './components/sidebar'
 import Navbar from './components/navbar'
 import Login from './components/login'
-import Register from './components/registerroles'
+import Registerroles from './components/registerroles'
+import Registervolunteer from './components/registervolunteer'
 import Volunteer from './components/volunteer'
 import Groupadmin from './components/groupadmin'
-import Usertable from './components/usertable'
-
 // import Fieldstaff from './components/fieldstaff'
 // import Teamlead from './components/teamlead'
+// import Usertable from './components/usertable'
 
 const App: React.FC = () => {
   const [isLoggedIn, setIsLoggedIn] = useState(false)
@@ -102,17 +102,17 @@ const App: React.FC = () => {
             <div style={mainContentStyle}>
               <Routes>
                 <Route
-                  path="/register"
-                  element={<Register isSidebarOpen={isSidebarOpen} />}
+                  path="/registerroles"
+                  element={<Registerroles isSidebarOpen={isSidebarOpen} />}
                 />
 
                 <Route
-                  path="/:role"
-                  element={<Usertable isSidebarOpen={isSidebarOpen} />}
-                />
-                <Route
                   path="/groupadmin"
                   element={<Groupadmin isSidebarOpen={isSidebarOpen} />}
+                />
+                <Route
+                  path="/registervolunteer"
+                  element={<Registervolunteer isSidebarOpen={isSidebarOpen} />}
                 />
                 <Route
                   path="/volunteer"
@@ -126,6 +126,10 @@ const App: React.FC = () => {
                   path="/teamlead"
                   element={<Teamlead isSidebarOpen={isSidebarOpen} />}
                 />{' '} */}
+                {/* <Route
+                    path="/:role"
+                    element={<Usertable isSidebarOpen={isSidebarOpen} />}
+                  /> */}
               </Routes>
             </div>
           </div>

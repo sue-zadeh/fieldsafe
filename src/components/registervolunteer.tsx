@@ -123,52 +123,39 @@ const Register: React.FC<RegisterProps> = ({ isSidebarOpen }) => {
     }
   }
 
-  const handleRoleChange = async (id: number, newRole: User['role']) => {
-    try {
-      await axios.put(`/api/users/${id}`, {
-        ...users.find((u) => u.id === id),
-        role: newRole,
-      })
-      setNotification(`Role updated to ${newRole} successfully!`)
-      fetchUsers()
-    } catch (error: unknown) {
-      console.error('Error updating role:', (error as Error).message)
-      setNotification('Failed to update role.')
-    }
-  }
+  
+  // const handleEdit = (id: number) => {
+  //   const userToEdit = users.find((user) => user.id === id)
+  //   if (userToEdit) {
+  //     setFormData(userToEdit)
+  //     setEditingUserId(id)
+  //   }
+  // }
 
-  const handleEdit = (id: number) => {
-    const userToEdit = users.find((user) => user.id === id)
-    if (userToEdit) {
-      setFormData(userToEdit)
-      setEditingUserId(id)
-    }
-  }
-
-  const handleDelete = async (id: number) => {
-    const userToDelete = users.find((user) => user.id === id)
-    if (
-      window.confirm(
-        `Are you sure you want to delete ${userToDelete?.firstname} ${userToDelete?.lastname}?`
-      )
-    ) {
-      try {
-        await axios.delete(`/api/users/${id}`)
-        setNotification(
-          `${userToDelete?.firstname} ${userToDelete?.lastname} deleted successfully!`
-        )
-        fetchUsers()
-      } catch (error: unknown) {
-        if (error instanceof Error) {
-          console.error('Error deleting user:', error.message)
-          setNotification('Failed to delete user.')
-        } else {
-          console.error('Unknown error:', error)
-          setNotification('An unknown error occurred.')
-        }
-      }
-    }
-  }
+  // const handleDelete = async (id: number) => {
+  //   const userToDelete = users.find((user) => user.id === id)
+  //   if (
+  //     window.confirm(
+  //       `Are you sure you want to delete ${userToDelete?.firstname} ${userToDelete?.lastname}?`
+  //     )
+  //   ) {
+  //     try {
+  //       await axios.delete(`/api/users/${id}`)
+  //       setNotification(
+  //         `${userToDelete?.firstname} ${userToDelete?.lastname} deleted successfully!`
+  //       )
+  //       fetchUsers()
+  //     } catch (error: unknown) {
+  //       if (error instanceof Error) {
+  //         console.error('Error deleting user:', error.message)
+  //         setNotification('Failed to delete user.')
+  //       } else {
+  //         console.error('Unknown error:', error)
+  //         setNotification('An unknown error occurred.')
+  //       }
+  //     }
+  //   }
+  // }
 
   // Auto-clear notifications after 5 seconds
   useEffect(() => {

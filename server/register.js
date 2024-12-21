@@ -22,11 +22,13 @@ router.post('/users', async (req, res) => {
 
   try {
     const [existingUser] = await pool.query(
-      'SELECT * FROM registration WHERE email = ?',
+      'SELECT email FROM registration WHERE email = ?',
       [email]
     );
     if (existingUser.length > 0) {
-      return res.status(400).json({ message: 'Email is already in use' });
+      return res
+        .status(400)
+        .json({ message: 'Email is already in use. Please use a unique email.' });
     }
 
     const [result] = await pool.execute(query, [
@@ -43,10 +45,11 @@ router.post('/users', async (req, res) => {
       email,
       phone,
       role,
+      message: 'User added successfully',
     });
   } catch (error) {
     console.error('Error adding user:', error.message);
-    res.status(500).json({ message: 'Error adding user' });
+    res.status(500).json({ message: 'Error adding user. Please try again.' });
   }
 });
 
@@ -59,11 +62,13 @@ router.put('/users/:id', async (req, res) => {
 
   try {
     const [existingUser] = await pool.query(
-      'SELECT * FROM registration WHERE email = ? AND id != ?',
+      'SELECT email FROM registration WHERE email = ? AND id != ?',
       [email, id]
     );
     if (existingUser.length > 0) {
-      return res.status(400).json({ message: 'Email is already in use' });
+      return res
+        .status(400)
+        .json({ message: 'Email is already in use. Please use a unique email.' });
     }
 
     const [result] = await pool.execute(query, [
@@ -82,7 +87,7 @@ router.put('/users/:id', async (req, res) => {
     res.json({ message: 'User updated successfully' });
   } catch (error) {
     console.error('Error updating user:', error.message);
-    res.status(500).json({ message: 'Error updating user' });
+    res.status(500).json({ message: 'Error updating user. Please try again.' });
   }
 });
 
@@ -102,7 +107,7 @@ router.delete('/users/:id', async (req, res) => {
     res.json({ message: 'User deleted successfully' });
   } catch (error) {
     console.error('Error deleting user:', error.message);
-    res.status(500).json({ message: 'Error deleting user' });
+    res.status(500).json({ message: 'Error deleting user. Please try again.' });
   }
 });
 
