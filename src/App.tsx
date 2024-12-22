@@ -7,8 +7,8 @@ import Registerroles from './components/registerroles'
 import Registervolunteer from './components/registervolunteer'
 import Volunteer from './components/volunteer'
 import Groupadmin from './components/groupadmin'
-// import Fieldstaff from './components/fieldstaff'
-// import Teamlead from './components/teamlead'
+import Fieldstaff from './components/fieldstaff'
+import Teamlead from './components/teamlead'
 // import Usertable from './components/usertable'
 
 const App: React.FC = () => {
@@ -76,9 +76,10 @@ const App: React.FC = () => {
   const toggleSidebar = () => setIsSidebarOpen((prev) => !prev)
 
   const mainContentStyle: React.CSSProperties = {
-    marginLeft: isSidebarOpen ? '225px' : '25px',
+    marginLeft: isSidebarOpen ? '10px' : '3px',
+    width: isSidebarOpen ? 'calc(100% - 240px)' : '100%',
+    padding: '20px',
     transition: 'all 0.3s ease',
-    padding: '10px',
   }
 
   if (isLoading) return <div>Loading...</div>
@@ -118,18 +119,18 @@ const App: React.FC = () => {
                   path="/volunteer"
                   element={<Volunteer isSidebarOpen={isSidebarOpen} />}
                 />
-                {/* <Route
+                 <Route
                   path="/fieldstaff"
                   element={<Fieldstaff isSidebarOpen={isSidebarOpen} />}
-                />{' '}
+                />
                 <Route
                   path="/teamlead"
                   element={<Teamlead isSidebarOpen={isSidebarOpen} />}
-                />{' '} */}
-                {/* <Route
+                />
+                 {/* <Route
                     path="/:role"
                     element={<Usertable isSidebarOpen={isSidebarOpen} />}
-                  /> */}
+                  />  */}
               </Routes>
             </div>
           </div>

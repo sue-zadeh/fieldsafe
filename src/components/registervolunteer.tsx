@@ -13,7 +13,7 @@ type User = {
   lastname: string
   email: string
   phone: string
-  role: 'Volunteer' | 'Field Staff' | 'Team Leader' | 'Group Admin'
+  role: 'Volunteer' 
 }
 
 const Register: React.FC<RegisterProps> = ({ isSidebarOpen }) => {
