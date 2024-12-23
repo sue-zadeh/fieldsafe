@@ -3,7 +3,7 @@ import axios from 'axios'
 import { useNavigate } from 'react-router-dom'
 
 // Types
-type Role = 'Group Admin' | 'Field Staff' | 'Team Leader' | 'Volunteer'
+type Role = 'Group Admin' | 'Field Staff' | 'Team Leader' 
 type User = {
   id: number
   firstname: string
@@ -112,9 +112,7 @@ const GroupAdmin: React.FC<GroupAdminProps> = ({ isSidebarOpen }) => {
         navigate('/fieldstaff')
       } else if (newRole === 'Team Leader') {
         navigate('/teamlead')
-      } else if (newRole === 'Volunteer') {
-        navigate('/volunteer')
-      } else {
+      }  else {
         // If still "Group Admin," re-fetch to be sure
         fetchAllAdmins()
         if (searchQuery.trim()) {

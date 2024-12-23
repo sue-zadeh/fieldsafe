@@ -1,8 +1,8 @@
-// TeamLead.tsx
 import React, { useState, useEffect } from 'react'
 import axios from 'axios'
 import { useNavigate } from 'react-router-dom'
 
+// Role type
 type Role = 'Group Admin' | 'Field Staff' | 'Team Leader' | 'Volunteer'
 type User = {
   id: number
@@ -18,34 +18,34 @@ interface TeamLeadProps {
 }
 
 const TeamLead: React.FC<TeamLeadProps> = ({ isSidebarOpen }) => {
-  // List of all Team Leaders
+  // 1) Full list of Team Leaders
   const [allLeads, setAllLeads] = useState<User[]>([])
-  // Search results
+
+  // 2) Search results
   const [searchResults, setSearchResults] = useState<User[]>([])
-  // Search text
+
+  // 3) The user's search text
   const [searchQuery, setSearchQuery] = useState('')
-  // Fetch users for validation
-  const [users, setUsers] = useState<User[]>([]) 
-  // Notification (e.g. success or error)
+
+  // 4) Notification (success/fail messages)
   const [notification, setNotification] = useState<string | null>(null)
 
   const navigate = useNavigate()
 
-  // -------------------------
-  // 1) Fetch all Team Leaders on mount
+  //------------------------------------------------------------
+  // (A) Fetch ALL "Team Leader" records on mount
   const fetchAllLeads = async () => {
     try {
       const res = await axios.get('/api/users', {
-        params: { role: 'Team Leader' }, // <-- important
+        params: { role: 'Team Leader' },
       })
-      // Sort by firstname or however you want
       const sorted = res.data.sort((a: User, b: User) =>
         a.firstname.localeCompare(b.firstname)
       )
       setAllLeads(sorted)
-    } catch (error) {
-      console.error('Error fetching Team Leaders:', error)
-      setNotification('Failed to load Team Leader data.')
+    } catch (err) {
+      console.error('Error fetching Team Leaders:', err)
+      setNotification('Failed to load data.')
     }
   }
 
@@ -53,65 +53,86 @@ const TeamLead: React.FC<TeamLeadProps> = ({ isSidebarOpen }) => {
     fetchAllLeads()
   }, [])
 
-  // 2) Searching
-  const handleSearch = async () => {
-    if (!searchQuery.trim()) {
-      // If no search term, clear search results
-      setSearchResults([])
-      return
+  //------------------------------------------------------------
+  // (B) Auto-search as the user types (immediate)
+  // If searchQuery is empty, clear searchResults.
+  // Otherwise, fetch filtered list from server.
+  useEffect(() => {
+    const doSearch = async () => {
+      if (!searchQuery.trim()) {
+        setSearchResults([])
+        return
+      }
+      try {
+        const res = await axios.get('/api/users', {
+          params: { role: 'Team Leader', search: searchQuery.trim() },
+        })
+        setSearchResults(res.data)
+      } catch (error) {
+        console.error('Error searching Team Leaders:', error)
+        setNotification('Failed to load data.')
+      }
     }
+
+    doSearch()
+  }, [searchQuery]) // runs on every change of searchQuery
+
+  //------------------------------------------------------------
+  // (C) Role change
+  const handleRoleChange = async (userId: number, newRole: Role) => {
     try {
-      const res = await axios.get('/api/users', {
-        params: {
-          role: 'Team Leader', // <-- important
-          search: searchQuery.trim(),
-        },
-      })
-      setSearchResults(res.data)
+      // 1) Optimistically update local arrays
+      setAllLeads((prev) =>
+        prev.map((u) => (u.id === userId ? { ...u, role: newRole } : u))
+      )
+      setSearchResults((prev) =>
+        prev.map((u) => (u.id === userId ? { ...u, role: newRole } : u))
+      )
+
+      // 2) PUT request
+      await axios.put(`/api/users/${userId}`, { role: newRole })
+      setNotification(`Role updated to ${newRole} successfully!`)
+
+      // 3) If user is no longer "Team Leader," navigate
+      if (newRole === 'Group Admin') {
+        navigate('/groupadmin')
+      } else if (newRole === 'Field Staff') {
+        navigate('/fieldstaff')
+      } else if (newRole === 'Volunteer') {
+        navigate('/volunteer')
+      } else {
+        // If still "Team Leader," re-fetch in case something changed
+        fetchAllLeads()
+      }
     } catch (error) {
-      console.error('Error searching Team Leaders:', error)
-      setNotification('Failed to load data.')
+      console.error('Error updating role:', error)
+      setNotification('Failed to update user role.')
     }
   }
 
-  // 3) Handle role change (partial update)
-  const handleRoleChange = (id: number, newRole: Role) => {
-    // 1) Update local state
-    setUsers((prev) =>
-      prev.map((u) => (u.id === id ? { ...u, role: newRole } : u))
-    )
-  
-    // 2) PUT request
-    axios
-      .put(`/api/users/${id}`, { role: newRole })
-      .then(() => {
-        setNotification(`Role updated to ${newRole} successfully!`)
-        // If needed, navigate or re-fetch
-      })
-      .catch(() => {
-        setNotification('Failed to update user role.')
-        // Optionally revert local state
-      })
-  }
-  
-
-  // 4) Delete user
+  //------------------------------------------------------------
+  // (D) Delete user
   const handleDelete = async (userId: number) => {
     if (!window.confirm('Are you sure you want to delete this user?')) return
     try {
       await axios.delete(`/api/users/${userId}`)
       setNotification('User deleted successfully!')
-
-      // Re-fetch lists
       fetchAllLeads()
-      if (searchQuery) handleSearch()
+      // Re-run search if applicable
+      if (searchQuery.trim()) {
+        const res = await axios.get('/api/users', {
+          params: { role: 'Team Leader', search: searchQuery.trim() },
+        })
+        setSearchResults(res.data)
+      }
     } catch (error) {
       console.error('Error deleting user:', error)
       setNotification('Failed to delete user.')
     }
   }
 
-  // Auto-clear notification
+  //------------------------------------------------------------
+  // Clear notifications automatically
   useEffect(() => {
     if (notification) {
       const timer = setTimeout(() => setNotification(null), 4000)
@@ -119,8 +140,9 @@ const TeamLead: React.FC<TeamLeadProps> = ({ isSidebarOpen }) => {
     }
   }, [notification])
 
-  // Utility to render a table
-  const renderTable = (users: User[]) => (
+  //------------------------------------------------------------
+  // Utility table renderer
+  const renderTable = (list: User[]) => (
     <table className="table table-bordered table-striped align-middle">
       <thead className="text-center">
         <tr>
@@ -132,7 +154,7 @@ const TeamLead: React.FC<TeamLeadProps> = ({ isSidebarOpen }) => {
         </tr>
       </thead>
       <tbody>
-        {users.map((u) => (
+        {list.map((u) => (
           <tr key={u.id}>
             <td>
               {u.firstname} {u.lastname}
@@ -143,7 +165,7 @@ const TeamLead: React.FC<TeamLeadProps> = ({ isSidebarOpen }) => {
               <select
                 className="form-select"
                 value={u.role}
-                onChange={(e) => handleRoleChange(u, e.target.value as Role)}
+                onChange={(e) => handleRoleChange(u.id, e.target.value as Role)}
               >
                 <option value="Team Leader">Team Leader</option>
                 <option value="Group Admin">Group Admin</option>
@@ -175,6 +197,8 @@ const TeamLead: React.FC<TeamLeadProps> = ({ isSidebarOpen }) => {
     </table>
   )
 
+  //------------------------------------------------------------
+  // Render
   return (
     <div
       className="container-fluid"
@@ -186,28 +210,25 @@ const TeamLead: React.FC<TeamLeadProps> = ({ isSidebarOpen }) => {
     >
       <h2 className="text-center mb-2">Team Leader</h2>
       <p className="text-center text-muted">
-        Search for Team Leaders by name or keyword
+        *Instant Search* - type something in the box below
       </p>
 
+      {/* Notification */}
       {notification && (
         <div className="alert alert-info text-center">{notification}</div>
       )}
 
-      {/* Search bar */}
-      <div className="d-flex justify-content-center align-items-center mb-4">
+      {/* Search input (auto-search on typing) */}
+      <div className="mb-4 d-flex justify-content-center">
         <input
-          type="text"
           className="form-control w-50 me-2"
-          placeholder="Search name, or a letter."
+          placeholder="Search by name, letter, etc."
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
         />
-        <button className="btn btn-success" onClick={handleSearch}>
-          Search
-        </button>
       </div>
 
-      {/* If user typed something, show search results */}
+      {/* Search Results (if user typed something) */}
       {searchQuery.trim() && (
         <>
           <h5 className="text-center">Search Results</h5>
@@ -222,8 +243,8 @@ const TeamLead: React.FC<TeamLeadProps> = ({ isSidebarOpen }) => {
         </>
       )}
 
-      {/* Full table of Team Leaders */}
-      <h5 className="text-center">All Team Leaders</h5>
+      {/* Always show all Team Leaders below */}
+      <h4 className="text-center">All Team Leaders</h4>
       {allLeads.length > 0 ? (
         renderTable(allLeads)
       ) : (
