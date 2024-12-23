@@ -63,55 +63,42 @@ router.get('/users', async (req, res) => {
   }
 })
 
-// ============ CREATE USER ============
-router.post('/users', async (req, res) => {
+// ============ UPDATE USER (Partial Updates) ============
+router.put('/users/:id', async (req, res) => {
+  const { id } = req.params
   const { firstname, lastname, email, phone, role } = req.body
 
-  // Sanitize inputs
-  const sanitizedFirstname = sanitizeInput(firstname)
-  const sanitizedLastname = sanitizeInput(lastname)
-  const sanitizedEmail = sanitizeInput(email)
-  const sanitizedPhone = sanitizeInput(phone)
-  const sanitizedRole = sanitizeInput(role)
-
-  // Check email uniqueness
   try {
-    const [existingUser] = await pool.query(
-      'SELECT email FROM registration WHERE email = ?',
-      [sanitizedEmail]
+    // Retrieve existing user
+    const [rows] = await pool.query('SELECT * FROM registration WHERE id = ?', [id])
+    if (!rows.length) {
+      return res.status(404).json({ message: 'User not found' })
+    }
+    const existing = rows[0]
+
+    // Merge new data with existing data
+    const updatedFirstname = firstname ?? existing.firstname
+    const updatedLastname = lastname ?? existing.lastname
+    const updatedEmail = email ?? existing.email
+    const updatedPhone = phone ?? existing.phone
+    const updatedRole = role ?? existing.role
+
+    // Update DB
+    const [result] = await pool.query(
+      `UPDATE registration
+       SET firstname=?, lastname=?, email=?, phone=?, role=?
+       WHERE id=?`,
+      [updatedFirstname, updatedLastname, updatedEmail, updatedPhone, updatedRole, id]
     )
-    if (existingUser.length > 0) {
-      return res.status(400).json({
-        message: 'Email is already in use. Please use a unique email.',
-      })
+
+    if (result.affectedRows === 0) {
+      return res.status(404).json({ message: 'User not found' })
     }
 
-    const query =
-      'INSERT INTO registration (firstname, lastname, email, phone, role) VALUES (?, ?, ?, ?, ?)'
-    const [result] = await pool.execute(query, [
-      sanitizedFirstname,
-      sanitizedLastname,
-      sanitizedEmail,
-      sanitizedPhone,
-      sanitizedRole,
-    ])
-
-    // Send email to the new user
-    const emailMessage = `Dear ${sanitizedFirstname} ${sanitizedLastname},\n\nYou have been successfully registered as a ${sanitizedRole}.\n\nBest regards,\nFieldBase Team.`
-    await sendEmail(sanitizedEmail, 'Registration Confirmation', emailMessage)
-
-    res.status(201).json({
-      id: result.insertId,
-      firstname: sanitizedFirstname,
-      lastname: sanitizedLastname,
-      email: sanitizedEmail,
-      phone: sanitizedPhone,
-      role: sanitizedRole,
-      message: 'User added successfully',
-    })
-  } catch (error) {
-    console.error('Error adding user:', error.message)
-    res.status(500).json({ message: 'Error adding user. Please try again.' })
+    return res.json({ message: 'User updated successfully' })
+  } catch (err) {
+    console.error('Error updating user:', err)
+    res.status(500).json({ message: 'Error updating user.' })
   }
 })
 

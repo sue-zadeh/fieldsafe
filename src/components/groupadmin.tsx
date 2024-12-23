@@ -18,98 +18,47 @@ interface GroupAdminProps {
 }
 
 const GroupAdmin: React.FC<GroupAdminProps> = ({ isSidebarOpen }) => {
-  // All Group Admins (for the main table below)
+  // 1) "All" Group Admins for the main table
   const [allAdmins, setAllAdmins] = useState<User[]>([])
-  // Search results (for the table on top)
+
+  // 2) Search results for the "Search Results" table
   const [searchResults, setSearchResults] = useState<User[]>([])
-  // Search input
+
+  // 3) Search bar text
   const [searchQuery, setSearchQuery] = useState('')
-  // Notification bar
+
+  // 4) Has the user actually performed a search? (We only show the "No results"
+  //    message if they've clicked the Search button.)
+  const [hasSearched, setHasSearched] = useState(false)
+
+  // 5) Notification message
   const [notification, setNotification] = useState<string | null>(null)
 
   const navigate = useNavigate()
 
-  // 1. On mount, fetch ALL group admins for the "main table"
+  //----------------------------------------------------------------
+  // On mount, fetch ALL Group Admins
   const fetchAllAdmins = async () => {
     try {
       const res = await axios.get('/api/users', {
         params: { role: 'Group Admin' },
       })
-      // You might want to sort them by name
+      // Sort them if you want (by firstname, for example)
       const sorted = res.data.sort((a: User, b: User) =>
         a.firstname.localeCompare(b.firstname)
       )
       setAllAdmins(sorted)
     } catch (error) {
-      console.error('Error fetching all group admins:', error)
-      setNotification('Failed to load data for main table.')
+      console.error('Error fetching Group Admins:', error)
+      setNotification('Failed to load data for the main table.')
     }
   }
 
-  // 2. Searching for a name/keyword. Called on "Search" button
-  const handleSearch = async () => {
-    if (!searchQuery) {
-      // If search is empty, clear the top table & do nothing else
-      setSearchResults([])
-      return
-    }
-    try {
-      const res = await axios.get('/api/users', {
-        params: { role: 'Group Admin', search: searchQuery },
-      })
-      setSearchResults(res.data)
-    } catch (error) {
-      console.error('Error searching for group admins:', error)
-      setNotification('Failed to load data.')
-    }
-  }
-
-  // 3. Change user role
-  const handleRoleChange = async (userId: number, newRole: Role) => {
-    try {
-      await axios.put(`/api/users/${userId}`, { role: newRole })
-      setNotification(`Role updated to ${newRole} successfully!`)
-      // If user is no longer Group Admin => navigate
-      if (newRole !== 'Group Admin') {
-        if (newRole === 'Field Staff') {
-          navigate('/fieldstaff')
-        } else if (newRole === 'Team Leader') {
-          navigate('/teamlead')
-        } else if (newRole === 'Volunteer') {
-          navigate('/volunteer')
-        }
-      } else {
-        // If still "Group Admin," just refresh both lists
-        fetchAllAdmins()
-        if (searchQuery) handleSearch()
-      }
-    } catch (error) {
-      console.error('Error updating user role:', error)
-      setNotification('Failed to update user role.')
-    }
-  }
-
-  // 4. Delete user
-  const handleDelete = async (userId: number) => {
-    if (!window.confirm('Are you sure you want to delete this user?')) return
-    try {
-      await axios.delete(`/api/users/${userId}`)
-      setNotification('User deleted successfully!')
-      // Re-fetch
-      fetchAllAdmins()
-      if (searchQuery) handleSearch()
-    } catch (error) {
-      console.error('Error deleting user:', error)
-      setNotification('Failed to delete user.')
-    }
-  }
-
-  // Load all admins on mount
   useEffect(() => {
     fetchAllAdmins()
   }, [])
 
-  // Auto-clear notification
+  // Clear notifications after a few seconds
   useEffect(() => {
     if (notification) {
       const timer = setTimeout(() => setNotification(null), 4000)
@@ -117,8 +66,90 @@ const GroupAdmin: React.FC<GroupAdminProps> = ({ isSidebarOpen }) => {
     }
   }, [notification])
 
-  // Re-usable table renderer
-  const renderTable = (users: User[]) => {
+  //----------------------------------------------------------------
+  // Searching: only triggered by the "Search" button
+  const handleSearch = async () => {
+    // Mark that we did a search
+    setHasSearched(true)
+
+    // If the user’s search box is empty, clear the searchResults table
+    if (!searchQuery.trim()) {
+      setSearchResults([])
+      return
+    }
+    try {
+      const res = await axios.get('/api/users', {
+        params: {
+          role: 'Group Admin',
+          search: searchQuery.trim(),
+        },
+      })
+      setSearchResults(res.data)
+    } catch (error) {
+      console.error('Error searching Group Admins:', error)
+      setNotification('Failed to load search results.')
+    }
+  }
+
+  //----------------------------------------------------------------
+  // Changing a user's role
+  const handleRoleChange = async (userId: number, newRole: Role) => {
+    try {
+      // 1) Optimistically update local data so the dropdown changes immediately
+      setAllAdmins((prev) =>
+        prev.map((u) => (u.id === userId ? { ...u, role: newRole } : u))
+      )
+      setSearchResults((prev) =>
+        prev.map((u) => (u.id === userId ? { ...u, role: newRole } : u))
+      )
+
+      // 2) PUT request to the backend
+      await axios.put(`/api/users/${userId}`, { role: newRole })
+      setNotification(`Role updated to ${newRole} successfully!`)
+
+      // 3) If user left "Group Admin," navigate to that page
+      if (newRole === 'Field Staff') {
+        navigate('/fieldstaff')
+      } else if (newRole === 'Team Leader') {
+        navigate('/teamlead')
+      } else if (newRole === 'Volunteer') {
+        navigate('/volunteer')
+      } else {
+        // If still "Group Admin," re-fetch to be sure
+        fetchAllAdmins()
+        if (searchQuery.trim()) {
+          handleSearch()
+        }
+      }
+    } catch (error) {
+      console.error('Error updating user role:', error)
+      setNotification('Failed to update user role.')
+    }
+  }
+
+  //----------------------------------------------------------------
+  // Deleting a user
+  const handleDelete = async (userId: number) => {
+    if (!window.confirm('Are you sure you want to delete this user?')) return
+    try {
+      await axios.delete(`/api/users/${userId}`)
+      setNotification('User deleted successfully!')
+
+      // Re-fetch main table
+      fetchAllAdmins()
+      // If searching, re-fetch results too
+      if (searchQuery.trim()) {
+        handleSearch()
+      }
+    } catch (error) {
+      console.error('Error deleting user:', error)
+      setNotification('Failed to delete user.')
+    }
+  }
+
+  //----------------------------------------------------------------
+  // Render table (reusable)
+  const renderTable = (list: User[]) => {
     return (
       <table className="table table-bordered table-striped align-middle">
         <thead className="text-center">
@@ -131,7 +162,7 @@ const GroupAdmin: React.FC<GroupAdminProps> = ({ isSidebarOpen }) => {
           </tr>
         </thead>
         <tbody>
-          {users.map((u) => (
+          {list.map((u) => (
             <tr key={u.id}>
               <td>
                 {u.firstname} {u.lastname}
@@ -177,6 +208,8 @@ const GroupAdmin: React.FC<GroupAdminProps> = ({ isSidebarOpen }) => {
     )
   }
 
+  //----------------------------------------------------------------
+  // Component Layout
   return (
     <div
       className="container-fluid"
@@ -187,16 +220,17 @@ const GroupAdmin: React.FC<GroupAdminProps> = ({ isSidebarOpen }) => {
       }}
     >
       <h2 className="text-center mb-2">Group Admin</h2>
-      <p className="text-center text-muted">
+      <p className="text-center text-muted fs-5 font-weight: 700">
         Search for Group Admins by name or any keyword
       </p>
 
+      {/* Notification */}
       {notification && (
         <div className="alert alert-info text-center">{notification}</div>
       )}
 
-      {/* Search bar */}
-      <div className="d-flex justify-content-center align-items-center mb-4 fs-4 text-dark ">
+      {/* Search bar - only triggers handleSearch on button click */}
+      <div className="d-flex justify-content-center align-items-center mb-4">
         <input
           type="text"
           className="form-control w-50 me-2"
@@ -204,19 +238,15 @@ const GroupAdmin: React.FC<GroupAdminProps> = ({ isSidebarOpen }) => {
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
         />
-        <button
-          className="btn font-weight: 900  w-25 fs-5"
-          style={{ backgroundColor: '#738c40', color: '#F4F7F1' }}
-          onClick={handleSearch}
-        >
+        <button className="btn btn-success w-25 fs-5" onClick={handleSearch}>
           Search
         </button>
       </div>
 
-      {/* Search Results Table (top) - Only show if user typed something */}
-      {searchQuery.trim() && (
+      {/* If user actually clicked Search (hasSearched) and typed something, show results */}
+      {hasSearched && searchQuery.trim() && (
         <>
-          <h5 className="text-center ">Search Results</h5>
+          <h3 className="text-center">Search Results</h3>
           {searchResults.length > 0 ? (
             renderTable(searchResults)
           ) : (
@@ -228,8 +258,8 @@ const GroupAdmin: React.FC<GroupAdminProps> = ({ isSidebarOpen }) => {
         </>
       )}
 
-      {/* Full Group Admin Table (below) */}
-      <h2 className="text-center p-4 pt-5">All Group Admins</h2>
+      {/* Full Group Admin Table below */}
+      <h2 className="text-center mt-4">All Group Admins</h2>
       {allAdmins.length > 0 ? (
         renderTable(allAdmins)
       ) : (

@@ -1,3 +1,4 @@
+// TeamLead.tsx
 import React, { useState, useEffect } from 'react'
 import axios from 'axios'
 import { useNavigate } from 'react-router-dom'
@@ -12,83 +13,96 @@ type User = {
   role: Role
 }
 
-interface TeamleadProps {
+interface TeamLeadProps {
   isSidebarOpen: boolean
 }
 
-const Teamlead: React.FC<TeamleadProps> = ({ isSidebarOpen }) => {
+const TeamLead: React.FC<TeamLeadProps> = ({ isSidebarOpen }) => {
+  // List of all Team Leaders
   const [allLeads, setAllLeads] = useState<User[]>([])
+  // Search results
   const [searchResults, setSearchResults] = useState<User[]>([])
+  // Search text
   const [searchQuery, setSearchQuery] = useState('')
+  // Fetch users for validation
+  const [users, setUsers] = useState<User[]>([]) 
+  // Notification (e.g. success or error)
   const [notification, setNotification] = useState<string | null>(null)
 
   const navigate = useNavigate()
 
-  // Fetch all Team Leaders
+  // -------------------------
+  // 1) Fetch all Team Leaders on mount
   const fetchAllLeads = async () => {
     try {
       const res = await axios.get('/api/users', {
-        params: { role: 'Team Leader' }, // <--- KEY
+        params: { role: 'Team Leader' }, // <-- important
       })
-      setAllLeads(res.data)
+      // Sort by firstname or however you want
+      const sorted = res.data.sort((a: User, b: User) =>
+        a.firstname.localeCompare(b.firstname)
+      )
+      setAllLeads(sorted)
     } catch (error) {
-      console.error('Error fetching team leads:', error)
-      setNotification('Failed to load data.')
+      console.error('Error fetching Team Leaders:', error)
+      setNotification('Failed to load Team Leader data.')
     }
   }
 
-  // Handle search
+  useEffect(() => {
+    fetchAllLeads()
+  }, [])
+
+  // 2) Searching
   const handleSearch = async () => {
     if (!searchQuery.trim()) {
+      // If no search term, clear search results
       setSearchResults([])
       return
     }
     try {
-      // role = 'Team Leader' plus search param
       const res = await axios.get('/api/users', {
-        params: { role: 'Team Leader', search: searchQuery.trim() },
+        params: {
+          role: 'Team Leader', // <-- important
+          search: searchQuery.trim(),
+        },
       })
       setSearchResults(res.data)
     } catch (error) {
-      console.error('Error searching team leads:', error)
+      console.error('Error searching Team Leaders:', error)
       setNotification('Failed to load data.')
     }
   }
 
-  //  Role change
-  const handleRoleChange = async (userId: number, newRole: Role) => {
-    try {
-      // Put request: *be sure your backend can handle partial updates*
-      await axios.put(`/api/users/${userId}`, { role: newRole })
-
-      setNotification(`Role updated to ${newRole} successfully!`)
-
-      // If the user is no longer "Team Leader", navigate to the new page or refresh:
-      if (newRole !== 'Team Leader') {
-        if (newRole === 'Group Admin') {
-          navigate('/groupadmin')
-        } else if (newRole === 'Field Staff') {
-          navigate('/fieldstaff')
-        } else if (newRole === 'Volunteer') {
-          navigate('/volunteer')
-        }
-      } else {
-        // still a Team Leader => re-fetch
-        fetchAllLeads()
-        if (searchQuery) handleSearch()
-      }
-    } catch (error) {
-      console.error('Error updating user role:', error)
-      setNotification('Failed to update user role.')
-    }
+  // 3) Handle role change (partial update)
+  const handleRoleChange = (id: number, newRole: Role) => {
+    // 1) Update local state
+    setUsers((prev) =>
+      prev.map((u) => (u.id === id ? { ...u, role: newRole } : u))
+    )
+  
+    // 2) PUT request
+    axios
+      .put(`/api/users/${id}`, { role: newRole })
+      .then(() => {
+        setNotification(`Role updated to ${newRole} successfully!`)
+        // If needed, navigate or re-fetch
+      })
+      .catch(() => {
+        setNotification('Failed to update user role.')
+        // Optionally revert local state
+      })
   }
+  
 
-  //  Delete
+  // 4) Delete user
   const handleDelete = async (userId: number) => {
-    if (!window.confirm('Are you sure?')) return
+    if (!window.confirm('Are you sure you want to delete this user?')) return
     try {
       await axios.delete(`/api/users/${userId}`)
       setNotification('User deleted successfully!')
+
+      // Re-fetch lists
       fetchAllLeads()
       if (searchQuery) handleSearch()
     } catch (error) {
@@ -97,21 +111,16 @@ const Teamlead: React.FC<TeamleadProps> = ({ isSidebarOpen }) => {
     }
   }
 
-  // onMount
-  useEffect(() => {
-    fetchAllLeads()
-  }, [])
-
-  // auto-hide notifications
+  // Auto-clear notification
   useEffect(() => {
     if (notification) {
-      const timer = setTimeout(() => setNotification(null), 3000)
+      const timer = setTimeout(() => setNotification(null), 4000)
       return () => clearTimeout(timer)
     }
   }, [notification])
 
-  // Render table
-  const renderTable = (list: User[]) => (
+  // Utility to render a table
+  const renderTable = (users: User[]) => (
     <table className="table table-bordered table-striped align-middle">
       <thead className="text-center">
         <tr>
@@ -123,18 +132,18 @@ const Teamlead: React.FC<TeamleadProps> = ({ isSidebarOpen }) => {
         </tr>
       </thead>
       <tbody>
-        {list.map((u) => (
+        {users.map((u) => (
           <tr key={u.id}>
-            <td>{u.firstname} {u.lastname}</td>
+            <td>
+              {u.firstname} {u.lastname}
+            </td>
             <td>{u.email}</td>
             <td>{u.phone}</td>
             <td>
               <select
                 className="form-select"
                 value={u.role}
-                onChange={(e) =>
-                  handleRoleChange(u.id, e.target.value as Role)
-                }
+                onChange={(e) => handleRoleChange(u, e.target.value as Role)}
               >
                 <option value="Team Leader">Team Leader</option>
                 <option value="Group Admin">Group Admin</option>
@@ -142,7 +151,7 @@ const Teamlead: React.FC<TeamleadProps> = ({ isSidebarOpen }) => {
                 <option value="Volunteer">Volunteer</option>
               </select>
             </td>
-            <td>
+            <td className="text-center">
               <button
                 className="btn btn-warning btn-sm me-2"
                 onClick={() =>
@@ -184,6 +193,7 @@ const Teamlead: React.FC<TeamleadProps> = ({ isSidebarOpen }) => {
         <div className="alert alert-info text-center">{notification}</div>
       )}
 
+      {/* Search bar */}
       <div className="d-flex justify-content-center align-items-center mb-4">
         <input
           type="text"
@@ -197,25 +207,30 @@ const Teamlead: React.FC<TeamleadProps> = ({ isSidebarOpen }) => {
         </button>
       </div>
 
-      {/* If user typed something, show search results table */}
+      {/* If user typed something, show search results */}
       {searchQuery.trim() && (
         <>
           <h5 className="text-center">Search Results</h5>
-          {searchResults.length > 0
-            ? renderTable(searchResults)
-            : <p className="text-center text-muted">No results found for "{searchQuery}"</p>
-          }
+          {searchResults.length > 0 ? (
+            renderTable(searchResults)
+          ) : (
+            <p className="text-center text-muted">
+              No results found for "{searchQuery}"
+            </p>
+          )}
           <hr />
         </>
       )}
 
+      {/* Full table of Team Leaders */}
       <h5 className="text-center">All Team Leaders</h5>
-      {allLeads.length > 0
-        ? renderTable(allLeads)
-        : <p className="text-center text-muted">No Team Leaders found.</p>
-      }
+      {allLeads.length > 0 ? (
+        renderTable(allLeads)
+      ) : (
+        <p className="text-center text-muted">No Team Leaders found.</p>
+      )}
     </div>
   )
 }
 
-export default Teamlead
+export default TeamLead

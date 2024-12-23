@@ -70,11 +70,13 @@ const Fieldstaff: React.FC<FieldstaffProps> = ({ isSidebarOpen }) => {
       await axios.put(`/api/users/${userId}`, { role: newRole })
       setNotification(`Role updated to ${newRole} successfully!`)
       // If user is no longer Group Admin => navigate
-      if (newRole !== 'Group Admin') {
-        if (newRole === 'Field Staff') {
-          navigate('/fieldstaff')
+      if (newRole !== 'Field Staff') {
+        if (newRole === 'Group Admin') {
+          navigate('/groupadmin')
         } else if (newRole === 'Team Leader') {
           navigate('/teamlead')
+        } else if (newRole === 'Volunteer') {
+          navigate('/volunteer')
         }
       } else {
         // If still "Group Admin," just refresh both lists

@@ -1,96 +1,109 @@
 import React, { useState, useEffect } from 'react'
+import { useLocation, useNavigate } from 'react-router-dom'
 import axios from 'axios'
-
-// Props for sidebar state
-interface RegisterProps {
+interface RegistervolunteerProps {
   isSidebarOpen: boolean
 }
 
-// User type definition
+// type user
 type User = {
   id: number
   firstname: string
   lastname: string
   email: string
   phone: string
-  role: 'Volunteer' 
+  emergencyContact: string
+  emergencyContactNumber: number
+  role: 'Volunteer'
 }
 
-const Register: React.FC<RegisterProps> = ({ isSidebarOpen }) => {
-  const [users, setUsers] = useState<User[]>([])
+const Registervolunteer: React.FC<RegistervolunteerProps> = ({
+  isSidebarOpen,
+}) => {
   const [formData, setFormData] = useState<User>({
     id: 0,
     firstname: '',
     lastname: '',
     email: '',
     phone: '',
+    emergencyContact: '',
+    emergencyContactNumber: '',
     role: 'Volunteer',
   })
-  const [editingUserId, setEditingUserId] = useState<number | null>(null)
-  const [notification, setNotification] = useState<string>('')
+  const [notification, setNotification] = useState<string | null>(null)
+  const [users, setUsers] = useState<User[]>([]) // Fetch users for validation
+  const location = useLocation()
+  const navigate = useNavigate()
 
-  // Fetch users from the backend on component mount
   useEffect(() => {
-    fetchUsers()
-  }, [])
-
-  const fetchUsers = async () => {
-    try {
-      const response = await axios.get('/api/users')
-      setUsers(response.data)
-    } catch (error: unknown) {
-      console.error('Error fetching users:', (error as Error).message)
-      setNotification('Failed to load users.')
+    // Pre-fill form data if editing a user
+    if (location.state?.user) {
+      setFormData(location.state.user)
     }
+    // Fetch all users for email validation
+    axios.get('/api/users').then((response) => setUsers(response.data))
+  }, [location])
+
+  const validateForm = (): string | null => {
+    const {
+      firstname,
+      lastname,
+      email,
+      phone,
+      emergencyContact,
+      emergencyContactNumber,
+    } = formData
+    if (
+      !firstname ||
+      !lastname ||
+      !email ||
+      !phone ||
+      !emergencyContact ||
+      !emergencyContactNumber
+    ) {
+      return 'All fields are required.'
+    }
+    if (!/\S+@\S+\.\S+/.test(email)) return 'Invalid email format.'
+    if (!/^\d{10}$/.test(phone)) return 'Phone must be exactly 10 digits.'
+    return null
   }
 
+  // const sendEmail = async () => {
+  //   try {
+  //     await axios.post('/api/send-email', {
+  //       email: formData.email,
+  //       subject: 'Registration Confirmation',
+  //       message: `Dear ${formData.firstname} ${formData.lastname},\n\nYou have been successfully registered as a volunteer.\n\nBest regards,\nYour Team`,
+  //     })
+  //   } catch (error) {
+  //     console.error('Error sending email:', error)
+  //   }
+  // }
+  //
   const handleInputChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
   ) => {
     setFormData({ ...formData, [e.target.name]: e.target.value })
   }
-
-  const validateForm = (): string => {
-    const { firstname, lastname, email, phone } = formData
-    if (!firstname || !lastname || !email || !phone)
-      return 'All fields are required.'
-    if (!/\S+@\S+\.\S+/.test(email)) return 'Invalid email format.'
-    if (!/^\d{10}$/.test(phone)) return 'Phone must be exactly 10 digits.'
-    return ''
-  }
-
-  const resetForm = () => {
-    setFormData({
-      id: 0,
-      firstname: '',
-      lastname: '',
-      email: '',
-      phone: '',
-      role: 'Volunteer',
-    })
-    setEditingUserId(null)
-  }
-
+  // register button click
   const handleSubmit = async () => {
-    const error = validateForm()
-    if (error) {
-      setNotification(error)
+    const validationError = validateForm()
+    if (validationError) {
+      setNotification(validationError)
       return
     }
-    // Check if email is unique
+    //Email should be unique
     const isEmailTaken = users.some(
-      (user) => user.email === formData.email && user.id !== editingUserId
+      (user) => user.email === formData.email && user.id !== formData.id
     )
     if (isEmailTaken) {
-      setNotification(
-        'The email address is already in use. Please use a unique email.'
-      )
+      setNotification('The email address is already in use.')
       return
     }
-
+   //Check if no change in edit form
     try {
-      if (editingUserId) {
-        const originalUser = users.find((user) => user.id === editingUserId)
+      if (formData.id) {
+        const originalUser = users.find((user) => user.id === formData.id)
         if (
           originalUser &&
           originalUser.firstname === formData.firstname &&
@@ -100,147 +113,130 @@ const Register: React.FC<RegisterProps> = ({ isSidebarOpen }) => {
           originalUser.role === formData.role
         ) {
           const confirmNoChanges = window.confirm(
-            'No changes detected. Are you okay with saving without any edits?'
+            'No changes detected. Are you sure you want to save?'
           )
           if (!confirmNoChanges) return
         }
-
-        await axios.put(`/api/users/${editingUserId}`, formData)
-        setNotification(
-          `${formData.firstname} ${formData.lastname} updated successfully!`
-        )
+        await axios.put(`/api/users/${formData.id}`, formData)
+        setNotification(`Editing ${formData.firstname} was successful!`)
       } else {
         await axios.post('/api/users', formData)
+        // await sendEmail() // Send email notification on user addition
         setNotification(
           `${formData.firstname} ${formData.lastname} added successfully!`
         )
-      }
-      fetchUsers()
-      resetForm()
-    } catch (error: unknown) {
-      console.error('Error saving user:', (error as Error).message)
+      }  //Timeout for notifications
+      setTimeout(() => navigate('/volunteer'), 1000)
+    } catch (error) {
+      console.error('Error saving user:', error)
       setNotification('Failed to save user.')
     }
   }
 
-  
-  // const handleEdit = (id: number) => {
-  //   const userToEdit = users.find((user) => user.id === id)
-  //   if (userToEdit) {
-  //     setFormData(userToEdit)
-  //     setEditingUserId(id)
-  //   }
-  // }
-
-  // const handleDelete = async (id: number) => {
-  //   const userToDelete = users.find((user) => user.id === id)
-  //   if (
-  //     window.confirm(
-  //       `Are you sure you want to delete ${userToDelete?.firstname} ${userToDelete?.lastname}?`
-  //     )
-  //   ) {
-  //     try {
-  //       await axios.delete(`/api/users/${id}`)
-  //       setNotification(
-  //         `${userToDelete?.firstname} ${userToDelete?.lastname} deleted successfully!`
-  //       )
-  //       fetchUsers()
-  //     } catch (error: unknown) {
-  //       if (error instanceof Error) {
-  //         console.error('Error deleting user:', error.message)
-  //         setNotification('Failed to delete user.')
-  //       } else {
-  //         console.error('Unknown error:', error)
-  //         setNotification('An unknown error occurred.')
-  //       }
-  //     }
-  //   }
-  // }
-
-  // Auto-clear notifications after 5 seconds
-  useEffect(() => {
-    const timeout = setTimeout(() => setNotification(''), 5000)
-    return () => clearTimeout(timeout)
-  }, [notification])
   return (
-    <div
-      className={`container-fluid ${
+    <div  
+      className={`container-fluid d-flex align-items-center justify-content-center  ${
         isSidebarOpen ? 'content-expanded' : 'content-collapsed'
       }`}
+      style={{
+        marginLeft: isSidebarOpen ? '220px' : '20px', // Adjust marginto be responsive
+        paddingTop: '20px',
+        transition: 'margin 0.3s ease',
+      }}
     >
-      {notification && (
-        <div className="alert alert-success" role="alert">
-          {notification}
-        </div>
-      )}
-      <div style={{ maxWidth: '500px', margin: 'auto' }}>
-        <h3 className="text-center my-3">
-          {editingUserId ? 'Edit User' : 'Add User'}
-        </h3>
-        <form className="row g-2">
-          <div className="col-12 col-md-6">
+      <div
+        className="form-container bg-white p-4 rounded shadow"
+        style={{ maxWidth: '500px', width: '100%' }}
+      >
+        <h2 className="text-center">
+          {formData.id ? 'Edit User' : 'Add Volunteer'}
+        </h2>
+        {notification && (
+          <div className="alert alert-primary text-center">{notification}</div>
+        )}
+        <form className="form-container bg-white p-4 rounded shadow">
+          <div className="mb-3">
+            <label>First Name</label>
             <input
+              type="text"
               name="firstname"
-              placeholder="First Name"
               value={formData.firstname}
               onChange={handleInputChange}
               className="form-control"
             />
           </div>
-          <div className="col-12 col-md-6">
+          <div className="mb-3">
+            <label>Last Name</label>
             <input
+              type="text"
               name="lastname"
-              placeholder="Last Name"
               value={formData.lastname}
               onChange={handleInputChange}
               className="form-control"
             />
           </div>
-          <div className="col-12 col-md-6">
+          <div className="mb-3">
+            <label>Email</label>
             <input
+              type="email"
               name="email"
-              placeholder="Email"
               value={formData.email}
               onChange={handleInputChange}
               className="form-control"
             />
           </div>
-          <div className="col-12 col-md-6">
+          <div className="mb-3">
+            <label>Phone</label>
             <input
+              type="text"
               name="phone"
-              placeholder="Phone"
               value={formData.phone}
               onChange={handleInputChange}
               className="form-control"
             />
           </div>
-          <div className="col-12 col-md-6">
+          <div className="mb-3">
+            <label>Emergency Contact Name</label>
+            <input
+              type="text"
+              name="emergencyContact"
+              value={formData.emergencyContact}
+              onChange={handleInputChange}
+              className="form-control"
+            />
+          </div>
+          <div className="mb-3">
+            <label>emergencyContactNumber</label>
+            <input
+              type="text"
+              name="emergencyContactNumber"
+              value={formData.emergencyContactNumber}
+              onChange={handleInputChange}
+              className="form-control"
+            />
+          </div>
+          <div className="mb-3">
+            <label>Role</label>
             <select
               name="role"
               value={formData.role}
               onChange={handleInputChange}
               className="form-select"
             >
-              <option value="Volunteer">Volunteer</option>
-              <option value="Field Staff">Field Staff</option>
-              <option value="Team Leader">Team Leader</option>
-              <option value="Group Admin">Group Admin</option>
+              <option value="Group Admin">Volunteer</option>
             </select>
           </div>
-          <div className="col-12 col-md-6 d-grid">
-            <button
-              className="btn btn-primary"
-              onClick={handleSubmit}
-              type="button"
-            >
-              {editingUserId ? 'Save Changes' : 'Register and Send Email'}
-            </button>
-          </div>
+          <button
+            type="button"
+            className="btn btn-primary w-100 mt-4"
+            onClick={handleSubmit}
+          >
+            {formData.id ? 'Save Changes' : 'Register Volunteer'}
+          </button>
         </form>
       </div>
-     
     </div>
   )
 }
 
-export default Register
+export default Registervolunteer
