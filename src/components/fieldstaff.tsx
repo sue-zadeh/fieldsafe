@@ -208,7 +208,7 @@ const FieldStaff: React.FC<FieldStaffProps> = ({ isSidebarOpen }) => {
       }}
     >
       <h2 className="text-center mb-2">Field Staff</h2>
-      <p className="text-center text-muted">
+      <p className="text-center text-muted fs-5">
         *Instant Search* - type something in the box below
       </p>
 
@@ -219,8 +219,8 @@ const FieldStaff: React.FC<FieldStaffProps> = ({ isSidebarOpen }) => {
       {/* The search bar (no button). Searching as you type */}
       <div className="mb-4 d-flex justify-content-center">
         <input
-          className="form-control w-50 me-2"
-          placeholder="Search by name, letter, etc."
+          className="form-control w-50 me-2 fs-6"
+          placeholder="Search by name, email, letter, etc."
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
         />
@@ -229,11 +229,11 @@ const FieldStaff: React.FC<FieldStaffProps> = ({ isSidebarOpen }) => {
       {/* Search Results, if user typed something */}
       {searchQuery.trim() && (
         <>
-          <h5 className="text-center">Search Results</h5>
+          <h3 className="text-center p-3">Search Results</h3>
           {searchResults.length > 0 ? (
             renderTable(searchResults)
           ) : (
-            <p className="text-center text-muted">
+            <p className="text-center text-muted fs-4">
               No results found for "{searchQuery}"
             </p>
           )}

@@ -208,8 +208,8 @@ const TeamLead: React.FC<TeamLeadProps> = ({ isSidebarOpen }) => {
         transition: 'all 0.3s ease',
       }}
     >
-      <h2 className="text-center mb-2">Team Leader</h2>
-      <p className="text-center text-muted">
+      <h2 className="text-center mb-2 ">Team Leader</h2>
+      <p className="text-center text-muted fs-5">
         *Instant Search* - type something in the box below
       </p>
 
@@ -221,8 +221,8 @@ const TeamLead: React.FC<TeamLeadProps> = ({ isSidebarOpen }) => {
       {/* Search input (auto-search on typing) */}
       <div className="mb-4 d-flex justify-content-center">
         <input
-          className="form-control w-50 me-2"
-          placeholder="Search by name, letter, etc."
+          className="form-control w-50 me-2 fs-6"
+          placeholder="Search by name, email, letter, etc."
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
         />
@@ -231,11 +231,11 @@ const TeamLead: React.FC<TeamLeadProps> = ({ isSidebarOpen }) => {
       {/* Search Results (if user typed something) */}
       {searchQuery.trim() && (
         <>
-          <h5 className="text-center">Search Results</h5>
+          <h3 className="text-center p-3">Search Results</h3>
           {searchResults.length > 0 ? (
             renderTable(searchResults)
           ) : (
-            <p className="text-center text-muted">
+            <p className="text-center text-muted p-3 fs-4">
               No results found for "{searchQuery}"
             </p>
           )}
@@ -244,7 +244,7 @@ const TeamLead: React.FC<TeamLeadProps> = ({ isSidebarOpen }) => {
       )}
 
       {/* Always show all Team Leaders below */}
-      <h4 className="text-center">All Team Leaders</h4>
+      <h3 className="text-center p-3 ">All Team Leaders</h3>
       {allLeads.length > 0 ? (
         renderTable(allLeads)
       ) : (

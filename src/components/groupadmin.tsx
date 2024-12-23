@@ -236,7 +236,7 @@ const GroupAdmin: React.FC<GroupAdminProps> = ({ isSidebarOpen }) => {
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
         />
-        <button className="btn btn-success w-25 fs-5" onClick={handleSearch}>
+        <button className="btn btn-success w-25 fs-5" style={{backgroundColor:'#738c40'}} onClick={handleSearch}>
           Search
         </button>
       </div>
