@@ -20,6 +20,7 @@ db.connect((err) => {
 })
 
 const users = [
+  
   {
     firstname: 'Dave',
     lastname: 'Sharp',

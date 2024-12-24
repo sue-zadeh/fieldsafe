@@ -1,7 +1,7 @@
 // server/register.js
 import express from 'express'
 import { pool } from './db.js'
-import { sendEmail } from './email.js' // <-- Import sendEmail from email.js
+import { sendEmail } from './email.js' 
 import dotenv from 'dotenv'
 
 dotenv.config()
@@ -9,7 +9,7 @@ dotenv.config()
 const router = express.Router()
 
 // 1) Route that lets the frontend do: axios.post('/api/send-email', {...})
-//    This uses the sendEmail(...) function you imported from email.js.
+//    This uses the sendEmail(...) function we imported from email.js.
 router.post('/send-email', async (req, res) => {
   const { email, subject, message } = req.body
   try {
