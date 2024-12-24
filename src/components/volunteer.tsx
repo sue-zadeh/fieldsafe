@@ -134,7 +134,7 @@ const Volunteer: React.FC<VolunteerProps> = ({ isSidebarOpen }) => {
   //------------------------------------------------------------
   // Utility table renderer
   const renderTable = (list: User[]) => (
-    <table className="table table-bordered table-striped align-middle">
+    <table className="table table-bordered table-striped align-middle text-center">
       <thead className="text-center">
         <tr>
           <th>Name</th>
@@ -157,9 +157,7 @@ const Volunteer: React.FC<VolunteerProps> = ({ isSidebarOpen }) => {
             <td>{u.emergencyContact}</td>
             <td>{u.emergencyContactNumber}</td>
             <td>
-              <select className="form-select" value={u.role}>
-                <option value="Volunteer">Volunteer</option>
-              </select>
+              <option value="Volunteer">Volunteer</option>
             </td>
             <td className="text-center">
               <button

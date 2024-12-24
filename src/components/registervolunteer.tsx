@@ -215,14 +215,12 @@ const Addvolunteer: React.FC<AddvolunteerProps> = ({ isSidebarOpen }) => {
           </div>
           <div className="mb-3">
             <label>Role</label>
-            <select
-              name="role"
-              value={formData.role}
-              onChange={handleInputChange}
-              className="form-select"
+            <div
+              className="form-control fs-5"
+              style={{ backgroundColor: '#f8f9fa' }}
             >
-              <option value="Group Admin">Volunteer</option>
-            </select>
+              Volunteer
+            </div>
           </div>
           <button
             type="button"

@@ -1,37 +1,15 @@
-// register.js
+// server/register.js
 import express from 'express'
 import { pool } from './db.js'
-import nodemailer from 'nodemailer'
+import { sendEmail } from './email.js' // <-- Import sendEmail from email.js
 import dotenv from 'dotenv'
 
 dotenv.config()
 
 const router = express.Router()
 
-// Setup nodemailer
-const transporter = nodemailer.createTransport({
-  service: 'gmail',
-  auth: {
-    user: process.env.EMAIL_USER, // e.g. "fieldbase.email@gmail.com"
-    pass: process.env.EMAIL_PASS,
-  },
-})
-
-// Helper to send email
-const sendEmail = async (email, subject, message) => {
-  try {
-    await transporter.sendMail({
-      from: process.env.EMAIL_USER,
-      to: email,
-      subject,
-      text: message,
-    })
-  } catch (error) {
-    console.error('Error sending email:', error.message)
-  }
-}
-
-// Route to let front-end do axios.post('/api/send-email', {...})
+// 1) Route that lets the frontend do: axios.post('/api/send-email', {...})
+//    This uses the sendEmail(...) function you imported from email.js.
 router.post('/send-email', async (req, res) => {
   const { email, subject, message } = req.body
   try {
@@ -42,14 +20,19 @@ router.post('/send-email', async (req, res) => {
   }
 })
 
+// Helper to prevent undefined fields from crashing queries
 const sanitizeInput = (value) => (value === undefined ? null : value)
 
-// ========== GET /staff (with optional ?role= & ?search=)
+// ========================= STAFF ENDPOINTS =========================
+// Table: "staffs" (for Group Admin, Field Staff, Team Leader)
+
+// ========== (GET) /api/staff?role=&search= (optional filters)
 router.get('/staff', async (req, res) => {
   const { role, search } = req.query
   try {
     let sql = 'SELECT * FROM staffs WHERE 1=1'
     const params = []
+
     if (role) {
       sql += ' AND role = ?'
       params.push(role)
@@ -59,6 +42,7 @@ router.get('/staff', async (req, res) => {
       const wildcard = `%${search}%`
       params.push(wildcard, wildcard, wildcard)
     }
+
     const [rows] = await pool.query(sql, params)
     res.json(rows)
   } catch (error) {
@@ -67,7 +51,7 @@ router.get('/staff', async (req, res) => {
   }
 })
 
-// ========== POST /staff (create new staff, e.g. GroupAdmin/TeamLeader/FieldStaff)
+// ========== (POST) /api/staff — Create new staff
 router.post('/staff', async (req, res) => {
   const { firstname, lastname, email, phone, role } = req.body
   const sFirst = sanitizeInput(firstname)
@@ -77,7 +61,7 @@ router.post('/staff', async (req, res) => {
   const sRole = sanitizeInput(role)
 
   try {
-    // Check duplicates
+    // Check for email duplicates
     const [exists] = await pool.query(
       'SELECT email FROM staffs WHERE email = ?',
       [sEmail]
@@ -86,7 +70,7 @@ router.post('/staff', async (req, res) => {
       return res.status(400).json({ message: 'Email is already in use.' })
     }
 
-    // Insert
+    // Insert row
     const sql = `
       INSERT INTO staffs (firstname, lastname, email, phone, role)
       VALUES (?, ?, ?, ?, ?)
@@ -114,7 +98,7 @@ router.post('/staff', async (req, res) => {
   }
 })
 
-// ========== PUT /staff/:id (update existing staff)
+// ========== (PUT) /api/staff/:id — Update existing staff
 router.put('/staff/:id', async (req, res) => {
   const { id } = req.params
   const { firstname, lastname, email, phone, role } = req.body
@@ -126,7 +110,7 @@ router.put('/staff/:id', async (req, res) => {
   const sRole = sanitizeInput(role)
 
   try {
-    // Check if email is used by another staff
+    // Check if new email is used by someone else
     const [exists] = await pool.query(
       'SELECT email FROM staffs WHERE email = ? AND id != ?',
       [sEmail, id]
@@ -135,12 +119,13 @@ router.put('/staff/:id', async (req, res) => {
       return res.status(400).json({ message: 'Email is already in use.' })
     }
 
-    // Retrieve existing row
+    // Get existing row
     const [rows] = await pool.query('SELECT * FROM staffs WHERE id = ?', [id])
     if (!rows.length) {
       return res.status(404).json({ message: 'Staff not found' })
     }
 
+    // Partial update logic
     const old = rows[0]
     const updatedFirstname = sFirst ?? old.firstname
     const updatedLastname = sLast ?? old.lastname
@@ -148,6 +133,7 @@ router.put('/staff/:id', async (req, res) => {
     const updatedPhone = sPhone ?? old.phone
     const updatedRole = sRole ?? old.role
 
+    // Update row
     const updateSql = `
       UPDATE staffs
       SET firstname = ?, lastname = ?, email = ?, phone = ?, role = ?
@@ -161,6 +147,7 @@ router.put('/staff/:id', async (req, res) => {
       updatedRole,
       id,
     ])
+
     if (result.affectedRows === 0) {
       return res.status(404).json({ message: 'Staff not updated' })
     }
@@ -172,7 +159,7 @@ router.put('/staff/:id', async (req, res) => {
   }
 })
 
-// ========== DELETE /staff/:id
+// ========== (DELETE) /api/staff/:id — Delete staff
 router.delete('/staff/:id', async (req, res) => {
   const { id } = req.params
   try {
