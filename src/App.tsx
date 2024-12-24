@@ -76,9 +76,8 @@ const App: React.FC = () => {
   const toggleSidebar = () => setIsSidebarOpen((prev) => !prev)
 
   const mainContentStyle: React.CSSProperties = {
-    marginLeft: isSidebarOpen ? '225px' : '20px', // Adjust for sidebar width
+    marginLeft: isSidebarOpen ? '20px' : '5px',
     width: isSidebarOpen ? 'calc(100% - 240px)' : '100%',
-    marginTop: '56px', // Push content below the navbar
     padding: '20px',
     transition: 'all 0.3s ease',
   }

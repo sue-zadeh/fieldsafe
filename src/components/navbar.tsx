@@ -28,7 +28,7 @@ const Navbar: React.FC<NavbarProps> = ({
     <nav
       className="navbar navbar-expand-lg navbar-light"
       style={{
-        backgroundColor: '#76D6E2', 
+        backgroundColor: '#76D6E2',
         padding: '0.5rem 1rem', // for better spacing with sidebar
         position: 'fixed', // to stick with the sidebar
         width: '100%',
@@ -60,9 +60,9 @@ const Navbar: React.FC<NavbarProps> = ({
         >
           <ul className="navbar-nav ms-auto">
             <li className="nav-item dropdown">
-              <Link
-                to="#"
+              <a
                 className="nav-link dropdown-toggle"
+                href="#"
                 id="organizationDropdown"
                 role="button"
                 data-bs-toggle="dropdown"
@@ -70,7 +70,7 @@ const Navbar: React.FC<NavbarProps> = ({
               >
                 <MdGroups style={{ marginRight: '5px' }} />
                 Organization Profile
-              </Link>
+              </a>
               <ul
                 className="dropdown-menu"
                 aria-labelledby="organizationDropdown"
@@ -101,6 +101,7 @@ const Navbar: React.FC<NavbarProps> = ({
                 </li>
               </ul>
             </li>
+
             <li className="nav-item dropdown">
               <Link
                 to="#"
