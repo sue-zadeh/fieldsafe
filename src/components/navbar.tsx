@@ -28,9 +28,9 @@ const Navbar: React.FC<NavbarProps> = ({
     <nav
       className="navbar navbar-expand-lg navbar-light"
       style={{
-        backgroundColor: '#76D6E2', // Set background color
-        padding: '0.5rem 1rem', // Add padding for better spacing
-        position: 'fixed', // Fixed position to stick with the sidebar
+        backgroundColor: '#76D6E2', 
+        padding: '0.5rem 1rem', // for better spacing with sidebar
+        position: 'fixed', // to stick with the sidebar
         width: '100%',
         zIndex: 1050,
       }}

@@ -40,11 +40,14 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, toggleSidebar }) => {
   // Sidebar container styling
   const sidebarStyle: React.CSSProperties = {
     backgroundColor: '#738C40',
-    width: isOpen ? '225px' : '25px',
+    width: isOpen ? '225px' : '20px',
     transition: 'width 0.3s',
     position: 'fixed',
-    height: '100%',
-    overflowY: 'auto',
+    // height: 'calc(100% - 56px)', // Adjust height to account for navbar
+    height: '100vh',
+    top: '56px', // Push sidebar below the navbar
+    overflowY: 'auto', // Allow scroll only if content overflows
+    overflowX: 'hidden', // Prevent horizontal scrolling
     boxShadow: '2px 0 5px rgba(0,0,0,0.1)',
     zIndex: 1000,
   }
