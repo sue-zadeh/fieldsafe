@@ -1,18 +1,19 @@
+// server.js
 import mysql from 'mysql2/promise'
 import express from 'express'
 import bcrypt from 'bcrypt'
 import dotenv from 'dotenv'
 import nodemailer from 'nodemailer'
 import jwt from 'jsonwebtoken'
-import registerRoutes from './register.js'
+
+// Import route files
+import staffRoutes from './register.js' // For Staffs (GroupAdmin, TeamLeader, FieldStaff) + email
+import volunteerRoutes from './volunteer.js' // For Volunteers (no email sending)
 
 dotenv.config()
 
 const app = express()
 app.use(express.json())
-
-// Use the register routes
-app.use('/api', registerRoutes)
 
 // MySQL connection pool
 const pool = mysql.createPool({
@@ -24,7 +25,7 @@ const pool = mysql.createPool({
   connectionLimit: 10,
 })
 
-// Test database connection
+// Test DB connection
 ;(async () => {
   try {
     const connection = await pool.getConnection()
@@ -36,7 +37,14 @@ const pool = mysql.createPool({
   }
 })()
 
-// Login API
+// ================= STAFF + EMAIL ROUTES
+//  If "register.js" exports a router that uses `/staff`, `/send-email`, etc.
+app.use('/api', staffRoutes) // so inside "register.js" we should have routes like router.get('/staff', …)
+
+// ================= VOLUNTEER ROUTES
+app.use('/api', volunteerRoutes) // so inside "volunteer.js" we'll see router.get('/volunteers', …)
+
+// ================= LOGIN, JWT, FORGOT PASSWORD
 app.post('/api/login', async (req, res) => {
   const { email, password } = req.body
 
@@ -59,7 +67,7 @@ app.post('/api/login', async (req, res) => {
       return res.status(401).json({ message: 'Invalid email or password' })
     }
 
-    // Generate JWT token on successful login
+    // Generate JWT token
     const token = jwt.sign(
       { userId: user.id, role: user.role },
       process.env.JWT_SECRET,
@@ -68,8 +76,7 @@ app.post('/api/login', async (req, res) => {
 
     return res.json({
       message: 'Login successful',
-      token: token,
-      // firstname and lastname  to the response for Welcome admin
+      token,
       firstname: user.firstname,
       lastname: user.lastname,
     })
@@ -79,20 +86,16 @@ app.post('/api/login', async (req, res) => {
   }
 })
 
-// Token Validation API
-app.get('/api/validate-token', async (req, res) => {
+app.get('/api/validate-token', (req, res) => {
   const token = req.headers.authorization?.split(' ')[1]
-
   if (!token) {
     return res.status(401).json({ message: 'No token provided' })
   }
-
   try {
-    // Verify the token
     const decoded = jwt.verify(token, process.env.JWT_SECRET)
     return res.status(200).json({
       message: 'Token is valid',
-      user: decoded, // Return decoded user data
+      user: decoded,
     })
   } catch (err) {
     console.error('Token validation failed:', err.message)
@@ -100,10 +103,8 @@ app.get('/api/validate-token', async (req, res) => {
   }
 })
 
-// Forgot Password API
 app.post('/api/forgot-password', async (req, res) => {
   const { email } = req.body
-
   if (!email) {
     return res.status(400).json({ message: 'Email is required' })
   }
@@ -125,7 +126,7 @@ app.post('/api/forgot-password', async (req, res) => {
       user.id,
     ])
 
-    // Sending email for password reset
+    // Email the new password
     const transporter = nodemailer.createTransport({
       service: 'gmail',
       auth: { user: process.env.EMAIL_USER, pass: process.env.EMAIL_PASS },
@@ -146,6 +147,6 @@ app.post('/api/forgot-password', async (req, res) => {
   }
 })
 
-// Server setup
+// Start server
 const PORT = process.env.PORT || 5000
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`))

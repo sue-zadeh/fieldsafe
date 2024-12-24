@@ -1,21 +1,25 @@
 import React, { useState, useEffect } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 import axios from 'axios'
+
+// Props
 interface RegisterroleProps {
   isSidebarOpen: boolean
 }
 
-// type user
+// User type
+type Role = 'Group Admin' | 'Field Staff' | 'Team Leader'
 type User = {
   id: number
   firstname: string
   lastname: string
   email: string
   phone: string
-  role: 'Group Admin' | 'Field Staff' | 'Team Leader'
+  role: Role
 }
 
-const RegisterRoles: React.FC <RegisterroleProps> = ({ isSidebarOpen })=> {
+const RegisterRoles: React.FC<RegisterroleProps> = ({ isSidebarOpen }) => {
+  const [users, setUsers] = useState<User[]>([])
   const [formData, setFormData] = useState<User>({
     id: 0,
     firstname: '',
@@ -25,35 +29,68 @@ const RegisterRoles: React.FC <RegisterroleProps> = ({ isSidebarOpen })=> {
     role: 'Group Admin',
   })
   const [notification, setNotification] = useState<string | null>(null)
-  const [users, setUsers] = useState<User[]>([]) // Fetch users for validation
+
   const location = useLocation()
   const navigate = useNavigate()
 
+  // ----------------------------------------
+  // On first render or if editing user
   useEffect(() => {
-    // Pre-fill form data if editing a user
+    // If there's a "user" in location.state, fill the form for editing
     if (location.state?.user) {
       setFormData(location.state.user)
     }
-    // Fetch all users for email validation
-    axios.get('/api/users').then((response) => setUsers(response.data))
+
+    // Fetch all users for email uniqueness check
+    axios
+      .get('/api/staff')
+      .then((res) => setUsers(res.data))
+      .catch((err) => console.error('Error fetching users:', err))
   }, [location])
 
+  // ----------------------------------------
+  // Clear notification after a few seconds
+  useEffect(() => {
+    if (notification) {
+      const timer = setTimeout(() => setNotification(null), 4000)
+      return () => clearTimeout(timer)
+    }
+  }, [notification])
+
+  // ----------------------------------------
+  // Form validation to ensure fields are filled correctly
   const validateForm = (): string | null => {
     const { firstname, lastname, email, phone } = formData
+
     if (!firstname || !lastname || !email || !phone) {
       return 'All fields are required.'
     }
-    if (!/\S+@\S+\.\S+/.test(email)) return 'Invalid email format.'
-    if (!/^\d{10}$/.test(phone)) return 'Phone must be exactly 10 digits.'
-    return null
+    // Basic email check
+    if (!/\S+@\S+\.\S+/.test(email)) {
+      return 'Invalid email format.'
+    }
+    // Exactly 10 digits for phone
+    if (!/^\d{10}$/.test(phone)) {
+      return 'Phone must be exactly 10 digits.'
+    }
+    return ''
   }
 
+  // Save users to localStorage whenever the users list changes
+  useEffect(() => {
+    localStorage.setItem('users', JSON.stringify(users))
+  }, [users])
+
+  // ----------------------------------------
+  // Generic input change
   const handleInputChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
   ) => {
     setFormData({ ...formData, [e.target.name]: e.target.value })
   }
 
+  // ----------------------------------------
+  // Email on new user creation only
   const sendEmail = async () => {
     try {
       await axios.post('/api/send-email', {
@@ -63,18 +100,23 @@ const RegisterRoles: React.FC <RegisterroleProps> = ({ isSidebarOpen })=> {
       })
     } catch (error) {
       console.error('Error sending email:', error)
+      // Not critical. We won't setNotification for email errors here
     }
   }
 
+  // ----------------------------------------
+  // Save (Add or Edit user)
   const handleSubmit = async () => {
+    // 1) Validate first
     const validationError = validateForm()
     if (validationError) {
       setNotification(validationError)
       return
     }
 
+    // 2) Check email uniqueness
     const isEmailTaken = users.some(
-      (user) => user.email === formData.email && user.id !== formData.id
+      (u) => u.email === formData.email && u.id !== formData.id
     )
     if (isEmailTaken) {
       setNotification('The email address is already in use.')
@@ -82,8 +124,10 @@ const RegisterRoles: React.FC <RegisterroleProps> = ({ isSidebarOpen })=> {
     }
 
     try {
+      // If editing (formData.id), do PUT; else do POST
       if (formData.id) {
-        const originalUser = users.find((user) => user.id === formData.id)
+        // Optional check if "no changes" were made
+        const originalUser = users.find((u) => u.id === formData.id)
         if (
           originalUser &&
           originalUser.firstname === formData.firstname &&
@@ -93,33 +137,47 @@ const RegisterRoles: React.FC <RegisterroleProps> = ({ isSidebarOpen })=> {
           originalUser.role === formData.role
         ) {
           const confirmNoChanges = window.confirm(
-            'No changes detected. Are you sure you want to save?'
+            'No changes detected. Save anyway?'
           )
           if (!confirmNoChanges) return
         }
-        await axios.put(`/api/users/${formData.id}`, formData)
-        setNotification(`Editing ${formData.firstname} was successful!`)
+
+        await axios.put(`/api/staff/${formData.id}`, formData)
+        setNotification(`Successfully updated ${formData.firstname}!`)
       } else {
-        await axios.post('/api/users', formData)
-        await sendEmail() // Send email notification on user addition
-        setNotification(
-          `${formData.firstname} ${formData.lastname} added successfully!`
-        )
+        // It's a new user => POST
+        await axios.post('/api/staff', formData)
+        await sendEmail() // For newly added users only
+        setNotification(`${formData.firstname} added successfully!`)
       }
-      setTimeout(() => navigate('/groupadmin'), 1000)
+
+      // Navigate to the correct page based on the final role
+      //    (Wait a little so user sees the success message)
+      setTimeout(() => {
+        if (formData.role === 'Group Admin') {
+          navigate('/groupadmin')
+        } else if (formData.role === 'Field Staff') {
+          navigate('/fieldstaff')
+        } else {
+          // Team Leader
+          navigate('/teamlead')
+        }
+      }, 1000)
     } catch (error) {
       console.error('Error saving user:', error)
       setNotification('Failed to save user.')
     }
   }
 
+  // ----------------------------------------
+  // Render
   return (
     <div
-      className={`container-fluid d-flex align-items-center justify-content-center  ${
+      className={`container-fluid d-flex align-items-center justify-content-center mt-5 ${
         isSidebarOpen ? 'content-expanded' : 'content-collapsed'
       }`}
       style={{
-        marginLeft: isSidebarOpen ? '220px' : '20px', // Adjust marginto be responsive
+        marginLeft: isSidebarOpen ? '220px' : '20px',
         paddingTop: '20px',
         transition: 'margin 0.3s ease',
       }}
@@ -129,72 +187,78 @@ const RegisterRoles: React.FC <RegisterroleProps> = ({ isSidebarOpen })=> {
         style={{ maxWidth: '500px', width: '100%' }}
       >
         <h2 className="text-center">
-          {formData.id ? 'Edit User' : 'Add User'}
+          {formData.id ? 'Edit Staff' : 'Add Staff'}
         </h2>
+
+        {/* Notification banner */}
         {notification && (
           <div className="alert alert-primary text-center">{notification}</div>
         )}
+
+        {/* Fields */}
         <form className="form-container bg-white p-4 rounded shadow">
-          <div className="mb-3">
-            <label>First Name</label>
-            <input
-              type="text"
-              name="firstname"
-              value={formData.firstname}
-              onChange={handleInputChange}
-              className="form-control"
-            />
-          </div>
-          <div className="mb-3">
-            <label>Last Name</label>
-            <input
-              type="text"
-              name="lastname"
-              value={formData.lastname}
-              onChange={handleInputChange}
-              className="form-control"
-            />
-          </div>
-          <div className="mb-3">
-            <label>Email</label>
-            <input
-              type="email"
-              name="email"
-              value={formData.email}
-              onChange={handleInputChange}
-              className="form-control"
-            />
-          </div>
-          <div className="mb-3">
-            <label>Phone</label>
-            <input
-              type="text"
-              name="phone"
-              value={formData.phone}
-              onChange={handleInputChange}
-              className="form-control"
-            />
-          </div>
-          <div className="mb-3">
-            <label>Role</label>
-            <select
-              name="role"
-              value={formData.role}
-              onChange={handleInputChange}
-              className="form-select"
-            >
-              <option value="Group Admin">Group Admin</option>
-              <option value="Field Staff">Field Staff</option>
-              <option value="Team Leader">Team Leader</option>
-            </select>
-          </div>
-          <button
-            type="button"
-            className="btn btn-primary w-100 mt-4"
-            onClick={handleSubmit}
+        <div className="mb-3">
+          <label>First Name</label>
+          <input
+            type="text"
+            name="firstname"
+            value={formData.firstname}
+            onChange={handleInputChange}
+            className="form-control"
+          />
+        </div>
+        <div className="mb-3">
+          <label>Last Name</label>
+          <input
+            type="text"
+            name="lastname"
+            value={formData.lastname}
+            onChange={handleInputChange}
+            className="form-control"
+          />
+        </div>
+        <div className="mb-3">
+          <label>Email</label>
+          <input
+            type="email"
+            name="email"
+            value={formData.email}
+            onChange={handleInputChange}
+            className="form-control"
+          />
+        </div>
+        <div className="mb-3">
+          <label>Phone</label>
+          <input
+            type="text"
+            name="phone"
+            value={formData.phone}
+            onChange={handleInputChange}
+            className="form-control"
+          />
+        </div>
+        <div className="mb-3">
+          <label>Role</label>
+          <select
+            name="role"
+            value={formData.role}
+            onChange={handleInputChange}
+            className="form-select"
           >
-            {formData.id ? 'Save Changes' : 'Register and Send Email'}
-          </button>
+            <option value="Group Admin">Group Admin</option>
+            <option value="Field Staff">Field Staff</option>
+            <option value="Team Leader">Team Leader</option>
+          </select>
+        </div>
+
+        {/* Button */}
+        <button
+          type="button"
+          className="btn btn-primary w-100 mt-4"
+          onClick={handleSubmit}
+        >
+          {formData.id ? 'Save Changes' : 'Register and Send Email'}
+        </button>
         </form>
       </div>
     </div>

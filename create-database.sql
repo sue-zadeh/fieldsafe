@@ -17,8 +17,8 @@ CREATE TABLE IF NOT EXISTS login (
 );
 
 
--- the registration table
-CREATE TABLE IF NOT EXISTS registration (
+-- the staffs table
+CREATE TABLE IF NOT EXISTS staffs (
     id INT AUTO_INCREMENT PRIMARY KEY,
     firstname VARCHAR(50) NOT NULL,
     lastname VARCHAR(50) NOT NULL,
@@ -27,3 +27,14 @@ CREATE TABLE IF NOT EXISTS registration (
     role ENUM('Volunteer', 'Field Staff', 'Team Leader', 'Group Admin') NOT NULL
 );
 
+-- the volunteers table
+CREATE TABLE volunteers (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    firstname VARCHAR(50) NOT NULL,
+    lastname VARCHAR(50) NOT NULL,
+    email VARCHAR(100) NOT NULL UNIQUE,
+    phone VARCHAR(15) NOT NULL,
+    emergencyContact VARCHAR(50) NOT NULL,
+    emergencyContactNumber VARCHAR(15) NOT NULL,
+    role ENUM('Volunteer') DEFAULT 'Volunteer'
+);

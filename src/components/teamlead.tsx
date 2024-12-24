@@ -36,7 +36,7 @@ const TeamLead: React.FC<TeamLeadProps> = ({ isSidebarOpen }) => {
   // (A) Fetch ALL "Team Leader" records on mount
   const fetchAllLeads = async () => {
     try {
-      const res = await axios.get('/api/users', {
+      const res = await axios.get('/api/staff', {
         params: { role: 'Team Leader' },
       })
       const sorted = res.data.sort((a: User, b: User) =>
@@ -54,7 +54,7 @@ const TeamLead: React.FC<TeamLeadProps> = ({ isSidebarOpen }) => {
   }, [])
 
   //------------------------------------------------------------
-  // (B) Auto-search as the user types (immediate)
+  // Auto-search as the user types (immediate)
   // If searchQuery is empty, clear searchResults.
   // Otherwise, fetch filtered list from server.
   useEffect(() => {
@@ -64,7 +64,7 @@ const TeamLead: React.FC<TeamLeadProps> = ({ isSidebarOpen }) => {
         return
       }
       try {
-        const res = await axios.get('/api/users', {
+        const res = await axios.get('/api/staff', {
           params: { role: 'Team Leader', search: searchQuery.trim() },
         })
         setSearchResults(res.data)
@@ -78,10 +78,10 @@ const TeamLead: React.FC<TeamLeadProps> = ({ isSidebarOpen }) => {
   }, [searchQuery]) // runs on every change of searchQuery
 
   //------------------------------------------------------------
-  // (C) Role change
+  // Role change
   const handleRoleChange = async (userId: number, newRole: Role) => {
     try {
-      // 1) Optimistically update local arrays
+      // Optimistically update local arrays
       setAllLeads((prev) =>
         prev.map((u) => (u.id === userId ? { ...u, role: newRole } : u))
       )
@@ -89,17 +89,15 @@ const TeamLead: React.FC<TeamLeadProps> = ({ isSidebarOpen }) => {
         prev.map((u) => (u.id === userId ? { ...u, role: newRole } : u))
       )
 
-      // 2) PUT request
-      await axios.put(`/api/users/${userId}`, { role: newRole })
+      // PUT request
+      await axios.put(`/api/staff/${userId}`, { role: newRole })
       setNotification(`Role updated to ${newRole} successfully!`)
 
-      // 3) If user is no longer "Team Leader," navigate
+      // If user is no longer "Team Leader," navigate
       if (newRole === 'Group Admin') {
         navigate('/groupadmin')
       } else if (newRole === 'Field Staff') {
         navigate('/fieldstaff')
-      } else if (newRole === 'Volunteer') {
-        navigate('/volunteer')
       } else {
         // If still "Team Leader," re-fetch in case something changed
         fetchAllLeads()
@@ -113,14 +111,32 @@ const TeamLead: React.FC<TeamLeadProps> = ({ isSidebarOpen }) => {
   //------------------------------------------------------------
   // (D) Delete user
   const handleDelete = async (userId: number) => {
-    if (!window.confirm('Are you sure you want to delete this user?')) return
+    // Find the user being deleted
+    const userToDelete = allLeads.find((user) => user.id === userId)
+    if (!userToDelete) {
+      setNotification('User not found.')
+      return
+    }
+
+    if (
+      !window.confirm(
+        `Are you sure you want to delete ${userToDelete.firstname} ${userToDelete.lastname}?`
+      )
+    )
+      return
+
     try {
-      await axios.delete(`/api/users/${userId}`)
-      setNotification('User deleted successfully!')
+      await axios.delete(`/api/staff/${userId}`)
+      setNotification(
+        `${userToDelete.firstname} ${userToDelete.lastname} deleted successfully!`
+      )
+
+      // Refresh the list
       fetchAllLeads()
-      // Re-run search if applicable
+
+      // Re-run the search if a query is active
       if (searchQuery.trim()) {
-        const res = await axios.get('/api/users', {
+        const res = await axios.get('/api/staff', {
           params: { role: 'Team Leader', search: searchQuery.trim() },
         })
         setSearchResults(res.data)

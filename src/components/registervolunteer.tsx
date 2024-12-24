@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 import axios from 'axios'
-interface RegistervolunteerProps {
+interface AddvolunteerProps {
   isSidebarOpen: boolean
 }
 
@@ -13,13 +13,11 @@ type User = {
   email: string
   phone: string
   emergencyContact: string
-  emergencyContactNumber: number
+  emergencyContactNumber: string
   role: 'Volunteer'
 }
 
-const Registervolunteer: React.FC<RegistervolunteerProps> = ({
-  isSidebarOpen,
-}) => {
+const Addvolunteer: React.FC<AddvolunteerProps> = ({ isSidebarOpen }) => {
   const [formData, setFormData] = useState<User>({
     id: 0,
     firstname: '',
@@ -41,7 +39,7 @@ const Registervolunteer: React.FC<RegistervolunteerProps> = ({
       setFormData(location.state.user)
     }
     // Fetch all users for email validation
-    axios.get('/api/users').then((response) => setUsers(response.data))
+    axios.get('/api/volunteers').then((response) => setUsers(response.data))
   }, [location])
 
   const validateForm = (): string | null => {
@@ -68,28 +66,27 @@ const Registervolunteer: React.FC<RegistervolunteerProps> = ({
     return null
   }
 
-  // const sendEmail = async () => {
-  //   try {
-  //     await axios.post('/api/send-email', {
-  //       email: formData.email,
-  //       subject: 'Registration Confirmation',
-  //       message: `Dear ${formData.firstname} ${formData.lastname},\n\nYou have been successfully registered as a volunteer.\n\nBest regards,\nYour Team`,
-  //     })
-  //   } catch (error) {
-  //     console.error('Error sending email:', error)
-  //   }
-  // }
-  //
+  // ----------------------------------------
+  // Generic input change
   const handleInputChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
   ) => {
     setFormData({ ...formData, [e.target.name]: e.target.value })
   }
   // register button click
+  // Save (Add or Edit user)
   const handleSubmit = async () => {
+    // 1) Validate first
     const validationError = validateForm()
     if (validationError) {
       setNotification(validationError)
+      return
+    }
+    // Ensure phone and emergency contact number are different
+    if (formData.phone === formData.emergencyContactNumber) {
+      setNotification(
+        'Phone number and Emergency Contact Number must be different.'
+      )
       return
     }
     //Email should be unique
@@ -100,7 +97,8 @@ const Registervolunteer: React.FC<RegistervolunteerProps> = ({
       setNotification('The email address is already in use.')
       return
     }
-   //Check if no change in edit form
+
+    //Check if no change in edit form
     try {
       if (formData.id) {
         const originalUser = users.find((user) => user.id === formData.id)
@@ -117,15 +115,15 @@ const Registervolunteer: React.FC<RegistervolunteerProps> = ({
           )
           if (!confirmNoChanges) return
         }
-        await axios.put(`/api/users/${formData.id}`, formData)
+        await axios.put(`/api/volunteers/${formData.id}`, formData)
         setNotification(`Editing ${formData.firstname} was successful!`)
       } else {
-        await axios.post('/api/users', formData)
+        await axios.post('/api/volunteers', formData)
         // await sendEmail() // Send email notification on user addition
         setNotification(
           `${formData.firstname} ${formData.lastname} added successfully!`
         )
-      }  //Timeout for notifications
+      } //Timeout for notifications
       setTimeout(() => navigate('/volunteer'), 1000)
     } catch (error) {
       console.error('Error saving user:', error)
@@ -134,7 +132,7 @@ const Registervolunteer: React.FC<RegistervolunteerProps> = ({
   }
 
   return (
-    <div  
+    <div
       className={`container-fluid d-flex align-items-center justify-content-center  ${
         isSidebarOpen ? 'content-expanded' : 'content-collapsed'
       }`}
@@ -149,7 +147,7 @@ const Registervolunteer: React.FC<RegistervolunteerProps> = ({
         style={{ maxWidth: '500px', width: '100%' }}
       >
         <h2 className="text-center">
-          {formData.id ? 'Edit User' : 'Add Volunteer'}
+          {formData.id ? 'Edit Voluteer' : 'Add Volunteer'}
         </h2>
         {notification && (
           <div className="alert alert-primary text-center">{notification}</div>
@@ -206,7 +204,7 @@ const Registervolunteer: React.FC<RegistervolunteerProps> = ({
             />
           </div>
           <div className="mb-3">
-            <label>emergencyContactNumber</label>
+            <label>Emergency Contact Number</label>
             <input
               type="text"
               name="emergencyContactNumber"
@@ -239,4 +237,4 @@ const Registervolunteer: React.FC<RegistervolunteerProps> = ({
   )
 }
 
-export default Registervolunteer
+export default Addvolunteer

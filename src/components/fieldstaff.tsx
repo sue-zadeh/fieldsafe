@@ -3,7 +3,7 @@ import axios from 'axios'
 import { useNavigate } from 'react-router-dom'
 
 // Types
-type Role = 'Group Admin' | 'Field Staff' | 'Team Leader' | 'Volunteer'
+type Role = 'Group Admin' | 'Field Staff' | 'Team Leader'
 type User = {
   id: number
   firstname: string
@@ -36,7 +36,7 @@ const FieldStaff: React.FC<FieldStaffProps> = ({ isSidebarOpen }) => {
   // (A) On mount, fetch ALL "Field Staff"
   const fetchAllStaff = async () => {
     try {
-      const res = await axios.get('/api/users', {
+      const res = await axios.get('/api/staff', {
         params: { role: 'Field Staff' },
       })
       const sorted = res.data.sort((a: User, b: User) =>
@@ -62,7 +62,7 @@ const FieldStaff: React.FC<FieldStaffProps> = ({ isSidebarOpen }) => {
         return
       }
       try {
-        const res = await axios.get('/api/users', {
+        const res = await axios.get('/api/staff', {
           params: { role: 'Field Staff', search: searchQuery.trim() },
         })
         setSearchResults(res.data)
@@ -88,7 +88,7 @@ const FieldStaff: React.FC<FieldStaffProps> = ({ isSidebarOpen }) => {
       )
 
       // PUT request
-      await axios.put(`/api/users/${userId}`, { role: newRole })
+      await axios.put(`/api/staff/${userId}`, { role: newRole })
       setNotification(`Role updated to ${newRole} successfully!`)
 
       // If user is no longer Field Staff => navigate
@@ -96,8 +96,6 @@ const FieldStaff: React.FC<FieldStaffProps> = ({ isSidebarOpen }) => {
         navigate('/groupadmin')
       } else if (newRole === 'Team Leader') {
         navigate('/teamlead')
-      } else if (newRole === 'Volunteer') {
-        navigate('/volunteer')
       } else {
         // still Field Staff => re-fetch
         fetchAllStaff()
@@ -109,17 +107,33 @@ const FieldStaff: React.FC<FieldStaffProps> = ({ isSidebarOpen }) => {
   }
 
   //------------------------------------------------------------
-  // (D) Delete user
+  //  Delete user
   const handleDelete = async (userId: number) => {
-    if (!window.confirm('Are you sure?')) return
-    try {
-      await axios.delete(`/api/users/${userId}`)
-      setNotification('User deleted successfully!')
+    const userToDelete = allStaff.find((user) => user.id === userId)
+    if (!userToDelete) {
+      setNotification('User not found.')
+      return
+    }
 
+    if (
+      !window.confirm(
+        `Are you sure you want to delete ${userToDelete.firstname} ${userToDelete.lastname}?`
+      )
+    ) {
+      return
+    }
+
+    try {
+      await axios.delete(`/api/staff/${userId}`)
+      setNotification(
+        `${userToDelete.firstname} ${userToDelete.lastname} deleted successfully!`
+      )
+
+      // Refresh the list
       fetchAllStaff()
       // Re-run the search if we had anything typed
       if (searchQuery.trim()) {
-        const res = await axios.get('/api/users', {
+        const res = await axios.get('/api/staff', {
           params: { role: 'Field Staff', search: searchQuery.trim() },
         })
         setSearchResults(res.data)
@@ -169,7 +183,6 @@ const FieldStaff: React.FC<FieldStaffProps> = ({ isSidebarOpen }) => {
                 <option value="Field Staff">Field Staff</option>
                 <option value="Group Admin">Group Admin</option>
                 <option value="Team Leader">Team Leader</option>
-                <option value="Volunteer">Volunteer</option>
               </select>
             </td>
             <td className="text-center">
@@ -242,7 +255,7 @@ const FieldStaff: React.FC<FieldStaffProps> = ({ isSidebarOpen }) => {
       )}
 
       {/* Full Field Staff table below */}
-      <h4 className="text-center">All Field Staff</h4>
+      <h3 className="text-center p-3">All Field Staff</h3>
       {allStaff.length > 0 ? (
         renderTable(allStaff)
       ) : (

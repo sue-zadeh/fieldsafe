@@ -112,14 +112,6 @@ const App: React.FC = () => {
                   element={<Groupadmin isSidebarOpen={isSidebarOpen} />}
                 />
                 <Route
-                  path="/registervolunteer"
-                  element={<Registervolunteer isSidebarOpen={isSidebarOpen} />}
-                />
-                <Route
-                  path="/volunteer"
-                  element={<Volunteer isSidebarOpen={isSidebarOpen} />}
-                />
-                 <Route
                   path="/fieldstaff"
                   element={<Fieldstaff isSidebarOpen={isSidebarOpen} />}
                 />
@@ -127,7 +119,15 @@ const App: React.FC = () => {
                   path="/teamlead"
                   element={<Teamlead isSidebarOpen={isSidebarOpen} />}
                 />
-                 {/* <Route
+                <Route
+                  path="/registervolunteer"
+                  element={<Registervolunteer isSidebarOpen={isSidebarOpen} />}
+                />
+                <Route
+                  path="/volunteer"
+                  element={<Volunteer isSidebarOpen={isSidebarOpen} />}
+                />
+                {/* <Route
                     path="/:role"
                     element={<Usertable isSidebarOpen={isSidebarOpen} />}
                   />  */}

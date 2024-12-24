@@ -40,7 +40,7 @@ const GroupAdmin: React.FC<GroupAdminProps> = ({ isSidebarOpen }) => {
   // On mount, fetch ALL Group Admins
   const fetchAllAdmins = async () => {
     try {
-      const res = await axios.get('/api/users', {
+      const res = await axios.get('/api/staff', {
         params: { role: 'Group Admin' },
       })
       // Sort them if you want (by firstname, for example)
@@ -78,7 +78,7 @@ const GroupAdmin: React.FC<GroupAdminProps> = ({ isSidebarOpen }) => {
       return
     }
     try {
-      const res = await axios.get('/api/users', {
+      const res = await axios.get('/api/staff', {
         params: {
           role: 'Group Admin',
           search: searchQuery.trim(),
@@ -95,7 +95,7 @@ const GroupAdmin: React.FC<GroupAdminProps> = ({ isSidebarOpen }) => {
   // Changing a user's role
   const handleRoleChange = async (userId: number, newRole: Role) => {
     try {
-      // 1) Optimistically update local data so the dropdown changes immediately
+      // Optimistically update local data so the dropdown changes immediately
       setAllAdmins((prev) =>
         prev.map((u) => (u.id === userId ? { ...u, role: newRole } : u))
       )
@@ -103,11 +103,11 @@ const GroupAdmin: React.FC<GroupAdminProps> = ({ isSidebarOpen }) => {
         prev.map((u) => (u.id === userId ? { ...u, role: newRole } : u))
       )
 
-      // 2) PUT request to the backend
-      await axios.put(`/api/users/${userId}`, { role: newRole })
+      // PUT request to the backend
+      await axios.put(`/api/staff/${userId}`, { role: newRole })
       setNotification(`Role updated to ${newRole} successfully!`)
 
-      // 3) If user left "Group Admin," navigate to that page
+      // If user left "Group Admin," navigate to that page
       if (newRole === 'Field Staff') {
         navigate('/fieldstaff')
       } else if (newRole === 'Team Leader') {
@@ -128,23 +128,39 @@ const GroupAdmin: React.FC<GroupAdminProps> = ({ isSidebarOpen }) => {
   //----------------------------------------------------------------
   // Deleting a user
   const handleDelete = async (userId: number) => {
-    if (!window.confirm('Are you sure you want to delete this user?')) return
+    // Find the user being deleted
+    const userToDelete = allAdmins.find((user) => user.id === userId);
+    if (!userToDelete) {
+      setNotification('User not found.');
+      return;
+    }
+  
+    if (
+      !window.confirm(
+        `Are you sure you want to delete ${userToDelete.firstname} ${userToDelete.lastname}?`
+      )
+    )
+      return;
+  
     try {
-      await axios.delete(`/api/users/${userId}`)
-      setNotification('User deleted successfully!')
-
-      // Re-fetch main table
-      fetchAllAdmins()
-      // If searching, re-fetch results too
+      await axios.delete(`/api/staff/${userId}`);
+      setNotification(
+        `${userToDelete.firstname} ${userToDelete.lastname} deleted successfully!`
+      );
+  
+      // Refresh the list
+      fetchAllAdmins();
+  
+      // Re-run search if applicable
       if (searchQuery.trim()) {
-        handleSearch()
+        handleSearch();
       }
     } catch (error) {
-      console.error('Error deleting user:', error)
-      setNotification('Failed to delete user.')
+      console.error('Error deleting user:', error);
+      setNotification('Failed to delete user.');
     }
-  }
-
+  };
+  
   //----------------------------------------------------------------
   // Render table (reusable)
   const renderTable = (list: User[]) => {
