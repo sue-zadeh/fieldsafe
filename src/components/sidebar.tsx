@@ -278,6 +278,19 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, toggleSidebar }) => {
             </li>
           </ul>
         </NavItem>
+
+        <NavItem label="Objectives">
+          <li>
+            <Link
+              to="/objectives"
+              style={{
+                ...(isActive('/objectives')
+                  ? { fontWeight: 'bold', color: '#000' }
+                  : {}),
+              }}
+            ></Link>
+          </li>
+        </NavItem>
         <NavItem label="Activities Notes" dropdownId="activity">
           <ul style={dropdownListStyle}>
             <li>

@@ -137,7 +137,7 @@ const Addvolunteer: React.FC<AddvolunteerProps> = ({ isSidebarOpen }) => {
         isSidebarOpen ? 'content-expanded' : 'content-collapsed'
       }`}
       style={{
-        marginLeft: isSidebarOpen ? '220px' : '20px', // Adjust marginto be responsive
+        marginLeft: isSidebarOpen ? '220px' : '20px', // Adjust margin to be responsive
         paddingTop: '20px',
         transition: 'margin 0.3s ease',
       }}

@@ -24,3 +24,49 @@ VALUES
 ('Mark', 'Johnson', 'markjohnson@example.com', '222-333-4444', 'Laura Johnson', '222-999-8888', 'Volunteer'),
 ('Emily', 'Davis', 'emilydavis@example.com', '111-222-3333', 'Sarah Davis', '111-444-5555', 'Volunteer'),
 ('Michael', 'Brown', 'michaelbrown@example.com', '444-555-6666', 'Paul Brown', '444-777-8888', 'Volunteer');
+
+-- Populate the projects table
+INSERT INTO projects (
+  name, location, startDate, status,
+  createdBy,
+  emergencyServices,
+  localMedicalCenterAddress, localMedicalCenterPhone,
+  localHospital,
+  primaryContactName, primaryContactPhone,
+  imageUrl, inductionFileUrl
+)
+VALUES (
+  'River Restoration',
+  '123 River St, Auckland, NZ',
+  '2024-07-01',
+  'inprogress',
+  1,  -- referencing the user with id=1 in login
+  '111 will contact all emergency services',
+  'Rose Medical Center, 456 Medical Rd', '09-1234567',
+  'Auckland City Hospital, 789 Hospital Way',
+  'John Manager', '027-999-1234',
+  'uploads/river.jpg',
+  'uploads/induction_river.docx'
+);
+
+INSERT INTO objectives (title, measurement, dateStart, dateEnd)
+VALUES
+('Community Participation', '# of participants', NULL, NULL)
+('Weed Treatment', '#m2', NULL, NULL)
+('Debris Removal(Weight)', '# tonnes', NULL, NULL),
+('Fencing(m)', '# metres', NULL, NULL),
+('Plant Propagation(Number)', '# of plants', NULL, NULL);
+('Revegetation(Number)', '# of plants', '2024-05-01', '2025-05-01'),
+('Seed Collection kg', '# kg', NULL, NULL)
+('Debris Removal(Area)', '#(Area)', NULL, NULL)
+('Revegetation(Area), #(Area)', NULL, NULL);
+('Sire Prepration(Treatment)', '#(Treatment)', NULL, NULL);
+('Establishing Predator Control', '# trap numbers', NULL, NULL);
+('Walking track building: measurement=metres', '# meteres', NULL, NULL);
+('Walking track maintenance: measurement=metres', '# meteres', NULL, NULL);
+('Species monitoring: measurement=number of species', '# number ofspecies', NULL, NULL)
+
+
+-- Populate the project_objectives table
+INSERT INTO project_objectives (project_id, objective_id)
+VALUES (1, 1), (1, 2);

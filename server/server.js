@@ -1,45 +1,43 @@
 // server/server.js
-import mysql from 'mysql2/promise'
 import express from 'express'
-import bcrypt from 'bcrypt'
+import path from 'path'
+import { fileURLToPath } from 'url'
 import dotenv from 'dotenv'
+import cors from 'cors'
+import bcrypt from 'bcrypt'
 import jwt from 'jsonwebtoken'
 
-import staffRoutes from './register.js'
-import volunteerRoutes from './volunteer.js'
-import { sendEmail } from './email.js' // <-- Add this import for forgot-password emailing
+import { pool } from './db.js'
+import projectsRouter from './projects.js'
+import volunteerRouter from './volunteer.js'
+import staffRouter from './register.js'      // The "register.js" routes for staff
+
+import { sendEmail } from './email.js'       // if you need to send email in forgot-password
 
 dotenv.config()
 
+// For ESM, so we can find __dirname
+const __filename = fileURLToPath(import.meta.url)
+const __dirname = path.dirname(__filename)
+
 const app = express()
 app.use(express.json())
+app.use(cors())
 
-const pool = mysql.createPool({
-  host: process.env.db_host,
-  user: process.env.db_user,
-  password: process.env.db_pass,
-  database: process.env.db_name,
-  waitForConnections: true,
-  connectionLimit: 10,
+// Serve "uploads" folder for images/docs
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')))
+
+// Use your route modules
+app.use('/api/projects', projectsRouter)
+app.use('/api/volunteers', volunteerRouter)
+app.use('/api', staffRouter) // e.g. "/api/staff" or "/api/send-email"
+
+// Example test route
+app.get('/api/ping', (req, res) => {
+  res.json({ message: 'pong' })
 })
 
-// Test DB connection
-;(async () => {
-  try {
-    const connection = await pool.getConnection()
-    console.log('Database connected!')
-    connection.release()
-  } catch (err) {
-    console.error('Database connection failed:', err.message)
-    process.exit(1)
-  }
-})()
-
-// Use staff + volunteer routers
-app.use('/api', staffRoutes)
-app.use('/api', volunteerRoutes)
-
-// ================= LOGIN
+// ================== LOGIN
 app.post('/api/login', async (req, res) => {
   const { email, password } = req.body
   if (!email || !password) {
@@ -60,13 +58,14 @@ app.post('/api/login', async (req, res) => {
       return res.status(401).json({ message: 'Invalid email or password' })
     }
 
+    // Generate JWT
     const token = jwt.sign(
       { userId: user.id, role: user.role },
       process.env.JWT_SECRET,
       { expiresIn: '1h' }
     )
 
-    return res.json({
+    res.json({
       message: 'Login successful',
       token,
       firstname: user.firstname,
@@ -74,11 +73,11 @@ app.post('/api/login', async (req, res) => {
     })
   } catch (err) {
     console.error('Error during login:', err.message)
-    return res.status(500).json({ message: 'Server error' })
+    res.status(500).json({ message: 'Server error' })
   }
 })
 
-// ================= Validate token
+// ================== Validate token
 app.get('/api/validate-token', (req, res) => {
   const token = req.headers.authorization?.split(' ')[1]
   if (!token) {
@@ -86,14 +85,14 @@ app.get('/api/validate-token', (req, res) => {
   }
   try {
     const decoded = jwt.verify(token, process.env.JWT_SECRET)
-    return res.status(200).json({ message: 'Token is valid', user: decoded })
+    res.status(200).json({ message: 'Token is valid', user: decoded })
   } catch (err) {
     console.error('Token validation failed:', err.message)
-    return res.status(401).json({ message: 'Invalid or expired token' })
+    res.status(401).json({ message: 'Invalid or expired token' })
   }
 })
 
-// ================= Forgot Password
+// ================== Forgot Password
 app.post('/api/forgot-password', async (req, res) => {
   const { email } = req.body
   if (!email) {
@@ -109,7 +108,6 @@ app.post('/api/forgot-password', async (req, res) => {
     }
 
     const user = rows[0]
-    // Generate random new password
     const newPassword = Math.random().toString(36).substring(2, 10)
     const hashedPassword = await bcrypt.hash(newPassword, 10)
 
@@ -118,24 +116,35 @@ app.post('/api/forgot-password', async (req, res) => {
       user.id,
     ])
 
-    // Instead of local transporter, call our 'sendEmail' function:
+    // Send the new password by email
     try {
-      await sendEmail(
-        email,
-        'Password Reset',
-        `Your new password is: ${newPassword}`
-      )
+      await sendEmail(email, 'Password Reset', `Your new password is: ${newPassword}`)
     } catch (err) {
       console.error('Error sending reset email:', err.message)
       return res.status(500).json({ message: 'Failed to send reset email' })
     }
 
-    return res.json({ message: 'Password reset email sent successfully' })
+    res.json({ message: 'Password reset email sent successfully' })
   } catch (err) {
-    console.error('Error during password reset:', err.message)
-    return res.status(500).json({ message: 'Server error' })
+    console.error('Error during forgot password:', err.message)
+    res.status(500).json({ message: 'Server error' })
   }
 })
 
+// Test DB connection at startup
+;(async () => {
+  try {
+    const conn = await pool.getConnection()
+    console.log('Database connected!')
+    conn.release()
+  } catch (err) {
+    console.error('Database connection failed:', err.message)
+    process.exit(1)
+  }
+})()
+
+// Start server
 const PORT = process.env.PORT || 5000
-app.listen(PORT, () => console.log(`Server running on port ${PORT}`))
+app.listen(PORT, () => {
+  console.log(`Server running on port ${PORT}`)
+})

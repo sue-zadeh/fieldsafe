@@ -9,7 +9,7 @@ import Volunteer from './components/volunteer'
 import Groupadmin from './components/groupadmin'
 import Fieldstaff from './components/fieldstaff'
 import Teamlead from './components/teamlead'
-// import Usertable from './components/usertable'
+import Addproject from './components/addproject'
 
 const App: React.FC = () => {
   const [isLoggedIn, setIsLoggedIn] = useState(false)
@@ -78,7 +78,8 @@ const App: React.FC = () => {
   const mainContentStyle: React.CSSProperties = {
     marginLeft: isSidebarOpen ? '20px' : '5px',
     width: isSidebarOpen ? 'calc(100% - 240px)' : '100%',
-    padding: '20px',
+    padding: '15px',
+    marginTop: '5rem',
     transition: 'all 0.3s ease',
   }
 
@@ -126,6 +127,10 @@ const App: React.FC = () => {
                 <Route
                   path="/volunteer"
                   element={<Volunteer isSidebarOpen={isSidebarOpen} />}
+                />
+                <Route
+                  path="/addproject"
+                  element={<Addproject isSidebarOpen={isSidebarOpen} />}
                 />
                 {/* <Route
                     path="/:role"
