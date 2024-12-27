@@ -1,12 +1,7 @@
 // src/components/AddProject.tsx
 import React, { useState, useEffect, useRef } from 'react'
 import axios from 'axios'
-import {
-  GoogleMap,
-  Marker,
-  Autocomplete,
-  LoadScript,
-} from '@react-google-maps/api'
+import { GoogleMap, Marker, Autocomplete } from '@react-google-maps/api'
 import { Navbar, Nav, Form, Button, Col, Row } from 'react-bootstrap'
 
 // color palette
@@ -14,8 +9,10 @@ const OCEAN_BLUE = '#0094B6'
 const SKY_BLUE = '#76D6E2'
 const FOREST_GREEN = '#738c40'
 
+// the statuses
 type ProjectStatus = 'inprogress' | 'completed' | 'onhold'
 
+// objective shape
 type Objective = {
   id: number
   title: string
@@ -32,11 +29,8 @@ const containerStyle = {
 }
 
 const centerDefault = {
-  lat: -37.8136, // Melbourne
+  lat: -37.8136,
   lng: 144.9631,
-}
-interface AddProjectProps {
-  isSidebarOpen: boolean
 }
 
 const AddProject: React.FC<AddProjectProps> = ({ isSidebarOpen }) => {
@@ -46,13 +40,18 @@ const AddProject: React.FC<AddProjectProps> = ({ isSidebarOpen }) => {
   const [name, setName] = useState('')
   const [startDate, setStartDate] = useState('')
   const [status, setStatus] = useState<ProjectStatus>('inprogress')
-  // Objectives
+
+  // objectives
   const [allObjectives, setAllObjectives] = useState<Objective[]>([])
   const [selectedObjectives, setSelectedObjectives] = useState<number[]>([])
+
+  // location & map
   const [location, setLocation] = useState('')
-  const [imageFile, setImageFile] = useState<File | null>(null)
-  const [inductionFile, setInductionFile] = useState<File | null>(null)
-  const [createdBy, setCreatedBy] = useState<number>()
+  const [mapCenter, setMapCenter] = useState(centerDefault)
+  const [markerPos, setMarkerPos] = useState(centerDefault)
+  const autocompleteRef = useRef<google.maps.places.Autocomplete | null>(null)
+
+  // emergency & local contacts
   const [emergencyServices, setEmergencyServices] = useState(
     '111 will contact all emergency services'
   )
@@ -62,18 +61,28 @@ const AddProject: React.FC<AddProjectProps> = ({ isSidebarOpen }) => {
   const [primaryContactName, setPrimaryContactName] = useState('')
   const [primaryContactPhone, setPrimaryContactPhone] = useState('')
 
+  // files
+  const [imageFile, setImageFile] = useState<File | null>(null)
+  const [inductionFile, setInductionFile] = useState<File | null>(null)
+
+  // createdBy
+  const [createdBy, setCreatedBy] = useState<number | null>(null)
+
   useEffect(() => {
-    // Load admin ID
+    // load admin ID from localStorage
     const adminId = localStorage.getItem('adminId')
     if (adminId) {
-      setCreatedBy(parseInt(adminId, 10))
+      setCreatedBy(Number(adminId))
     }
-    // Load objectives
+
+    // fetch objectives from /api/objectives
     axios
       .get('/api/objectives')
       .then((res) => setAllObjectives(res.data))
       .catch((err) => console.error('Error fetching objectives:', err))
   }, [])
+
+  const handleNavClick = (tab: string) => setActiveTab(tab)
 
   const handleCheckboxChange = (objId: number) => {
     setSelectedObjectives((prev) =>
@@ -83,25 +92,18 @@ const AddProject: React.FC<AddProjectProps> = ({ isSidebarOpen }) => {
     )
   }
 
-  // map stuff
-  const [mapCenter, setMapCenter] = useState(centerDefault)
-  const [markerPos, setMarkerPos] = useState(centerDefault)
-  const autocompleteRef = useRef<google.maps.places.Autocomplete | null>(null)
-  const handleNavClick = (tab: string) => setActiveTab(tab)
-
   const handlePlaceChanged = () => {
-    if (autocompleteRef.current !== null) {
+    if (autocompleteRef.current) {
       const place = autocompleteRef.current.getPlace()
       if (place && place.geometry) {
-        const lat = place.geometry.location?.lat() || centerDefault.lat
-        const lng = place.geometry.location?.lng() || centerDefault.lng
+        const lat = place.geometry.location?.lat() ?? centerDefault.lat
+        const lng = place.geometry.location?.lng() ?? centerDefault.lng
 
         setMapCenter({ lat, lng })
         setMarkerPos({ lat, lng })
-
         setLocation(place.formatted_address || '')
       } else {
-        console.log('No geometry for that place')
+        console.log('No geometry for that place or place is null')
       }
     }
   }
@@ -109,21 +111,23 @@ const AddProject: React.FC<AddProjectProps> = ({ isSidebarOpen }) => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     try {
+      // build form data
       const formData = new FormData()
       formData.append('name', name)
       formData.append('location', location)
       formData.append('startDate', startDate)
       formData.append('status', status)
-      if (createdBy) formData.append('createdBy', String(createdBy))
+      if (createdBy) {
+        formData.append('createdBy', String(createdBy))
+      }
       formData.append('emergencyServices', emergencyServices)
       formData.append('localMedicalCenterAddress', localMedicalCenterAddress)
       formData.append('localMedicalCenterPhone', localMedicalCenterPhone)
       formData.append('localHospital', localHospital)
       formData.append('primaryContactName', primaryContactName)
       formData.append('primaryContactPhone', primaryContactPhone)
-      // Convert objectives array -> JSON string
       formData.append('objectives', JSON.stringify(selectedObjectives))
-      //formData for uploding immage and induction
+
       if (imageFile) formData.append('image', imageFile)
       if (inductionFile) formData.append('inductionFile', inductionFile)
 
@@ -132,7 +136,7 @@ const AddProject: React.FC<AddProjectProps> = ({ isSidebarOpen }) => {
       })
       alert('Project created successfully! ID=' + res.data.id)
 
-      // clear form
+      // reset
       setName('')
       setLocation('')
       setStartDate('')
@@ -148,8 +152,16 @@ const AddProject: React.FC<AddProjectProps> = ({ isSidebarOpen }) => {
       setSelectedObjectives([])
     } catch (err) {
       console.error('Error creating project:', err)
-      alert('Failed to create project. Check console.')
+      alert('Failed to create project. See console.')
     }
+  }
+
+  // styling for the local nav
+  const stickyNavStyle: React.CSSProperties = {
+    position: 'sticky',
+    top: 0,
+    zIndex: 999,
+    backgroundColor: SKY_BLUE,
   }
 
   return (
@@ -159,23 +171,32 @@ const AddProject: React.FC<AddProjectProps> = ({ isSidebarOpen }) => {
       }`}
       style={{
         marginLeft: isSidebarOpen ? '220px' : '20px',
-        paddingTop: '20px',
+        paddingTop: '15px',
         transition: 'margin 0.3s ease',
         minHeight: '100vh',
       }}
     >
-      {' '}
-      {/* top navbar */}
-      <Navbar bg="light" expand="lg" style={{ backgroundColor: SKY_BLUE }}>
-        <Navbar.Brand style={{ color: OCEAN_BLUE, fontWeight: 'bold' }}>
+      {/* local navbar for details/objectives/risks */}
+      <Navbar expand="lg" style={stickyNavStyle} className="mb-2">
+        <Navbar.Brand
+          style={{
+            color: OCEAN_BLUE,
+            fontWeight: 'bold',
+            width: '100%',
+            fontSize: '1.8rem',
+          }}
+        >
           Create Project
         </Navbar.Brand>
-        <Nav className="ml-auto">
+        <Nav className="mx-auto">
+          {' '}
+          {/* center nav items */}
           <Nav.Link
             onClick={() => handleNavClick('details')}
             style={{
               fontWeight: activeTab === 'details' ? 'bold' : 'normal',
               color: FOREST_GREEN,
+              marginRight: '1rem',
             }}
           >
             Details
@@ -185,6 +206,7 @@ const AddProject: React.FC<AddProjectProps> = ({ isSidebarOpen }) => {
             style={{
               fontWeight: activeTab === 'objectives' ? 'bold' : 'normal',
               color: FOREST_GREEN,
+              marginRight: '1rem',
             }}
           >
             Objectives
@@ -200,10 +222,11 @@ const AddProject: React.FC<AddProjectProps> = ({ isSidebarOpen }) => {
           </Nav.Link>
         </Nav>
       </Navbar>
+
       {activeTab === 'details' && (
-        <div className="row mt-4">
-          {/* left side preview */}
-          <div className="col-md-6 mb-4">
+        <div className="row mt-4 g-4">
+          {/* LEFT COLUMN */}
+          <div className="col-md-5">
             <h3 style={{ color: OCEAN_BLUE }}>{name || '[Project Name]'}</h3>
             <div
               className="border p-2 mb-3"
@@ -216,23 +239,26 @@ const AddProject: React.FC<AddProjectProps> = ({ isSidebarOpen }) => {
                   style={{ maxWidth: '100%', maxHeight: '200px' }}
                 />
               ) : (
-                <p className="text-muted">Click to upload project image</p>
+                <p className="text-muted fs-5">Click to upload project image</p>
               )}
-              <input
-                type="file"
-                accept="image/*"
-                onChange={(e) => {
-                  if (e.target.files && e.target.files.length > 0) {
-                    setImageFile(e.target.files[0])
-                  }
-                }}
-              />
+              <div className="mt-2">
+                <input
+                  type="file"
+                  accept="image/*"
+                  onChange={(e) => {
+                    if (e.target.files && e.target.files.length > 0) {
+                      setImageFile(e.target.files[0])
+                    }
+                  }}
+                />
+              </div>
             </div>
 
-            {/* Emergency / Local Info */}
-            <Form.Group className="mb-3">
-              <Form.Label>Emergency Services</Form.Label>
+            {/* EMERGENCY / LOCAL INFO */}
+            <h4>Emergency Services</h4>
+            <Form.Group className="mb-3" controlId="emergencyServices">
               <Form.Control
+                required
                 type="text"
                 value={emergencyServices}
                 onChange={(e) => setEmergencyServices(e.target.value)}
@@ -241,9 +267,13 @@ const AddProject: React.FC<AddProjectProps> = ({ isSidebarOpen }) => {
 
             <Row>
               <Col md={6}>
-                <Form.Group className="mb-3">
+                <Form.Group
+                  className="mb-3"
+                  controlId="localMedicalCenterAddress"
+                >
                   <Form.Label>Local Medical Center (Address)</Form.Label>
                   <Form.Control
+                    required
                     type="text"
                     value={localMedicalCenterAddress}
                     onChange={(e) =>
@@ -253,9 +283,14 @@ const AddProject: React.FC<AddProjectProps> = ({ isSidebarOpen }) => {
                 </Form.Group>
               </Col>
               <Col md={6}>
-                <Form.Group className="mb-3">
+                <Form.Group
+                  className="mb-3"
+                  controlId="localMedicalCenterPhone"
+                >
                   <Form.Label>Local Medical Center (Phone)</Form.Label>
                   <Form.Control
+                    required
+                    pattern="^[0-9+()\-\s]*$"
                     type="text"
                     value={localMedicalCenterPhone}
                     onChange={(e) => setLocalMedicalCenterPhone(e.target.value)}
@@ -264,44 +299,32 @@ const AddProject: React.FC<AddProjectProps> = ({ isSidebarOpen }) => {
               </Col>
             </Row>
 
-            <Form.Group className="mb-3">
+            <Form.Group className="mb-3" controlId="localHospital">
               <Form.Label>Local Hospital</Form.Label>
               <Form.Control
+                required
                 type="text"
                 value={localHospital}
                 onChange={(e) => setLocalHospital(e.target.value)}
               />
             </Form.Group>
 
-            <Row>
-              <Col md={6}>
-                <Form.Group className="mb-3">
-                  <Form.Label>Primary Contact Name</Form.Label>
-                  <Form.Control
-                    type="text"
-                    value={primaryContactName}
-                    onChange={(e) => setPrimaryContactName(e.target.value)}
-                  />
-                </Form.Group>
-              </Col>
-              <Col md={6}>
-                <Form.Group className="mb-3">
-                  <Form.Label>Primary Contact Phone</Form.Label>
-                  <Form.Control
-                    type="text"
-                    value={primaryContactPhone}
-                    onChange={(e) => setPrimaryContactPhone(e.target.value)}
-                  />
-                </Form.Group>
-              </Col>
-            </Row>
-
+            {/* Induction doc */}
             <div className="border p-2">
-              <p className="mb-1 fw-bold">
+              <p className="mb-1 fw-bold fs-5">
                 Upload Project Induction Instructions
               </p>
               {inductionFile ? (
-                <p>{inductionFile.name}</p>
+                <Button
+                  variant="link"
+                  onClick={() => {
+                    // open the file in a new tab if needed
+                    const fileUrl = URL.createObjectURL(inductionFile)
+                    window.open(fileUrl, '_blank')
+                  }}
+                >
+                  View Document
+                </Button>
               ) : (
                 <p className="text-muted">No file chosen yet</p>
               )}
@@ -317,12 +340,13 @@ const AddProject: React.FC<AddProjectProps> = ({ isSidebarOpen }) => {
             </div>
           </div>
 
-          {/* right side form */}
-          <div className="col-md-6">
+          {/* RIGHT COLUMN */}
+          <div className="col-md-7">
             <Form onSubmit={handleSubmit}>
               <Form.Group controlId="projectName" className="mb-3">
                 <Form.Label>Project Name</Form.Label>
                 <Form.Control
+                  required
                   type="text"
                   placeholder="Enter project name"
                   value={name}
@@ -330,8 +354,8 @@ const AddProject: React.FC<AddProjectProps> = ({ isSidebarOpen }) => {
                 />
               </Form.Group>
 
-              {/* Objectives checklist */}
-              <Form.Group className="mb-3">
+              {/* CHECKLIST OF OBJECTIVES */}
+              <Form.Group className="mb-3" controlId="objectivesCheck">
                 <Form.Label>Objectives (check all that apply)</Form.Label>
                 <div className="d-flex flex-wrap">
                   {allObjectives.map((obj) => (
@@ -352,6 +376,7 @@ const AddProject: React.FC<AddProjectProps> = ({ isSidebarOpen }) => {
                   <Form.Group controlId="startDate" className="mb-3">
                     <Form.Label>Start Date</Form.Label>
                     <Form.Control
+                      required
                       type="date"
                       value={startDate}
                       onChange={(e) => setStartDate(e.target.value)}
@@ -362,6 +387,7 @@ const AddProject: React.FC<AddProjectProps> = ({ isSidebarOpen }) => {
                   <Form.Group controlId="status" className="mb-3">
                     <Form.Label>Status</Form.Label>
                     <Form.Select
+                      required
                       value={status}
                       onChange={(e) =>
                         setStatus(e.target.value as ProjectStatus)
@@ -375,17 +401,53 @@ const AddProject: React.FC<AddProjectProps> = ({ isSidebarOpen }) => {
                 </Col>
               </Row>
 
-              {/* location + map */}
+              <Row>
+                <Col md={6}>
+                  <Form.Group className="mb-3" controlId="primaryContactName">
+                    <Form.Label>Primary Contact Name</Form.Label>
+                    <Form.Control
+                      required
+                      type="text"
+                      value={primaryContactName}
+                      onChange={(e) => setPrimaryContactName(e.target.value)}
+                    />
+                  </Form.Group>
+                </Col>
+                <Col md={6}>
+                  <Form.Group className="mb-3" controlId="primaryContactPhone">
+                    <Form.Label>Primary Contact Phone</Form.Label>
+                    <Form.Control
+                      required
+                      pattern="^[0-9+()\-\s]*$"
+                      type="text"
+                      value={primaryContactPhone}
+                      onChange={(e) => setPrimaryContactPhone(e.target.value)}
+                    />
+                  </Form.Group>
+                </Col>
+              </Row>
+
+              {/* MAP */}
+              <div className="mb-3">
+                <div style={{ width: '100%', height: '200px' }}>
+                  <GoogleMap
+                    mapContainerStyle={containerStyle}
+                    center={mapCenter}
+                    zoom={12}
+                  >
+                    <Marker position={markerPos} />
+                  </GoogleMap>
+                </div>
+              </div>
+
               <Form.Group controlId="location" className="mb-3">
                 <Form.Label>Project Location</Form.Label>
-                {/* The Autocomplete component from @react-google-maps/api */}
                 <Autocomplete
-                  onLoad={(autocomplete) =>
-                    (autocompleteRef.current = autocomplete)
-                  }
+                  onLoad={(auto) => (autocompleteRef.current = auto)}
                   onPlaceChanged={handlePlaceChanged}
                 >
                   <Form.Control
+                    required
                     type="text"
                     placeholder="Type an address"
                     value={location}
@@ -394,16 +456,6 @@ const AddProject: React.FC<AddProjectProps> = ({ isSidebarOpen }) => {
                 </Autocomplete>
               </Form.Group>
 
-              <div style={{ width: '100%', height: '200px' }}>
-                <GoogleMap
-                  mapContainerStyle={containerStyle}
-                  center={mapCenter}
-                  zoom={12}
-                >
-                  <Marker position={markerPos} />
-                </GoogleMap>
-              </div>
-
               <Button variant="primary" type="submit" className="w-100 mt-3">
                 Save
               </Button>
@@ -411,29 +463,24 @@ const AddProject: React.FC<AddProjectProps> = ({ isSidebarOpen }) => {
           </div>
         </div>
       )}
+
       {activeTab === 'objectives' && (
         <div className="p-4">
           <h3>Project Objectives</h3>
-          <p>... placeholder content ...</p>
+          <p>
+            Here you might display a more detailed editor for the objectives the
+            user selected.
+          </p>
         </div>
       )}
       {activeTab === 'risks' && (
         <div className="p-4">
           <h3>Project Risks</h3>
-          <p>... placeholder content ...</p>
+          <p>Placeholder content for risks tab.</p>
         </div>
       )}
     </div>
   )
 }
 
-export default function WrappedAddProject() {
-  return (
-    <LoadScript
-      googleMapsApiKey="YOUR_GOOGLE_MAPS_API_KEY"
-      libraries={['places']}
-    >
-      <AddProject />
-    </LoadScript>
-  )
-}
+export default AddProject

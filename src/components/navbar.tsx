@@ -37,7 +37,7 @@ const Navbar: React.FC<NavbarProps> = ({
       style={{
         backgroundColor: '#76D6E2',
         color: '#1A1A1A',
-        padding: '0.5rem 1.5rem',
+        padding: '0.5rem 2rem',
         position: 'fixed',
         top: 0,
         width: '100%',
@@ -53,7 +53,6 @@ const Navbar: React.FC<NavbarProps> = ({
             className="img-fluid me-2"
             style={{ maxHeight: '50px' }}
           />
-          {/* If you want text next to the logo, put it here */}
         </Link>
 
         {/* Hamburger toggler for small screens */}

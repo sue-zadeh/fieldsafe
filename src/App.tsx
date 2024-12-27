@@ -1,16 +1,19 @@
 import React, { useState, useEffect } from 'react'
 import { Routes, Route, useNavigate } from 'react-router-dom'
-import Sidebar from './components/sidebar'
+import { LoadScript } from '@react-google-maps/api' // <-- load script for google maps functionality
+
 import Navbar from './components/navbar'
 import Login from './components/login'
+import Sidebar from './components/sidebar'
 import Registerroles from './components/registerroles'
-import Registervolunteer from './components/registervolunteer'
-import Volunteer from './components/volunteer'
 import Groupadmin from './components/groupadmin'
 import Fieldstaff from './components/fieldstaff'
 import Teamlead from './components/teamlead'
-import Addproject from './components/addproject'
+import Registervolunteer from './components/registervolunteer'
+import Volunteer from './components/volunteer'
+import AddProject from './components/AddProject'
 
+const GOOGLE_MAPS_API_KEY = 'YOUR_GOOGLE_MAPS_API_KEY'
 const App: React.FC = () => {
   const [isLoggedIn, setIsLoggedIn] = useState(false)
   const [logoutMessage, setLogoutMessage] = useState<string | null>(null)
@@ -102,41 +105,45 @@ const App: React.FC = () => {
           <div className="d-flex flex-grow-1">
             <Sidebar isOpen={isSidebarOpen} toggleSidebar={toggleSidebar} />
             <div style={mainContentStyle}>
-              <Routes>
-                <Route
-                  path="/registerroles"
-                  element={<Registerroles isSidebarOpen={isSidebarOpen} />}
-                />
+              {/* Load Google Maps script  */}
+              <LoadScript
+                googleMapsApiKey={GOOGLE_MAPS_API_KEY}
+                libraries={['places']}
+              >
+                <Routes>
+                  <Route
+                    path="/registerroles"
+                    element={<Registerroles isSidebarOpen={isSidebarOpen} />}
+                  />
 
-                <Route
-                  path="/groupadmin"
-                  element={<Groupadmin isSidebarOpen={isSidebarOpen} />}
-                />
-                <Route
-                  path="/fieldstaff"
-                  element={<Fieldstaff isSidebarOpen={isSidebarOpen} />}
-                />
-                <Route
-                  path="/teamlead"
-                  element={<Teamlead isSidebarOpen={isSidebarOpen} />}
-                />
-                <Route
-                  path="/registervolunteer"
-                  element={<Registervolunteer isSidebarOpen={isSidebarOpen} />}
-                />
-                <Route
-                  path="/volunteer"
-                  element={<Volunteer isSidebarOpen={isSidebarOpen} />}
-                />
-                <Route
-                  path="/addproject"
-                  element={<Addproject isSidebarOpen={isSidebarOpen} />}
-                />
-                {/* <Route
-                    path="/:role"
-                    element={<Usertable isSidebarOpen={isSidebarOpen} />}
-                  />  */}
-              </Routes>
+                  <Route
+                    path="/groupadmin"
+                    element={<Groupadmin isSidebarOpen={isSidebarOpen} />}
+                  />
+                  <Route
+                    path="/fieldstaff"
+                    element={<Fieldstaff isSidebarOpen={isSidebarOpen} />}
+                  />
+                  <Route
+                    path="/teamlead"
+                    element={<Teamlead isSidebarOpen={isSidebarOpen} />}
+                  />
+                  <Route
+                    path="/registervolunteer"
+                    element={
+                      <Registervolunteer isSidebarOpen={isSidebarOpen} />
+                    }
+                  />
+                  <Route
+                    path="/volunteer"
+                    element={<Volunteer isSidebarOpen={isSidebarOpen} />}
+                  />
+                  <Route
+                    path="/AddProject"
+                    element={<AddProject isSidebarOpen={isSidebarOpen} />}
+                  />
+                </Routes>
+              </LoadScript>
             </div>
           </div>
         </div>
