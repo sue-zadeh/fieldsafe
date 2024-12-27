@@ -18,20 +18,20 @@ interface GroupAdminProps {
 }
 
 const GroupAdmin: React.FC<GroupAdminProps> = ({ isSidebarOpen }) => {
-  // 1) "All" Group Admins for the main table
+  // All Group Admins for the main table
   const [allAdmins, setAllAdmins] = useState<User[]>([])
 
-  // 2) Search results for the "Search Results" table
+  // Search results for the "Search Results" table
   const [searchResults, setSearchResults] = useState<User[]>([])
 
-  // 3) Search bar text
+  // Search bar text
   const [searchQuery, setSearchQuery] = useState('')
 
-  // 4) Has the user actually performed a search? (We only show the "No results"
+  // Has the user actually performed a search? (only show the "No results"
   //    message if they've clicked the Search button.)
   const [hasSearched, setHasSearched] = useState(false)
 
-  // 5) Notification message
+  // Notification message
   const [notification, setNotification] = useState<string | null>(null)
 
   const navigate = useNavigate()
@@ -58,7 +58,7 @@ const GroupAdmin: React.FC<GroupAdminProps> = ({ isSidebarOpen }) => {
     fetchAllAdmins()
   }, [])
 
-  // Clear notifications after a few seconds
+  // Clear notifications after 4 seconds
   useEffect(() => {
     if (notification) {
       const timer = setTimeout(() => setNotification(null), 4000)
@@ -67,7 +67,7 @@ const GroupAdmin: React.FC<GroupAdminProps> = ({ isSidebarOpen }) => {
   }, [notification])
 
   //----------------------------------------------------------------
-  // Searching: only triggered by the "Search" button
+  // Searching: only by the "Search" button
   const handleSearch = async () => {
     // Mark that we did a search
     setHasSearched(true)

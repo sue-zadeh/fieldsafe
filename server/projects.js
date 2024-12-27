@@ -23,8 +23,6 @@ const upload = multer({ storage })
 
 // POST /api/projects
 // Expects formData: name, location, startDate, status, createdBy, emergencyServices etc.
-// Otional image & inductionFile
-// "Objectives" as JSON array of IDs
 router.post(
   '/',
   upload.fields([
@@ -35,7 +33,6 @@ router.post(
     try {
       const {
         name,
-        location,
         startDate,
         status,
         createdBy,
@@ -45,8 +42,9 @@ router.post(
         localHospital,
         primaryContactName,
         primaryContactPhone,
+        location,
 
-        // This might be a JSON string and parse it if it exists.
+        // This is a JSON string and parse it if it exists.
         objectives,
       } = req.body
 

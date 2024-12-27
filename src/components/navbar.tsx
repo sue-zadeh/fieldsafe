@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React from 'react'
 import { Link, useLocation } from 'react-router-dom'
 import {
   FaUserPlus,
@@ -26,15 +26,9 @@ const Navbar: React.FC<NavbarProps> = ({
   isLoggedIn,
   isLoggingOut,
 }) => {
-  const [activeDropdown, setActiveDropdown] = useState<string | null>(
-    null as null
-  )
   const location = useLocation()
 
-  const toggleDropdown = (dropdown: string) => {
-    setActiveDropdown((prev) => (prev === dropdown ? (null as null) : dropdown))
-  }
-
+  // Simple helper to see if the current route matches:
   const isActive = (path: string) => location.pathname === path
 
   return (
@@ -51,297 +45,313 @@ const Navbar: React.FC<NavbarProps> = ({
       }}
     >
       <div className="container-fluid">
-        <img
-          src={Logo}
-          alt="logo"
-          className="img-fluid me-3"
-          style={{ maxHeight: '50px' }}
-        />
-        <div className="navbar-nav ms-auto d-flex align-items-center">
-          {/* Organization Profile */}
-          <div
-            className={`nav-item dropdown ${
-              activeDropdown === 'organization' ? 'show' : ''
-            }`}
-            onMouseEnter={() => toggleDropdown('organization')}
-            onMouseLeave={() => setActiveDropdown(null as null)}
-          >
-            <a
-              href="#"
-              className="nav-link dropdown-toggle"
-              id="organizationDropdown"
-              role="button"
-              data-bs-toggle="dropdown"
-              aria-expanded={activeDropdown === 'organization'}
-              style={{
-                color: '#1A1A1A',
-                fontWeight:
-                  activeDropdown === 'organization' ? 'bold' : 'normal',
-                marginRight: '0.5rem',
-                marginLeft: '1rem',
-              }}
-            >
-              <MdGroups style={{ marginRight: '5px' }} />
-              Organization Profile
-            </a>
-            <ul
-              className={`dropdown-menu ${
-                activeDropdown === 'organization' ? 'show' : ''
-              }`}
-            >
-              <li>
-                <Link
-                  to="/registerroles"
-                  className="dropdown-item"
-                  style={{
-                    fontWeight: isActive('/registerroles') ? 'bold' : 'normal',
-                  }}
-                >
-                  <FaUserPlus style={{ marginRight: '5px' }} />
-                  Add User
-                </Link>
-              </li>
-              <li>
-                <Link
-                  to="/groupadmin"
-                  className="dropdown-item"
-                  style={{
-                    fontWeight: isActive('/groupadmin') ? 'bold' : 'normal',
-                  }}
-                >
-                  <MdGroups style={{ marginRight: '5px' }} />
-                  Group Admin
-                </Link>
-              </li>
-              <li>
-                <Link
-                  to="/teamlead"
-                  className="dropdown-item"
-                  style={{
-                    fontWeight: isActive('/teamlead') ? 'bold' : 'normal',
-                  }}
-                >
-                  <FaUsers style={{ marginRight: '5px' }} />
-                  Team Leader
-                </Link>
-              </li>
-              <li>
-                <Link
-                  to="/fieldstaff"
-                  className="dropdown-item"
-                  style={{
-                    fontWeight: isActive('/fieldstaff') ? 'bold' : 'normal',
-                  }}
-                >
-                  <FaUserCog style={{ marginRight: '5px' }} />
-                  Field Staff
-                </Link>
-              </li>
-            </ul>
-          </div>
+        {/* Logo on the left */}
+        <Link to="/" className="navbar-brand d-flex align-items-center">
+          <img
+            src={Logo}
+            alt="logo"
+            className="img-fluid me-2"
+            style={{ maxHeight: '50px' }}
+          />
+          {/* If you want text next to the logo, put it here */}
+        </Link>
 
-          {/* Volunteer */}
-          <div
-            className={`nav-item dropdown ${
-              activeDropdown === 'volunteer' ? 'show' : ''
-            }`}
-            onMouseEnter={() => toggleDropdown('volunteer')}
-            onMouseLeave={() => setActiveDropdown(null as null)}
-          >
-            <a
-              href="#"
-              className="nav-link dropdown-toggle"
-              id="volunteerDropdown"
-              role="button"
-              data-bs-toggle="dropdown"
-              aria-expanded={activeDropdown === 'volunteer'}
-              style={{
-                color: '#1A1A1A',
-                fontWeight: activeDropdown === 'volunteer' ? 'bold' : 'normal',
-                marginRight: '0.5rem',
-                marginLeft: '1rem',
-              }}
-            >
-              <MdVolunteerActivism style={{ marginRight: '5px' }} />
-              Volunteer
-            </a>
-            <ul
-              className={`dropdown-menu ${
-                activeDropdown === 'volunteer' ? 'show' : ''
-              }`}
-            >
-              <li>
-                <Link
-                  to="/registervolunteer"
-                  className="dropdown-item"
-                  style={{
-                    fontWeight: isActive('/registervolunteer')
+        {/* Hamburger toggler for small screens */}
+        <button
+          className="navbar-toggler"
+          type="button"
+          data-bs-toggle="collapse"
+          data-bs-target="#navbarNavDropdown"
+          aria-controls="navbarNavDropdown"
+          aria-expanded="false"
+          aria-label="Toggle navigation"
+          style={{ backgroundColor: '#F4F7F1' }}
+        >
+          <span className="navbar-toggler-icon"></span>
+        </button>
+
+        {/* Collapsible area */}
+        <div className="collapse navbar-collapse" id="navbarNavDropdown">
+          <ul className="navbar-nav ms-auto">
+            {/* Organization Profile */}
+            <li className="nav-item dropdown">
+              <a
+                className="nav-link dropdown-toggle"
+                href="#"
+                id="organizationDropdown"
+                role="button"
+                data-bs-toggle="dropdown"
+                aria-expanded="false"
+                style={{
+                  color: '#1A1A1A',
+                  fontWeight:
+                    isActive('/registerroles') ||
+                    isActive('/groupadmin') ||
+                    isActive('/teamlead') ||
+                    isActive('/fieldstaff')
                       ? 'bold'
                       : 'normal',
-                  }}
-                >
-                  <BsPersonFillAdd style={{ marginRight: '5px' }} />
-                  Add Volunteer
-                </Link>
-              </li>
-              <li>
-                <Link
-                  to="/volunteer"
-                  className="dropdown-item"
-                  style={{
-                    fontWeight: isActive('/volunteer') ? 'bold' : 'normal',
-                  }}
-                >
-                  <MdVolunteerActivism style={{ marginRight: '5px' }} />
-                  Volunteer
-                </Link>
-              </li>
-            </ul>
-          </div>
-
-          {/* Projects */}
-          <div
-            className={`nav-item dropdown ${
-              activeDropdown === 'projects' ? 'show' : ''
-            }`}
-            onMouseEnter={() => toggleDropdown('projects')}
-            onMouseLeave={() => setActiveDropdown(null as null)}
-          >
-            <a
-              href="#"
-              className="nav-link dropdown-toggle"
-              id="projectDropdown"
-              role="button"
-              data-bs-toggle="dropdown"
-              aria-expanded={activeDropdown === 'projects'}
-              style={{
-                color: '#1A1A1A',
-                fontWeight: activeDropdown === 'projects' ? 'bold' : 'normal',
-                marginRight: '0.5rem',
-                marginLeft: '1rem',
-              }}
-            >
-              <BsCalendar2Plus style={{ marginRight: '5px' }} />
-              Projects
-            </a>
-            <ul className="dropdown-menu">
-              <li>
-                <Link
-                  to="addproject"
-                  className="dropdown-item"
-                  style={{
-                    fontWeight: isActive('/projects/addproject')
-                      ? 'bold'
-                      : 'normal',
-                  }}
-                >
-                  <BsCalendar2Plus style={{ marginRight: '5px' }} />
-                  Add Project
-                </Link>
-              </li>
-              <li>
-                <Link
-                  to="searchproject"
-                  className="dropdown-item"
-                  style={{
-                    fontWeight: isActive('/projects/searchproject')
-                      ? 'bold'
-                      : 'normal',
-                  }}
-                >
-                  <BsCalendarCheck style={{ marginRight: '5px' }} />
-                  Search Project
-                </Link>
-              </li>
-            </ul>
-          </div>
-
-          {/* Activity Notes */}
-          <div
-            className={`nav-item dropdown ${
-              activeDropdown === 'activity' ? 'show' : ''
-            }`}
-            onMouseEnter={() => toggleDropdown('activity')}
-            onMouseLeave={() => setActiveDropdown(null as null)}
-          >
-            <a
-              href="#"
-              className="nav-link dropdown-toggle"
-              id="activityDropdown"
-              role="button"
-              data-bs-toggle="dropdown"
-              aria-expanded={activeDropdown === 'activity'}
-              style={{
-                color: '#1A1A1A',
-                fontWeight: activeDropdown === 'activity' ? 'bold' : 'normal',
-                marginRight: '0.5rem',
-                marginLeft: '1rem',
-              }}
-            >
-              <MdLocalActivity style={{ marginRight: '5px' }} />
-              Activity Notes
-            </a>
-            <ul className="dropdown-menu">
-              <li>
-                <Link
-                  to="addactivity"
-                  className="dropdown-item"
-                  style={{
-                    fontWeight: isActive('/addactivity')
-                      ? 'bold'
-                      : 'normal',
-                  }}
-                >
-                  <MdLocalActivity style={{ marginRight: '5px' }} />
-                  Add Activity
-                </Link>
-              </li>
-              <li>
-                <Link
-                  to="/searchactivity"
-                  className="dropdown-item"
-                  style={{
-                    fontWeight: isActive('/searchactivity')
-                      ? 'bold'
-                      : 'normal',
-                  }}
-                >
-                  <FaTasks style={{ marginRight: '5px' }} />
-                  Search Activity
-                </Link>
-              </li>
-            </ul>
-          </div>
-
-          {/* Objectives */}
-          <div className="nav-item">
-            <Link
-              to="/objectives"
-              className="nav-link"
-              style={{
-                color: '#1A1A1A',
-                fontWeight: isActive('/objectives') ? 'bold' : 'normal',
-                marginRight: '0.5rem',
-                marginLeft: '1rem',
-              }}
-            >
-              <FaBullseye style={{ marginRight: '5px' }} />
-              Objectives
-            </Link>
-          </div>
-
-          {/* Logout */}
-          {isLoggedIn && (
-            <li className="nav-item">
-              <button
-                className="btn btn-outline-danger ms-3"
-                onClick={onLogout}
-                disabled={isLoggingOut}
+                }}
               >
-                {isLoggingOut ? 'Logging out...' : 'Logout'}
-              </button>
+                <MdGroups style={{ marginRight: '5px' }} />
+                Organization Profile
+              </a>
+              <ul
+                className="dropdown-menu"
+                aria-labelledby="organizationDropdown"
+              >
+                <li>
+                  <Link
+                    to="/registerroles"
+                    className="dropdown-item"
+                    style={{
+                      fontWeight: isActive('/registerroles')
+                        ? 'bold'
+                        : 'normal',
+                    }}
+                  >
+                    <FaUserPlus style={{ marginRight: '5px' }} />
+                    Add User
+                  </Link>
+                </li>
+                <li>
+                  <Link
+                    to="/groupadmin"
+                    className="dropdown-item"
+                    style={{
+                      fontWeight: isActive('/groupadmin') ? 'bold' : 'normal',
+                    }}
+                  >
+                    <MdGroups style={{ marginRight: '5px' }} />
+                    Group Admin
+                  </Link>
+                </li>
+                <li>
+                  <Link
+                    to="/teamlead"
+                    className="dropdown-item"
+                    style={{
+                      fontWeight: isActive('/teamlead') ? 'bold' : 'normal',
+                    }}
+                  >
+                    <FaUsers style={{ marginRight: '5px' }} />
+                    Team Leader
+                  </Link>
+                </li>
+                <li>
+                  <Link
+                    to="/fieldstaff"
+                    className="dropdown-item"
+                    style={{
+                      fontWeight: isActive('/fieldstaff') ? 'bold' : 'normal',
+                    }}
+                  >
+                    <FaUserCog style={{ marginRight: '5px' }} />
+                    Field Staff
+                  </Link>
+                </li>
+              </ul>
             </li>
-          )}
+
+            {/* Volunteer */}
+            <li className="nav-item dropdown">
+              <a
+                className="nav-link dropdown-toggle"
+                href="#"
+                id="volunteerDropdown"
+                role="button"
+                data-bs-toggle="dropdown"
+                aria-expanded="false"
+                style={{
+                  color: '#1A1A1A',
+                  fontWeight:
+                    isActive('/registervolunteer') || isActive('/volunteer')
+                      ? 'bold'
+                      : 'normal',
+                }}
+              >
+                <MdVolunteerActivism style={{ marginRight: '5px' }} />
+                Volunteer
+              </a>
+              <ul className="dropdown-menu" aria-labelledby="volunteerDropdown">
+                <li>
+                  <Link
+                    to="/registervolunteer"
+                    className="dropdown-item"
+                    style={{
+                      fontWeight: isActive('/registervolunteer')
+                        ? 'bold'
+                        : 'normal',
+                    }}
+                  >
+                    <BsPersonFillAdd style={{ marginRight: '5px' }} />
+                    Add Volunteer
+                  </Link>
+                </li>
+                <li>
+                  <Link
+                    to="/volunteer"
+                    className="dropdown-item"
+                    style={{
+                      fontWeight: isActive('/volunteer') ? 'bold' : 'normal',
+                    }}
+                  >
+                    <MdVolunteerActivism style={{ marginRight: '5px' }} />
+                    Volunteer
+                  </Link>
+                </li>
+              </ul>
+            </li>
+
+            {/* Projects */}
+            <li className="nav-item dropdown">
+              <a
+                className="nav-link dropdown-toggle"
+                href="#"
+                id="projectsDropdown"
+                role="button"
+                data-bs-toggle="dropdown"
+                aria-expanded="false"
+                style={{
+                  color: '#1A1A1A',
+                  fontWeight:
+                    isActive('/addproject') || isActive('/searchproject')
+                      ? 'bold'
+                      : 'normal',
+                }}
+              >
+                <BsCalendar2Plus style={{ marginRight: '5px' }} />
+                Projects
+              </a>
+              <ul className="dropdown-menu" aria-labelledby="projectsDropdown">
+                <li>
+                  <Link
+                    to="/addproject"
+                    className="dropdown-item"
+                    style={{
+                      fontWeight: isActive('/addproject') ? 'bold' : 'normal',
+                    }}
+                  >
+                    <BsCalendar2Plus style={{ marginRight: '5px' }} />
+                    Add Project
+                  </Link>
+                </li>
+                <li>
+                  <Link
+                    to="/searchproject"
+                    className="dropdown-item"
+                    style={{
+                      fontWeight: isActive('/searchproject')
+                        ? 'bold'
+                        : 'normal',
+                    }}
+                  >
+                    <BsCalendarCheck style={{ marginRight: '5px' }} />
+                    Search Project
+                  </Link>
+                </li>
+              </ul>
+            </li>
+
+            {/* Activity Notes */}
+            <li className="nav-item dropdown">
+              <a
+                className="nav-link dropdown-toggle"
+                href="#"
+                id="activityDropdown"
+                role="button"
+                data-bs-toggle="dropdown"
+                aria-expanded="false"
+                style={{
+                  color: '#1A1A1A',
+                  fontWeight:
+                    isActive('/addactivity') || isActive('/searchactivity')
+                      ? 'bold'
+                      : 'normal',
+                }}
+              >
+                <MdLocalActivity style={{ marginRight: '5px' }} />
+                Activity Notes
+              </a>
+              <ul className="dropdown-menu" aria-labelledby="activityDropdown">
+                <li>
+                  <Link
+                    to="/addactivity"
+                    className="dropdown-item"
+                    style={{
+                      fontWeight: isActive('/addactivity') ? 'bold' : 'normal',
+                    }}
+                  >
+                    <MdLocalActivity style={{ marginRight: '5px' }} />
+                    Add Activity
+                  </Link>
+                </li>
+                <li>
+                  <Link
+                    to="/searchactivity"
+                    className="dropdown-item"
+                    style={{
+                      fontWeight: isActive('/searchactivity')
+                        ? 'bold'
+                        : 'normal',
+                    }}
+                  >
+                    <FaTasks style={{ marginRight: '5px' }} />
+                    Search Activity
+                  </Link>
+                </li>
+              </ul>
+            </li>
+
+            {/* Objectives */}
+            <li className="nav-item dropdown">
+              <a
+                className="nav-link dropdown-toggle"
+                href="#"
+                id="objectivesDropdown"
+                role="button"
+                data-bs-toggle="dropdown"
+                aria-expanded="false"
+                style={{
+                  color: '#1A1A1A',
+                  fontWeight: isActive('/addobjective') ? 'bold' : 'normal',
+                }}
+              >
+                <FaBullseye style={{ marginRight: '5px' }} />
+                Objectives
+              </a>
+              <ul
+                className="dropdown-menu"
+                aria-labelledby="objectivesDropdown"
+              >
+                <li>
+                  <Link
+                    to="/addobjective"
+                    className="dropdown-item"
+                    style={{
+                      fontWeight: isActive('/addobjective') ? 'bold' : 'normal',
+                    }}
+                  >
+                    <FaBullseye style={{ marginRight: '5px' }} />
+                    Add Objective
+                  </Link>
+                </li>
+              </ul>
+            </li>
+
+            {/* Logout */}
+            {isLoggedIn && (
+              <li className="nav-item">
+                <button
+                  className="btn btn-outline-danger ms-3"
+                  onClick={onLogout}
+                  disabled={isLoggingOut}
+                >
+                  {isLoggingOut ? 'Logging out...' : 'Logout'}
+                </button>
+              </li>
+            )}
+          </ul>
         </div>
       </div>
     </nav>

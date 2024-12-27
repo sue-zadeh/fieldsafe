@@ -48,23 +48,24 @@ VALUES (
   'uploads/river.jpg',
   'uploads/induction_river.docx'
 );
+-- Populate the objectives table
 
 INSERT INTO objectives (title, measurement, dateStart, dateEnd)
 VALUES
-('Community Participation', '# of participants', NULL, NULL)
-('Weed Treatment', '#m2', NULL, NULL)
+('Community Participation', '# of participants', NULL, NULL),
+('Weed Treatment', '#m2', NULL, NULL),
 ('Debris Removal(Weight)', '# tonnes', NULL, NULL),
 ('Fencing(m)', '# metres', NULL, NULL),
-('Plant Propagation(Number)', '# of plants', NULL, NULL);
+('Plant Propagation(Number)', '# of plants', NULL, NULL),
 ('Revegetation(Number)', '# of plants', '2024-05-01', '2025-05-01'),
-('Seed Collection kg', '# kg', NULL, NULL)
-('Debris Removal(Area)', '#(Area)', NULL, NULL)
-('Revegetation(Area), #(Area)', NULL, NULL);
-('Sire Prepration(Treatment)', '#(Treatment)', NULL, NULL);
-('Establishing Predator Control', '# trap numbers', NULL, NULL);
-('Walking track building: measurement=metres', '# meteres', NULL, NULL);
-('Walking track maintenance: measurement=metres', '# meteres', NULL, NULL);
-('Species monitoring: measurement=number of species', '# number ofspecies', NULL, NULL)
+('Seed Collection kg', '# kg', NULL, NULL),
+('Debris Removal(Area)', '#(Area)', NULL, NULL),
+('Revegetation(Area)', '#(Area)', NULL, NULL),
+('Site Preparation(Treatment)', '#(Treatment)', NULL, NULL),
+('Establishing Predator Control', '# trap numbers', NULL, NULL),
+('Walking track building', 'metres', NULL, NULL),
+('Walking track maintenance', 'metres', NULL, NULL),
+('Species monitoring', 'number of species', NULL, NULL);
 
 
 -- Populate the project_objectives table

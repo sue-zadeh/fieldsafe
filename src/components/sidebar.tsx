@@ -1,6 +1,12 @@
 import React, { useState } from 'react'
 import { Link, useLocation } from 'react-router-dom'
-import { FaUserPlus, FaUsers, FaTasks, FaUserCog } from 'react-icons/fa'
+import {
+  FaUserPlus,
+  FaUsers,
+  FaTasks,
+  FaUserCog,
+  FaBullseye,
+} from 'react-icons/fa'
 import { MdGroups, MdVolunteerActivism, MdLocalActivity } from 'react-icons/md'
 import {
   BsCalendar2Plus,
@@ -40,7 +46,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, toggleSidebar }) => {
   // Sidebar container styling
   const sidebarStyle: React.CSSProperties = {
     backgroundColor: '#738C40',
-    width: isOpen ? '225px' : '20px',
+    width: isOpen ? '227px' : '20px',
     transition: 'width 0.3s',
     position: 'fixed',
     // height: 'calc(100% - 56px)', // Adjust height to account for navbar
@@ -79,20 +85,20 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, toggleSidebar }) => {
     fontSize: '1.2rem',
     color: '#F4F7F1',
     textAlign: 'center',
-    marginBottom: '4rem',
+    marginBottom: '5rem',
   }
 
-  const navItemStyle = (isActive: boolean): React.CSSProperties => ({
+  const navItemStyle = (active: boolean): React.CSSProperties => ({
     color: '#F4F7F1',
     fontSize: '1.25rem',
     textDecoration: 'none',
     display: 'flex',
     alignItems: 'center',
-    padding: '0.5rem 1rem',
+    padding: '0.75rem 1.10rem',
     cursor: 'pointer',
     borderRadius: '0.5rem',
-    fontWeight: isActive ? 'bold' : 'normal',
-    backgroundColor: isActive ? 'rgba(244,247,241,0.2)' : 'transparent',
+    fontWeight: active ? 'bold' : 'normal',
+    backgroundColor: active ? 'rgba(244,247,241,0.2)' : 'transparent',
   })
 
   const dropdownListStyle: React.CSSProperties = {
@@ -244,14 +250,14 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, toggleSidebar }) => {
           </ul>
         </NavItem>
 
-        <NavItem label="Projects" dropdownId="project">
+        <NavItem label="Project" dropdownId="project">
           <ul style={dropdownListStyle}>
             <li>
               <Link
-                to="/projects/addproject"
+                to="/addproject"
                 style={{
                   ...dropdownLinkStyle,
-                  ...(isActive('/projects/addproject')
+                  ...(isActive('/addproject')
                     ? { fontWeight: 'bold', color: '#000' }
                     : {}),
                 }}
@@ -263,10 +269,10 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, toggleSidebar }) => {
             </li>
             <li>
               <Link
-                to="/projects/searchproject"
+                to="/searchproject"
                 style={{
                   ...dropdownLinkStyle,
-                  ...(isActive('/projects/searchproject')
+                  ...(isActive('/searchproject')
                     ? { fontWeight: 'bold', color: '#000' }
                     : {}),
                 }}
@@ -279,26 +285,32 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, toggleSidebar }) => {
           </ul>
         </NavItem>
 
-        <NavItem label="Objectives">
-          <li>
-            <Link
-              to="/objectives"
-              style={{
-                ...(isActive('/objectives')
-                  ? { fontWeight: 'bold', color: '#000' }
-                  : {}),
-              }}
-            ></Link>
-          </li>
+        <NavItem label="objective" dropdownId="objective">
+          <ul style={dropdownListStyle}>
+            <li>
+              <Link
+                to="/addobjective"
+                style={{
+                  ...dropdownLinkStyle,
+                  ...(isActive('/addobjective')
+                    ? { fontWeight: 'bold', color: '#000' }
+                    : {}),
+                }}
+              >
+                <FaBullseye style={{ marginRight: '8px' }} />
+                Add Objective
+              </Link>
+            </li>
+          </ul>
         </NavItem>
         <NavItem label="Activities Notes" dropdownId="activity">
           <ul style={dropdownListStyle}>
             <li>
               <Link
-                to="/activities/addactivity"
+                to="/addactivity"
                 style={{
                   ...dropdownLinkStyle,
-                  ...(isActive('/activities/addactivity')
+                  ...(isActive('/addactivity')
                     ? { fontWeight: 'bold', color: '#000' }
                     : {}),
                 }}
@@ -309,10 +321,10 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, toggleSidebar }) => {
             </li>
             <li>
               <Link
-                to="/activities/searchactivity"
+                to="/searchactivity"
                 style={{
                   ...dropdownLinkStyle,
-                  ...(isActive('/activities/searchactivity')
+                  ...(isActive('/searchactivity')
                     ? { fontWeight: 'bold', color: '#000' }
                     : {}),
                 }}
