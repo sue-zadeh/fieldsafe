@@ -2,14 +2,23 @@
 import React, { useState, useEffect, useRef } from 'react'
 import axios from 'axios'
 import { GoogleMap, Marker, Autocomplete } from '@react-google-maps/api'
-import { Navbar, Nav, Form, Button, Col, Row } from 'react-bootstrap'
+import {
+  Navbar,
+  Nav,
+  Form,
+  Button,
+  Col,
+  Row,
+  Modal,
+  ListGroup,
+} from 'react-bootstrap'
 
 // color palette
 const OCEAN_BLUE = '#0094B6'
 const SKY_BLUE = '#76D6E2'
 const FOREST_GREEN = '#738c40'
 
-// the statuses
+// statuses
 type ProjectStatus = 'inprogress' | 'completed' | 'onhold'
 
 // objective shape
@@ -41,9 +50,19 @@ const AddProject: React.FC<AddProjectProps> = ({ isSidebarOpen }) => {
   const [startDate, setStartDate] = useState('')
   const [status, setStatus] = useState<ProjectStatus>('inprogress')
 
-  // objectives
+  // notifications (for success or errors)
+  const [notification, setNotification] = useState<string | null>(null)
+
+  // all objectives from DB
   const [allObjectives, setAllObjectives] = useState<Objective[]>([])
+  // user’s chosen objective IDs
   const [selectedObjectives, setSelectedObjectives] = useState<number[]>([])
+
+  // used to display a textual summary in the main form
+  const selectedObjectivesText = allObjectives
+    .filter((obj) => selectedObjectives.includes(obj.id))
+    .map((o) => `${o.title} (${o.measurement})`)
+    .join(', ')
 
   // location & map
   const [location, setLocation] = useState('')
@@ -51,7 +70,7 @@ const AddProject: React.FC<AddProjectProps> = ({ isSidebarOpen }) => {
   const [markerPos, setMarkerPos] = useState(centerDefault)
   const autocompleteRef = useRef<google.maps.places.Autocomplete | null>(null)
 
-  // emergency & local contacts
+  // emergency & local info
   const [emergencyServices, setEmergencyServices] = useState(
     '111 will contact all emergency services'
   )
@@ -61,30 +80,46 @@ const AddProject: React.FC<AddProjectProps> = ({ isSidebarOpen }) => {
   const [primaryContactName, setPrimaryContactName] = useState('')
   const [primaryContactPhone, setPrimaryContactPhone] = useState('')
 
-  // files
+  // file uploads
   const [imageFile, setImageFile] = useState<File | null>(null)
   const [inductionFile, setInductionFile] = useState<File | null>(null)
 
   // createdBy
   const [createdBy, setCreatedBy] = useState<number | null>(null)
 
+  // for the Objectives modal
+  const [showObjModal, setShowObjModal] = useState(false)
+
+  // ----------------------------------------------------------------
+  // on mount, load adminID + fetch objectives
   useEffect(() => {
-    // load admin ID from localStorage
     const adminId = localStorage.getItem('adminId')
     if (adminId) {
       setCreatedBy(Number(adminId))
     }
 
-    // fetch objectives from /api/objectives
     axios
       .get('/api/objectives')
-      .then((res) => setAllObjectives(res.data))
+      .then((res) => {
+        setAllObjectives(res.data)
+      })
       .catch((err) => console.error('Error fetching objectives:', err))
   }, [])
 
+  // ----------------------------------------------------------------
+  // Hide notification after ~4 seconds
+  useEffect(() => {
+    if (notification) {
+      const timer = setTimeout(() => setNotification(null), 4000)
+      return () => clearTimeout(timer)
+    }
+  }, [notification])
+
+  // ----------------------------------------------------------------
   const handleNavClick = (tab: string) => setActiveTab(tab)
 
-  const handleCheckboxChange = (objId: number) => {
+  // toggling objectives
+  const toggleObjective = (objId: number) => {
     setSelectedObjectives((prev) =>
       prev.includes(objId)
         ? prev.filter((id) => id !== objId)
@@ -92,34 +127,66 @@ const AddProject: React.FC<AddProjectProps> = ({ isSidebarOpen }) => {
     )
   }
 
+  // open/close the modal
+  const openObjModal = () => setShowObjModal(true)
+  const closeObjModal = () => setShowObjModal(false)
+
+  // map places
   const handlePlaceChanged = () => {
     if (autocompleteRef.current) {
       const place = autocompleteRef.current.getPlace()
       if (place && place.geometry) {
         const lat = place.geometry.location?.lat() ?? centerDefault.lat
         const lng = place.geometry.location?.lng() ?? centerDefault.lng
-
         setMapCenter({ lat, lng })
         setMarkerPos({ lat, lng })
         setLocation(place.formatted_address || '')
-      } else {
-        console.log('No geometry for that place or place is null')
       }
     }
   }
 
+  // ----------------------------------------------------------------
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
+
+    // 1) Check required fields
+    if (!name || !location || !startDate || !emergencyServices) {
+      setNotification('All fields are required, including Emergency Services.')
+      return
+    }
+    // phone checks
+    if (!/^[0-9+()\-\s]+$/.test(primaryContactPhone)) {
+      setNotification('Primary Contact Phone is invalid format.')
+      return
+    }
+    if (!/^[0-9+()\-\s]+$/.test(localMedicalCenterPhone)) {
+      setNotification('Local Medical Center Phone is invalid format.')
+      return
+    }
+
+    // 2) Check uniqueness of project name (client side, optional)
     try {
-      // build form data
+      const checkRes = await axios.get(
+        `/api/projects?name=${encodeURIComponent(name)}`
+      )
+      if (checkRes.data?.exists) {
+        // if the server returns { exists: true } for the name
+        setNotification('Project name already exists. Choose another.')
+        return
+      }
+    } catch (err) {
+      console.warn('Client side uniqueness check error:', err)
+    }
+
+    // 3) Build formData
+    try {
       const formData = new FormData()
       formData.append('name', name)
       formData.append('location', location)
       formData.append('startDate', startDate)
       formData.append('status', status)
-      if (createdBy) {
-        formData.append('createdBy', String(createdBy))
-      }
+      if (createdBy) formData.append('createdBy', String(createdBy))
+
       formData.append('emergencyServices', emergencyServices)
       formData.append('localMedicalCenterAddress', localMedicalCenterAddress)
       formData.append('localMedicalCenterPhone', localMedicalCenterPhone)
@@ -127,16 +194,17 @@ const AddProject: React.FC<AddProjectProps> = ({ isSidebarOpen }) => {
       formData.append('primaryContactName', primaryContactName)
       formData.append('primaryContactPhone', primaryContactPhone)
       formData.append('objectives', JSON.stringify(selectedObjectives))
-
       if (imageFile) formData.append('image', imageFile)
       if (inductionFile) formData.append('inductionFile', inductionFile)
 
-      const res = await axios.post('/api/projects', formData, {
+      await axios.post('/api/projects', formData, {
         headers: { 'Content-Type': 'multipart/form-data' },
       })
-      alert('Project created successfully! ID=' + res.data.id)
 
-      // reset
+      // show success for 4s, no numeric ID
+      setNotification('Project created successfully!')
+
+      // reset form
       setName('')
       setLocation('')
       setStartDate('')
@@ -152,16 +220,22 @@ const AddProject: React.FC<AddProjectProps> = ({ isSidebarOpen }) => {
       setSelectedObjectives([])
     } catch (err) {
       console.error('Error creating project:', err)
-      alert('Failed to create project. See console.')
+      setNotification('Failed to create project.')
     }
   }
 
-  // styling for the local nav
+  // sticky local nav
   const stickyNavStyle: React.CSSProperties = {
     position: 'sticky',
     top: 0,
     zIndex: 999,
     backgroundColor: SKY_BLUE,
+    fontSize: '1.2rem',
+  }
+
+  const labelStyle: React.CSSProperties = {
+    fontSize: '1.1rem', // bigger label font
+    fontWeight: 500,
   }
 
   return (
@@ -176,34 +250,31 @@ const AddProject: React.FC<AddProjectProps> = ({ isSidebarOpen }) => {
         minHeight: '100vh',
       }}
     >
-      {/* local navbar for details/objectives/risks */}
-      <Navbar
-        expand="lg"
-        style={stickyNavStyle}
-        className="mb-2 px-5 text-left "
-      >
+      {notification && (
+        <div className="alert alert-info text-center fs-5">{notification}</div>
+      )}
+
+      {/* Local nav for details/objectives/risks */}
+      <Navbar expand="lg" style={stickyNavStyle} className="mb-2 px-5 py-2">
         <Navbar.Brand
           style={{
             color: OCEAN_BLUE,
             fontWeight: 'bold',
             width: '100%',
-            fontSize: '1.8rem',
+            fontSize: '2rem',
           }}
         >
           Create Project
         </Navbar.Brand>
         <Nav className="mx-auto">
-          {' '}
-          {/* center nav items */}
+          {/* Center nav items */}
           <Nav.Link
             onClick={() => handleNavClick('details')}
             style={{
               fontWeight: activeTab === 'details' ? 'bold' : 'normal',
               color: FOREST_GREEN,
-              marginRight: '2rem',
-              textAlign: 'left',
-              padding: '0.5rem 2rem',
-              position: 'relative' ,            }}
+              marginRight: '1rem',
+            }}
           >
             Details
           </Nav.Link>
@@ -260,7 +331,6 @@ const AddProject: React.FC<AddProjectProps> = ({ isSidebarOpen }) => {
               </div>
             </div>
 
-            {/* EMERGENCY / LOCAL INFO */}
             <h4>Emergency Services</h4>
             <Form.Group className="mb-3" controlId="emergencyServices">
               <Form.Control
@@ -268,6 +338,7 @@ const AddProject: React.FC<AddProjectProps> = ({ isSidebarOpen }) => {
                 type="text"
                 value={emergencyServices}
                 onChange={(e) => setEmergencyServices(e.target.value)}
+                style={labelStyle}
               />
             </Form.Group>
 
@@ -277,7 +348,9 @@ const AddProject: React.FC<AddProjectProps> = ({ isSidebarOpen }) => {
                   className="mb-3"
                   controlId="localMedicalCenterAddress"
                 >
-                  <Form.Label>Local Medical Center (Address)</Form.Label>
+                  <Form.Label style={labelStyle}>
+                    Local Medical Center (Address)
+                  </Form.Label>
                   <Form.Control
                     required
                     type="text"
@@ -293,10 +366,12 @@ const AddProject: React.FC<AddProjectProps> = ({ isSidebarOpen }) => {
                   className="mb-3"
                   controlId="localMedicalCenterPhone"
                 >
-                  <Form.Label>Local Medical Center (Phone)</Form.Label>
+                  <Form.Label style={labelStyle}>
+                    Local Medical Center (Phone)
+                  </Form.Label>
                   <Form.Control
                     required
-                    pattern="^[0-9+()\-\s]*$"
+                    pattern="^[0-9+()\-\s]{6,}$"
                     type="text"
                     value={localMedicalCenterPhone}
                     onChange={(e) => setLocalMedicalCenterPhone(e.target.value)}
@@ -306,7 +381,7 @@ const AddProject: React.FC<AddProjectProps> = ({ isSidebarOpen }) => {
             </Row>
 
             <Form.Group className="mb-3" controlId="localHospital">
-              <Form.Label>Local Hospital</Form.Label>
+              <Form.Label style={labelStyle}>Local Hospital</Form.Label>
               <Form.Control
                 required
                 type="text"
@@ -315,7 +390,6 @@ const AddProject: React.FC<AddProjectProps> = ({ isSidebarOpen }) => {
               />
             </Form.Group>
 
-            {/* Induction doc */}
             <div className="border p-2">
               <p className="mb-1 fw-bold fs-5">
                 Upload Project Induction Instructions
@@ -350,7 +424,7 @@ const AddProject: React.FC<AddProjectProps> = ({ isSidebarOpen }) => {
           <div className="col-md-7">
             <Form onSubmit={handleSubmit}>
               <Form.Group controlId="projectName" className="mb-3">
-                <Form.Label>Project Name</Form.Label>
+                <Form.Label style={labelStyle}>Project Name</Form.Label>
                 <Form.Control
                   required
                   type="text"
@@ -360,27 +434,31 @@ const AddProject: React.FC<AddProjectProps> = ({ isSidebarOpen }) => {
                 />
               </Form.Group>
 
-              {/* CHECKLIST OF OBJECTIVES */}
-              <Form.Group className="mb-3" controlId="objectivesCheck">
-                <Form.Label>Objectives (check all that apply)</Form.Label>
-                <div className="d-flex flex-wrap">
-                  {allObjectives.map((obj) => (
-                    <Form.Check
-                      key={obj.id}
-                      type="checkbox"
-                      label={`${obj.title} (${obj.measurement})`}
-                      checked={selectedObjectives.includes(obj.id)}
-                      onChange={() => handleCheckboxChange(obj.id)}
-                      className="me-4 mb-2"
-                    />
-                  ))}
+              {/* Instead of direct checkboxes, we show a read-only field + 'Edit' button => modal */}
+              <Form.Group className="mb-3">
+                <Form.Label style={labelStyle}>Objectives</Form.Label>
+                <div className="d-flex">
+                  <Form.Control
+                    readOnly
+                    type="text"
+                    value={selectedObjectivesText}
+                    placeholder="(No objectives selected)"
+                    onClick={openObjModal}
+                  />
+                  <Button
+                    variant="secondary"
+                    className="ms-2"
+                    onClick={openObjModal}
+                  >
+                    Edit
+                  </Button>
                 </div>
               </Form.Group>
 
               <Row>
                 <Col md={6}>
                   <Form.Group controlId="startDate" className="mb-3">
-                    <Form.Label>Start Date</Form.Label>
+                    <Form.Label style={labelStyle}>Start Date</Form.Label>
                     <Form.Control
                       required
                       type="date"
@@ -391,7 +469,7 @@ const AddProject: React.FC<AddProjectProps> = ({ isSidebarOpen }) => {
                 </Col>
                 <Col md={6}>
                   <Form.Group controlId="status" className="mb-3">
-                    <Form.Label>Status</Form.Label>
+                    <Form.Label style={labelStyle}>Status</Form.Label>
                     <Form.Select
                       required
                       value={status}
@@ -406,11 +484,12 @@ const AddProject: React.FC<AddProjectProps> = ({ isSidebarOpen }) => {
                   </Form.Group>
                 </Col>
               </Row>
-
               <Row>
                 <Col md={6}>
                   <Form.Group className="mb-3" controlId="primaryContactName">
-                    <Form.Label>Primary Contact Name</Form.Label>
+                    <Form.Label style={labelStyle}>
+                      Primary Contact Name
+                    </Form.Label>
                     <Form.Control
                       required
                       type="text"
@@ -421,10 +500,12 @@ const AddProject: React.FC<AddProjectProps> = ({ isSidebarOpen }) => {
                 </Col>
                 <Col md={6}>
                   <Form.Group className="mb-3" controlId="primaryContactPhone">
-                    <Form.Label>Primary Contact Phone</Form.Label>
+                    <Form.Label style={labelStyle}>
+                      Primary Contact Phone
+                    </Form.Label>
                     <Form.Control
                       required
-                      pattern="^[0-9+()\-\s]*$"
+                      pattern="^[0-9+()\-\s]{6,}$"
                       type="text"
                       value={primaryContactPhone}
                       onChange={(e) => setPrimaryContactPhone(e.target.value)}
@@ -447,7 +528,7 @@ const AddProject: React.FC<AddProjectProps> = ({ isSidebarOpen }) => {
               </div>
 
               <Form.Group controlId="location" className="mb-3">
-                <Form.Label>Project Location</Form.Label>
+                <Form.Label style={labelStyle}>Project Location</Form.Label>
                 <Autocomplete
                   onLoad={(auto) => (autocompleteRef.current = auto)}
                   onPlaceChanged={handlePlaceChanged}
@@ -474,8 +555,9 @@ const AddProject: React.FC<AddProjectProps> = ({ isSidebarOpen }) => {
         <div className="p-4">
           <h3>Project Objectives</h3>
           <p>
+            {' '}
             Here you might display a more detailed editor for the objectives the
-            user selected.
+            user selected.{' '}
           </p>
         </div>
       )}
@@ -485,6 +567,33 @@ const AddProject: React.FC<AddProjectProps> = ({ isSidebarOpen }) => {
           <p>Placeholder content for risks tab.</p>
         </div>
       )}
+
+      {/* MODAL for objectives */}
+      <Modal show={showObjModal} onHide={closeObjModal} size="lg">
+        <Modal.Header closeButton>
+          <Modal.Title>Select Objectives</Modal.Title>
+        </Modal.Header>
+        <Modal.Body>
+          <ListGroup>
+            {allObjectives.map((obj) => (
+              <ListGroup.Item
+                key={obj.id}
+                className="d-flex justify-content-between align-items-center"
+                action
+                onClick={() => toggleObjective(obj.id)}
+                active={selectedObjectives.includes(obj.id)}
+              >
+                {obj.title} ({obj.measurement})
+              </ListGroup.Item>
+            ))}
+          </ListGroup>
+        </Modal.Body>
+        <Modal.Footer>
+          <Button variant="secondary" onClick={closeObjModal}>
+            Done
+          </Button>
+        </Modal.Footer>
+      </Modal>
     </div>
   )
 }

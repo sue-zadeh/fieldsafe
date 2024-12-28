@@ -71,11 +71,11 @@ const Navbar: React.FC<NavbarProps> = ({
 
         {/* Collapsible area */}
         <div className="collapse navbar-collapse" id="navbarNavDropdown">
-          <ul className="navbar-nav ms-auto">
+          <ul className="navbar-nav ms-auto fs-6">
             {/* Organization Profile */}
             <li className="nav-item dropdown px-3">
               <a
-                className="nav-link dropdown-toggle"
+                className="nav-link dropdown-toggle w-100"
                 href="#"
                 id="organizationDropdown"
                 role="button"

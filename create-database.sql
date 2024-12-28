@@ -56,6 +56,8 @@ CREATE TABLE IF NOT EXISTS projects (
   imageUrl VARCHAR(255),         
   inductionFileUrl VARCHAR(255), 
   createdAt DATETIME DEFAULT CURRENT_TIMESTAMP
+  FOREIGN KEY (createdBy) REFERENCES login(id)
+
 );
 
 --the objectives table
