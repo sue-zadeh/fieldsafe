@@ -231,6 +231,7 @@ const AddProject: React.FC<AddProjectProps> = ({ isSidebarOpen }) => {
     zIndex: 999,
     backgroundColor: SKY_BLUE,
     fontSize: '1.2rem',
+    color:'OCEAN_BLUE'
   }
 
   const labelStyle: React.CSSProperties = {
@@ -255,18 +256,21 @@ const AddProject: React.FC<AddProjectProps> = ({ isSidebarOpen }) => {
       )}
 
       {/* Local nav for details/objectives/risks */}
-      <Navbar expand="lg" style={stickyNavStyle} className="mb-2 px-5 py-2">
-        <Navbar.Brand
+      <Navbar
+  expand="lg"
+  style={stickyNavStyle}
+  className="d-flex justify-content-center align-items-center sticky-md-top mb-2 px-5 py-2"
+>
+        <Navbar.Brand className='me-auto'
           style={{
             color: OCEAN_BLUE,
             fontWeight: 'bold',
-            width: '100%',
             fontSize: '2rem',
           }}
         >
           Create Project
         </Navbar.Brand>
-        <Nav className="mx-auto">
+        <Nav className="mx-auto justify-content-center">
           {/* Center nav items */}
           <Nav.Link
             onClick={() => handleNavClick('details')}
