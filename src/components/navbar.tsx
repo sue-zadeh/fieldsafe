@@ -37,7 +37,7 @@ const Navbar: React.FC<NavbarProps> = ({
       style={{
         backgroundColor: '#76D6E2',
         color: '#1A1A1A',
-        padding: '0.5rem 2rem',
+        padding: '0.5rem 3rem',
         position: 'fixed',
         top: 0,
         width: '100%',
@@ -73,7 +73,7 @@ const Navbar: React.FC<NavbarProps> = ({
         <div className="collapse navbar-collapse" id="navbarNavDropdown">
           <ul className="navbar-nav ms-auto">
             {/* Organization Profile */}
-            <li className="nav-item dropdown">
+            <li className="nav-item dropdown px-3">
               <a
                 className="nav-link dropdown-toggle"
                 href="#"
@@ -153,7 +153,7 @@ const Navbar: React.FC<NavbarProps> = ({
             </li>
 
             {/* Volunteer */}
-            <li className="nav-item dropdown">
+            <li className="nav-item dropdown px-3">
               <a
                 className="nav-link dropdown-toggle"
                 href="#"
@@ -203,7 +203,7 @@ const Navbar: React.FC<NavbarProps> = ({
             </li>
 
             {/* Projects */}
-            <li className="nav-item dropdown">
+            <li className="nav-item dropdown px-3">
               <a
                 className="nav-link dropdown-toggle"
                 href="#"
@@ -226,7 +226,7 @@ const Navbar: React.FC<NavbarProps> = ({
                 <li>
                   <Link
                     to="/addproject"
-                    className="dropdown-item"
+                    className="dropdown-item "
                     style={{
                       fontWeight: isActive('/addproject') ? 'bold' : 'normal',
                     }}
@@ -253,7 +253,7 @@ const Navbar: React.FC<NavbarProps> = ({
             </li>
 
             {/* Activity Notes */}
-            <li className="nav-item dropdown">
+            <li className="nav-item dropdown px-3">
               <a
                 className="nav-link dropdown-toggle"
                 href="#"
@@ -303,7 +303,7 @@ const Navbar: React.FC<NavbarProps> = ({
             </li>
 
             {/* Objectives */}
-            <li className="nav-item dropdown">
+            <li className="nav-item dropdown px-3">
               <a
                 className="nav-link dropdown-toggle"
                 href="#"

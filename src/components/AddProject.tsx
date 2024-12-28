@@ -171,13 +171,17 @@ const AddProject: React.FC<AddProjectProps> = ({ isSidebarOpen }) => {
       }`}
       style={{
         marginLeft: isSidebarOpen ? '220px' : '20px',
-        paddingTop: '15px',
+        paddingTop: '0px',
         transition: 'margin 0.3s ease',
         minHeight: '100vh',
       }}
     >
       {/* local navbar for details/objectives/risks */}
-      <Navbar expand="lg" style={stickyNavStyle} className="mb-2">
+      <Navbar
+        expand="lg"
+        style={stickyNavStyle}
+        className="mb-2 px-5 text-left "
+      >
         <Navbar.Brand
           style={{
             color: OCEAN_BLUE,
@@ -196,8 +200,10 @@ const AddProject: React.FC<AddProjectProps> = ({ isSidebarOpen }) => {
             style={{
               fontWeight: activeTab === 'details' ? 'bold' : 'normal',
               color: FOREST_GREEN,
-              marginRight: '1rem',
-            }}
+              marginRight: '2rem',
+              textAlign: 'left',
+              padding: '0.5rem 2rem',
+              position: 'relative' ,            }}
           >
             Details
           </Nav.Link>

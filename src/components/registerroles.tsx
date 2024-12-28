@@ -107,14 +107,14 @@ const RegisterRoles: React.FC<RegisterroleProps> = ({ isSidebarOpen }) => {
   // ----------------------------------------
   // Save (Add or Edit user)
   const handleSubmit = async () => {
-    // 1) Validate first
+    // Validate first
     const validationError = validateForm()
     if (validationError) {
       setNotification(validationError)
       return
     }
 
-    // 2) Check email uniqueness
+    // Check email uniqueness
     const isEmailTaken = users.some(
       (u) => u.email === formData.email && u.id !== formData.id
     )
