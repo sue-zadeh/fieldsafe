@@ -12,6 +12,7 @@ import staffRoutes from './register.js'
 import volunteerRoutes from './volunteer.js'
 import { sendEmail } from './email.js'
 import projectsRouter from './projects.js'
+import objectivesRouter from './objectives.js'
 
 dotenv.config()
 // For find __dirname in ES Modules---------------
@@ -25,6 +26,8 @@ app.use(express.json())
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')))
 // Use routers for pages---------------------------
 app.use('/api/projects', projectsRouter)
+app.use('/api/objectives', objectivesRouter)
+
 app.use('/api', staffRoutes)
 app.use('/api', volunteerRoutes)
 
@@ -99,7 +102,7 @@ app.get('/api/validate-token', (req, res) => {
   if (!token) {
     return res.status(401).json({ message: 'No token provided' })
   }
-  try {     
+  try {
     const decoded = jwt.verify(token, process.env.JWT_SECRET)
     return res.status(200).json({ message: 'Token is valid', user: decoded })
   } catch (err) {

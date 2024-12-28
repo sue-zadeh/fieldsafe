@@ -149,7 +149,7 @@ const AddProject: React.FC<AddProjectProps> = ({ isSidebarOpen }) => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
 
-    // 1) Check required fields
+    // Check required fields
     if (!name || !location || !startDate || !emergencyServices) {
       setNotification('All fields are required, including Emergency Services.')
       return
@@ -164,7 +164,7 @@ const AddProject: React.FC<AddProjectProps> = ({ isSidebarOpen }) => {
       return
     }
 
-    // 2) Check uniqueness of project name (client side, optional)
+    // Check uniqueness of project name (client side, optional)
     try {
       const checkRes = await axios.get(
         `/api/projects?name=${encodeURIComponent(name)}`
