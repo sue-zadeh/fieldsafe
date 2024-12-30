@@ -415,9 +415,13 @@ const AddProject: React.FC<AddProjectProps> = ({ isSidebarOpen }) => {
                   <Button
                     variant="danger"
                     onClick={() => {
+                      if (!window.confirm('Are you sure you want to delete the induction doc?')) {
+                        return
+                      }
                       setInductionFile(null)
                       setNotification('Induction doc removed.')
                     }}
+                    
                     className="ms-2"
                   >
                     Delete
