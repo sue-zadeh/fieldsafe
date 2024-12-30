@@ -22,27 +22,25 @@ const upload = multer({ storage })
 
 /**
  * ============ GET /api/projects/list ============
- *  ?name=MyProject => check uniqueness
- *  else => return joined list of all projects + objectives
+ *  1) If ?name= is provided, check if it exists => {exists: true|false}
+ *  2) Otherwise => return joined list of all projects + objectives
  */
 router.get('/list', async (req, res) => {
   const { name } = req.query
   try {
+    // (1) If checking uniqueness
     if (name) {
-      // Check if that project name exists
       const [rows] = await pool.query(
         'SELECT id FROM projects WHERE name = ?',
         [name]
       )
       if (rows.length > 0) {
-        return res.json({ exists: true })
+        return res.json({ exists: true }) // name taken
       } else {
         return res.json({ exists: false })
       }
     } else {
-      // Return ALL projects with joined objectives
-      // e.g. p.*, GROUP_CONCAT(o.title)
-      // Then parse them in the front-end if needed
+      // (2) Return all projects with joined objectives
       const [rows] = await pool.query(`
         SELECT 
           p.*,
@@ -63,12 +61,12 @@ router.get('/list', async (req, res) => {
 
 /**
  * ============ GET /api/projects/:id ============
- *  Return a single project and its objective IDs
+ *  Return a single project row + array of objective IDs
  */
 router.get('/:id', async (req, res) => {
   const { id } = req.params
   try {
-    // 1) fetch the project
+    // project row
     const [projRows] = await pool.query('SELECT * FROM projects WHERE id = ?', [
       id,
     ])
@@ -77,7 +75,7 @@ router.get('/:id', async (req, res) => {
     }
     const project = projRows[0]
 
-    // 2) fetch bridging objectives
+    // bridging table -> objective IDs
     const [objRows] = await pool.query(
       'SELECT objective_id FROM project_objectives WHERE project_id = ?',
       [id]
@@ -93,7 +91,7 @@ router.get('/:id', async (req, res) => {
 
 /**
  * ============ POST /api/projects (CREATE) ============
- *  Expects formData: name, location, startDate, status, ...
+ *  Expects formData with name, location, startDate, status, etc.
  */
 router.post(
   '/',
@@ -118,9 +116,18 @@ router.post(
         objectives, // JSON string
       } = req.body
 
+      // (A) First, check name uniqueness
+      const [dupRows] = await pool.query(
+        'SELECT id FROM projects WHERE name = ?',
+        [name]
+      )
+      if (dupRows.length > 0) {
+        return res.status(400).json({ message: 'Project name already taken.' })
+      }
+
+      // handle files
       let imageUrl = null
       let inductionFileUrl = null
-
       if (req.files['image']) {
         imageUrl = req.files['image'][0].path
       }
@@ -186,7 +193,6 @@ router.post(
 
 /**
  * ============ PUT /api/projects/:id (UPDATE) ============
- *  For “Edit Project” scenario.
  *  Also updates bridging objectives.
  */
 router.put(
@@ -199,7 +205,7 @@ router.put(
     const { id } = req.params
 
     try {
-      // parse the body
+      // parse body
       const {
         name,
         location,
@@ -212,12 +218,20 @@ router.put(
         localHospital,
         primaryContactName,
         primaryContactPhone,
-        objectives, // JSON string of objective IDs
+        objectives, // JSON array of IDs
       } = req.body
+
+      // (B) Check name uniqueness excluding self
+      const [dupRows] = await pool.query(
+        'SELECT id FROM projects WHERE name = ? AND id != ?',
+        [name, id]
+      )
+      if (dupRows.length > 0) {
+        return res.status(400).json({ message: 'Project name already taken.' })
+      }
 
       let imageUrl = null
       let inductionFileUrl = null
-
       if (req.files['image']) {
         imageUrl = req.files['image'][0].path
       }
@@ -225,7 +239,7 @@ router.put(
         inductionFileUrl = req.files['inductionFile'][0].path
       }
 
-      // 1) fetch existing row
+      // fetch existing row
       const [existingRows] = await pool.query(
         'SELECT * FROM projects WHERE id = ?',
         [id]
@@ -235,7 +249,7 @@ router.put(
       }
       const old = existingRows[0]
 
-      // 2) partial update logic
+      // partial update logic
       const updatedName = name ?? old.name
       const updatedLocation = location ?? old.location
       const updatedStartDate = startDate ?? old.startDate
@@ -253,7 +267,7 @@ router.put(
       const updatedImage = imageUrl ?? old.imageUrl
       const updatedInduction = inductionFileUrl ?? old.inductionFileUrl
 
-      // 3) update statement
+      // update row
       const updateSql = `
         UPDATE projects
         SET name = ?, location = ?, startDate = ?, status = ?, createdBy = ?,
@@ -279,19 +293,16 @@ router.put(
         id,
       ])
 
-      // 4) update bridging objectives
-      // remove old bridging, insert new
+      // bridging: remove old, insert new
+      await pool.query('DELETE FROM project_objectives WHERE project_id = ?', [
+        id,
+      ])
       let parsedObjectives = []
       try {
         parsedObjectives = objectives ? JSON.parse(objectives) : []
       } catch (err) {
         console.error('Failed to parse updated objectives JSON:', err)
       }
-      // delete existing bridging
-      await pool.query('DELETE FROM project_objectives WHERE project_id = ?', [
-        id,
-      ])
-      // insert new bridging
       if (Array.isArray(parsedObjectives)) {
         for (const objId of parsedObjectives) {
           await pool.query(

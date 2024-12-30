@@ -44,12 +44,13 @@ interface OriginalData {
   objectiveIds: number[]
 }
 
+// For the Google Map container
 const containerStyle = {
   width: '100%',
   height: '200px',
 }
 
-// Default center => Auckland
+// Auckland (default)
 const centerDefault = { lat: -36.8485, lng: 174.7633 }
 
 const AddProject: React.FC<AddProjectProps> = ({ isSidebarOpen }) => {
@@ -108,9 +109,13 @@ const AddProject: React.FC<AddProjectProps> = ({ isSidebarOpen }) => {
   // Block past date in the date input
   const todayString = new Date().toISOString().split('T')[0]
 
+  // Tab switching
+  const [activeTab, setActiveTab] = useState('details')
+  const handleNavClick = (tab: string) => setActiveTab(tab)
+
   // On mount: load objectives, check if editing
   useEffect(() => {
-    // Load objectives
+    // Load all objectives
     axios
       .get('/api/objectives')
       .then((res) => setAllObjectives(res.data))
@@ -126,7 +131,6 @@ const AddProject: React.FC<AddProjectProps> = ({ isSidebarOpen }) => {
           const { project, objectiveIds } = res.data
           // Fill states
           setName(project.name || '')
-          // slice(0,10) ensures we get "YYYY-MM-DD" for <input type="date">
           setStartDate((project.startDate || '').slice(0, 10))
           setStatus(project.status || 'inprogress')
           setLocation(project.location || '')
@@ -137,12 +141,9 @@ const AddProject: React.FC<AddProjectProps> = ({ isSidebarOpen }) => {
           setPrimaryContactName(project.primaryContactName || '')
           setPrimaryContactPhone(project.primaryContactPhone || '')
 
-          if (project.imageUrl) {
-            setExistingImageUrl(project.imageUrl)
-          }
-          if (project.inductionFileUrl) {
+          if (project.imageUrl) setExistingImageUrl(project.imageUrl)
+          if (project.inductionFileUrl)
             setExistingInductionUrl(project.inductionFileUrl)
-          }
 
           setSelectedObjectives(objectiveIds || [])
 
@@ -173,11 +174,7 @@ const AddProject: React.FC<AddProjectProps> = ({ isSidebarOpen }) => {
     }
   }, [notification])
 
-  // Active tab in the local nav
-  const [activeTab, setActiveTab] = useState('details')
-  const handleNavClick = (tab: string) => setActiveTab(tab)
-
-  // Toggle objectives
+  // Toggle objective selection
   const toggleObjective = (objId: number) => {
     setSelectedObjectives((prev) =>
       prev.includes(objId)
@@ -188,13 +185,13 @@ const AddProject: React.FC<AddProjectProps> = ({ isSidebarOpen }) => {
   const openObjModal = () => setShowObjModal(true)
   const closeObjModal = () => setShowObjModal(false)
 
-  // Summarize objectives in multiline
+  // Summarize objectives as multiline text
   const selectedObjectivesText = allObjectives
     .filter((obj) => selectedObjectives.includes(obj.id))
     .map((o) => `${o.title} (${o.measurement})`)
     .join('\n')
 
-  // handle google places
+  // google places
   const handlePlaceChanged = () => {
     if (autocompleteRef.current) {
       const place = autocompleteRef.current.getPlace()
@@ -209,6 +206,7 @@ const AddProject: React.FC<AddProjectProps> = ({ isSidebarOpen }) => {
   }
 
   // handle form submit
+  const navigateToSearch = () => navigate('/searchproject')
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
 
@@ -227,7 +225,7 @@ const AddProject: React.FC<AddProjectProps> = ({ isSidebarOpen }) => {
       return
     }
 
-    // check uniqueness (client side)
+    // check uniqueness client side
     try {
       const checkRes = await axios.get(
         `/api/projects?name=${encodeURIComponent(name)}`
@@ -240,7 +238,7 @@ const AddProject: React.FC<AddProjectProps> = ({ isSidebarOpen }) => {
       console.warn('Uniqueness check error', err)
     }
 
-    // build formData
+    // Build formData
     const formData = new FormData()
     formData.append('name', name)
     formData.append('location', location)
@@ -259,13 +257,10 @@ const AddProject: React.FC<AddProjectProps> = ({ isSidebarOpen }) => {
     formData.append('objectives', JSON.stringify(selectedObjectives))
 
     // new files => override existing
-    if (imageFile) {
-      formData.append('image', imageFile)
-    }
-    if (inductionFile) {
-      formData.append('inductionFile', inductionFile)
-    }
+    if (imageFile) formData.append('image', imageFile)
+    if (inductionFile) formData.append('inductionFile', inductionFile)
 
+    // Create or Edit?
     if (isEdit && projectId) {
       // “no changes” check
       if (originalData) {
@@ -290,22 +285,19 @@ const AddProject: React.FC<AddProjectProps> = ({ isSidebarOpen }) => {
           }
         }
       }
-      // do PUT
+
       try {
         await axios.put(`/api/projects/${projectId}`, formData, {
           headers: { 'Content-Type': 'multipart/form-data' },
         })
         setNotification('Project updated successfully!')
-        // After 1 second => navigate to SearchProject
-        setTimeout(() => {
-          navigate('/searchproject')
-        }, 1000)
+        setTimeout(navigateToSearch, 1000)
       } catch (err) {
         console.error('Error updating project:', err)
         setNotification('Failed to update project.')
       }
     } else {
-      // create new
+      // create
       try {
         await axios.post('/api/projects', formData, {
           headers: { 'Content-Type': 'multipart/form-data' },
@@ -328,10 +320,7 @@ const AddProject: React.FC<AddProjectProps> = ({ isSidebarOpen }) => {
         setExistingInductionUrl(null)
         setSelectedObjectives([])
 
-        // optionally navigate to /searchproject
-        setTimeout(() => {
-          navigate('/searchproject')
-        }, 1000)
+        setTimeout(navigateToSearch, 1000)
       } catch (err) {
         console.error('Error creating project:', err)
         setNotification('Failed to create project.')
@@ -351,7 +340,7 @@ const AddProject: React.FC<AddProjectProps> = ({ isSidebarOpen }) => {
         minHeight: '100vh',
       }}
     >
-      {/* Fixed top navbar with toggler */}
+  {/* Fixed top navbar with toggler */}
       {/* Local nav for details/objectives/risks */}
 
       <Navbar
@@ -421,6 +410,7 @@ const AddProject: React.FC<AddProjectProps> = ({ isSidebarOpen }) => {
       </Navbar>
       {/* offset content so it isn't behind the fixed navbar */}
       <div style={{ marginTop: '1rem', padding: '1rem' }}>
+          {/* Notification */}
         {notification && (
           <div className="alert alert-info text-center fs-5">
             {notification}
@@ -438,13 +428,21 @@ const AddProject: React.FC<AddProjectProps> = ({ isSidebarOpen }) => {
                   <img
                     src={URL.createObjectURL(imageFile)}
                     alt="preview"
-                    // style={{ maxWidth: '100%', maxHeight: '100px' }}
+                    style={{
+                      maxWidth: '100%',
+                      height: 'auto',
+                      maxHeight: '200px',
+                    }}
                   />
                 ) : existingImageUrl ? (
                   <img
                     src={`/${existingImageUrl}`}
                     alt="existing"
-                    style={{ maxWidth: '100%', maxHeight: '200px' }}
+                    style={{
+                      maxWidth: '100%',
+                      height: 'auto',
+                      maxHeight: '200px',
+                    }}
                   />
                 ) : (
                   <p className="text-muted fs-5">
@@ -452,6 +450,7 @@ const AddProject: React.FC<AddProjectProps> = ({ isSidebarOpen }) => {
                   </p>
                 )}
                 <div className="mt-2 d-flex justify-content-center">
+                  {/* Hide the file name  */}
                   <label htmlFor="imageUpload" className="btn btn-secondary">
                     {imageFile || existingImageUrl
                       ? 'Replace Image'
@@ -551,9 +550,8 @@ const AddProject: React.FC<AddProjectProps> = ({ isSidebarOpen }) => {
                           !window.confirm(
                             'Are you sure you want to delete the induction doc?'
                           )
-                        ) {
+                        )
                           return
-                        }
                         setInductionFile(null)
                         setNotification('Induction doc removed.')
                       }}
