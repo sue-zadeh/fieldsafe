@@ -408,6 +408,7 @@ const AddProject: React.FC<AddProjectProps> = ({ isSidebarOpen }) => {
           </Nav.Link>
         </Nav>
       </Navbar>
+      
       {/* offset content so it isn't behind the fixed navbar */}
       <div style={{ marginTop: '1rem', padding: '1rem' }}>
           {/* Notification */}
