@@ -285,7 +285,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, toggleSidebar }) => {
           </ul>
         </NavItem>
 
-        <NavItem label="objective" dropdownId="objective">
+        <NavItem label="objectives" dropdownId="objectives">
           <ul style={dropdownListStyle}>
             <li>
               <Link
@@ -303,7 +303,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, toggleSidebar }) => {
             </li>
           </ul>
         </NavItem>
-        <NavItem label="Activities Notes" dropdownId="activity">
+        <NavItem label="Activity Notes" dropdownId="activity">
           <ul style={dropdownListStyle}>
             <li>
               <Link

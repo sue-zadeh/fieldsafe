@@ -52,7 +52,7 @@ router.post(
       let inductionFileUrl = null
 
      // GET /api/projects?name=MyProject
-router.get('/', async (req, res) => {
+router.get('/list', async (req, res) => {
   const { name } = req.query
   try {
     if (name) {
