@@ -420,7 +420,7 @@ const AddProject: React.FC<AddProjectProps> = ({ isSidebarOpen }) => {
         </Nav>
       </Navbar>
       {/* offset content so it isn't behind the fixed navbar */}
-      <div style={{ marginTop: '4.5rem', padding: '1rem' }}>
+      <div style={{ marginTop: '1rem', padding: '1rem' }}>
         {notification && (
           <div className="alert alert-info text-center fs-5">
             {notification}
@@ -430,18 +430,15 @@ const AddProject: React.FC<AddProjectProps> = ({ isSidebarOpen }) => {
         {activeTab === 'details' && (
           <div className="row g-4">
             {/* LEFT COLUMN */}
-            <div className="col-md-5 p-3 rounded">
+            <div className="col-md-5 p-0 rounded">
               <h4 style={{ color: OCEAN_BLUE }}>{name || '[Project Name]'}</h4>
 
-              <div
-                className="border p-2 mb-3"
-                style={{ minHeight: '200px', textAlign: 'center' }}
-              >
+              <div className="border pt-0 mb-3" style={{ textAlign: 'center' }}>
                 {imageFile ? (
                   <img
                     src={URL.createObjectURL(imageFile)}
                     alt="preview"
-                    style={{ maxWidth: '100%', maxHeight: '200px' }}
+                    // style={{ maxWidth: '100%', maxHeight: '100px' }}
                   />
                 ) : existingImageUrl ? (
                   <img
