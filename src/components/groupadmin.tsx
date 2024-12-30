@@ -230,6 +230,7 @@ const GroupAdmin: React.FC<GroupAdminProps> = ({ isSidebarOpen }) => {
       style={{
         marginLeft: isSidebarOpen ? '220px' : '20px',
         padding: '20px',
+        marginTop: '2.5rem',
         transition: 'all 0.3s ease',
       }}
     >

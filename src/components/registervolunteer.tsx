@@ -139,6 +139,7 @@ const Addvolunteer: React.FC<AddvolunteerProps> = ({ isSidebarOpen }) => {
       style={{
         marginLeft: isSidebarOpen ? '220px' : '20px', // Adjust margin to be responsive
         paddingTop: '20px',
+        marginTop: '2.5rem',
         transition: 'margin 0.3s ease',
       }}
     >
@@ -153,82 +154,86 @@ const Addvolunteer: React.FC<AddvolunteerProps> = ({ isSidebarOpen }) => {
           <div className="alert alert-primary text-center">{notification}</div>
         )}
         <form className="form-container bg-white p-4 rounded shadow">
-          <div className="mb-3">
-            <label>First Name</label>
-            <input
-              type="text"
-              name="firstname"
-              value={formData.firstname}
-              onChange={handleInputChange}
-              className="form-control"
-            />
-          </div>
-          <div className="mb-3">
-            <label>Last Name</label>
-            <input
-              type="text"
-              name="lastname"
-              value={formData.lastname}
-              onChange={handleInputChange}
-              className="form-control"
-            />
-          </div>
-          <div className="mb-3">
-            <label>Email</label>
-            <input
-              type="email"
-              name="email"
-              value={formData.email}
-              onChange={handleInputChange}
-              className="form-control"
-            />
-          </div>
-          <div className="mb-3">
-            <label>Phone</label>
-            <input
-              type="text"
-              name="phone"
-              value={formData.phone}
-              onChange={handleInputChange}
-              className="form-control"
-            />
-          </div>
-          <div className="mb-3">
-            <label>Emergency Contact Name</label>
-            <input
-              type="text"
-              name="emergencyContact"
-              value={formData.emergencyContact}
-              onChange={handleInputChange}
-              className="form-control"
-            />
-          </div>
-          <div className="mb-3">
-            <label>Emergency Contact Number</label>
-            <input
-              type="text"
-              name="emergencyContactNumber"
-              value={formData.emergencyContactNumber}
-              onChange={handleInputChange}
-              className="form-control"
-            />
-          </div>
-          <div className="mb-3">
-            <label>Role</label>
-            <div
-              className="form-control fs-5"
-              style={{ backgroundColor: '#f8f9fa' }}
-            >
-              Volunteer
+          <div className="d-flex flex-column w-100">
+            <div className="mb-3">
+              <label>First Name</label>
+              <input
+                type="text"
+                name="firstname"
+                value={formData.firstname}
+                onChange={handleInputChange}
+                className="form-control"
+              />
+            </div>
+            <div className="mb-3">
+              <label>Last Name</label>
+              <input
+                type="text"
+                name="lastname"
+                value={formData.lastname}
+                onChange={handleInputChange}
+                className="form-control"
+              />
+            </div>
+            <div className="mb-3">
+              <label>Email</label>
+              <input
+                type="email"
+                name="email"
+                value={formData.email}
+                onChange={handleInputChange}
+                className="form-control"
+              />
+            </div>
+            <div className="mb-3">
+              <label>Phone</label>
+              <input
+                type="text"
+                name="phone"
+                value={formData.phone}
+                onChange={handleInputChange}
+                className="form-control"
+              />
             </div>
           </div>
-          <button
-            type="button"
-            className="btn btn-primary w-100 mt-4"
-            onClick={handleSubmit}
-          >
-            {formData.id ? 'Save Changes' : 'Register Volunteer'}
-          </button>
+          <div className="d-flex flex-row w-100">
+            <div className="mb-3">
+              <label>Emergency Contact Name</label>
+              <input
+                type="text"
+                name="emergencyContact"
+                value={formData.emergencyContact}
+                onChange={handleInputChange}
+                className="form-control"
+              />
+            </div>
+            <div className="mb-3">
+              <label>Emergency Contact Number</label>
+              <input
+                type="text"
+                name="emergencyContactNumber"
+                value={formData.emergencyContactNumber}
+                onChange={handleInputChange}
+                className="form-control"
+              />
+            </div>
+            <div className="mb-3">
+              <label>Role</label>
+              <div
+                className="form-control fs-5"
+                style={{ backgroundColor: '#f8f9fa' }}
+              >
+                Volunteer
+              </div>
+            </div>
+            <button
+              type="button"
+              className="btn btn-primary w-100 mt-4"
+              onClick={handleSubmit}
+            >
+              {formData.id ? 'Save Changes' : 'Register Volunteer'}
+            </button>
+          </div>
         </form>
       </div>
     </div>

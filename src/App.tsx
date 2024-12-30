@@ -82,7 +82,7 @@ const App: React.FC = () => {
     marginLeft: isSidebarOpen ? '20px' : '5px',
     width: isSidebarOpen ? 'calc(100% - 240px)' : '100%',
     padding: '15px',
-    marginTop: '5rem',
+    marginTop: '2.5rem',
     transition: 'all 0.3s ease',
   }
 

@@ -37,7 +37,7 @@ const Navbar: React.FC<NavbarProps> = ({
       style={{
         backgroundColor: '#76D6E2',
         color: '#1A1A1A',
-        padding: '0.5rem 3rem',
+        padding: '0.15rem 3rem',
         position: 'fixed',
         top: 0,
         width: '100%',
@@ -110,7 +110,7 @@ const Navbar: React.FC<NavbarProps> = ({
                     }}
                   >
                     <FaUserPlus style={{ marginRight: '5px' }} />
-                    Add User
+                    Add Staff
                   </Link>
                 </li>
                 <li>

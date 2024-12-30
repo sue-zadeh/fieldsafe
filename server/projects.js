@@ -44,12 +44,37 @@ router.post(
         primaryContactPhone,
         location,
 
-        // This is a JSON string and parse it if it exists.
+        // JSON string 
         objectives,
       } = req.body
 
       let imageUrl = null
       let inductionFileUrl = null
+
+     // GET /api/projects?name=MyProject
+router.get('/', async (req, res) => {
+  const { name } = req.query
+  try {
+    if (name) {
+      // Check if that project name exists
+      const [rows] = await pool.query('SELECT id FROM projects WHERE name = ?', [name])
+      if (rows.length > 0) {
+        // the name is taken
+        return res.json({ exists: true })
+      } else {
+        return res.json({ exists: false })
+      }
+    } else {
+      // If no name param =>return all projects or do nothing
+      const [all] = await pool.query('SELECT * FROM projects')
+      return res.json(all)
+    }
+  } catch (err) {
+    console.error('Error checking project name:', err)
+    return res.status(500).json({ message: 'Internal server error' })
+  }
+})
+
 
       // If user uploaded an image
       if (req.files['image']) {

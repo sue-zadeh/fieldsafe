@@ -2,12 +2,24 @@
 import React, { useState, useEffect } from 'react'
 import axios from 'axios'
 
+interface Project {
+  id: number
+  name: string
+  location: string
+  startDate: string
+  inductionFileUrl?: string
+  imageUrl?: string
+  objectives?: string
+  status: string
+  createdby?: string
+}
+
 const SearchProject: React.FC = () => {
-  const [projects, setProjects] = useState<any[]>([]) // or type interface Project
+  const [projects, setProjects] = useState<Project[]>([])
 
   useEffect(() => {
     axios
-      .get('/api/projects/list') // or whatever route
+      .get('/api/projects/list')
       .then((res) => setProjects(res.data))
       .catch((err) => console.error('Error fetching projects:', err))
   }, [])
@@ -31,18 +43,21 @@ const SearchProject: React.FC = () => {
                 <p className="card-text">
                   <strong>Location:</strong> {p.location} <br />
                   <strong>Start Date:</strong> {p.startDate} <br />
-                  <strong>Objectives:</strong>{' '}
-                  {/* parse from project_objectives? */}
-                  <br />
+                  <strong>Status:</strong> {p.status} <br />
                   {p.inductionFileUrl && (
-                    <a
-                      href={`/${p.inductionFileUrl}`}
-                      target="_blank"
-                      rel="noreferrer"
-                    >
-                      View Induction Doc
-                    </a>
+                    <>
+                      <strong>Induction Doc: </strong>
+                      <a
+                        href={`/${p.inductionFileUrl}`}
+                        target="_blank"
+                        rel="noreferrer"
+                      >
+                        View Induction Doc
+                      </a>
+                      <br />
+                    </>
                   )}
+                  {/* If you want to display objectives, you'll need to join from project_objectives or do a separate query */}
                 </p>
                 <button className="btn btn-warning me-2">Edit</button>
                 <button className="btn btn-danger">Delete</button>

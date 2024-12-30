@@ -167,7 +167,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, toggleSidebar }) => {
                     : {}),
                 }}
               >
-                <FaUserPlus style={{ marginRight: '8px' }} /> Add User
+                <FaUserPlus style={{ marginRight: '8px' }} /> Add Staff
               </Link>
             </li>
             <li>

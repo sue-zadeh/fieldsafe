@@ -179,6 +179,7 @@ const RegisterRoles: React.FC<RegisterroleProps> = ({ isSidebarOpen }) => {
       style={{
         marginLeft: isSidebarOpen ? '220px' : '20px',
         paddingTop: '20px',
+        marginTop: '2.5rem',
         transition: 'margin 0.3s ease',
       }}
     >

@@ -37,10 +37,8 @@ const containerStyle = {
   height: '200px',
 }
 
-const centerDefault = {
-  lat: -37.8136,
-  lng: 144.9631,
-}
+// Center on Auckland, New Zealand
+const centerDefault = { lat: -36.8485, lng: 174.7633 }
 
 const AddProject: React.FC<AddProjectProps> = ({ isSidebarOpen }) => {
   const [activeTab, setActiveTab] = useState('details')
@@ -50,19 +48,12 @@ const AddProject: React.FC<AddProjectProps> = ({ isSidebarOpen }) => {
   const [startDate, setStartDate] = useState('')
   const [status, setStatus] = useState<ProjectStatus>('inprogress')
 
-  // notifications (for success or errors)
+  // notifications
   const [notification, setNotification] = useState<string | null>(null)
 
-  // all objectives from DB
+  // objectives
   const [allObjectives, setAllObjectives] = useState<Objective[]>([])
-  // user’s chosen objective IDs
   const [selectedObjectives, setSelectedObjectives] = useState<number[]>([])
-
-  // used to display a textual summary in the main form
-  const selectedObjectivesText = allObjectives
-    .filter((obj) => selectedObjectives.includes(obj.id))
-    .map((o) => `${o.title} (${o.measurement})`)
-    .join(', ')
 
   // location & map
   const [location, setLocation] = useState('')
@@ -87,27 +78,26 @@ const AddProject: React.FC<AddProjectProps> = ({ isSidebarOpen }) => {
   // createdBy
   const [createdBy, setCreatedBy] = useState<number | null>(null)
 
-  // for the Objectives modal
+  // objectives modal
   const [showObjModal, setShowObjModal] = useState(false)
 
-  // ----------------------------------------------------------------
-  // on mount, load adminID + fetch objectives
+  // using 'todayString' for blocking past dates
+  const todayString = new Date().toISOString().split('T')[0]
+
   useEffect(() => {
+    // On mount, fetch adminID + objectives
     const adminId = localStorage.getItem('adminId')
     if (adminId) {
-      setCreatedBy(Number(adminId))
+      setCreatedBy(parseInt(adminId, 10))
     }
 
-    axios
+    axios // define in the backend
       .get('/api/objectives')
-      .then((res) => {
-        setAllObjectives(res.data)
-      })
+      .then((res) => setAllObjectives(res.data))
       .catch((err) => console.error('Error fetching objectives:', err))
   }, [])
 
-  // ----------------------------------------------------------------
-  // Hide notification after ~4 seconds
+  // clear notification after 4s
   useEffect(() => {
     if (notification) {
       const timer = setTimeout(() => setNotification(null), 4000)
@@ -115,10 +105,10 @@ const AddProject: React.FC<AddProjectProps> = ({ isSidebarOpen }) => {
     }
   }, [notification])
 
-  // ----------------------------------------------------------------
+  // Switch nav tabs
   const handleNavClick = (tab: string) => setActiveTab(tab)
 
-  // toggling objectives
+  // Toggle objective selection
   const toggleObjective = (objId: number) => {
     setSelectedObjectives((prev) =>
       prev.includes(objId)
@@ -127,11 +117,17 @@ const AddProject: React.FC<AddProjectProps> = ({ isSidebarOpen }) => {
     )
   }
 
-  // open/close the modal
+  // open/close the objectives modal
   const openObjModal = () => setShowObjModal(true)
   const closeObjModal = () => setShowObjModal(false)
 
-  // map places
+  // multiline text for objectives
+  const selectedObjectivesText = allObjectives
+    .filter((obj) => selectedObjectives.includes(obj.id))
+    .map((o) => `${o.title} (${o.measurement})`)
+    .join('\n')
+
+  // google places
   const handlePlaceChanged = () => {
     if (autocompleteRef.current) {
       const place = autocompleteRef.current.getPlace()
@@ -145,40 +141,40 @@ const AddProject: React.FC<AddProjectProps> = ({ isSidebarOpen }) => {
     }
   }
 
-  // ----------------------------------------------------------------
+  // handle form submission
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
 
-    // Check required fields
+    // required checks
     if (!name || !location || !startDate || !emergencyServices) {
       setNotification('All fields are required, including Emergency Services.')
       return
     }
-    // phone checks
-    if (!/^[0-9+()\-\s]+$/.test(primaryContactPhone)) {
-      setNotification('Primary Contact Phone is invalid format.')
+
+    // phone pattern => exactly 10 digits
+    if (!/^\d{10}$/.test(primaryContactPhone)) {
+      setNotification('Primary Contact Phone must be exactly 10 digits.')
       return
     }
-    if (!/^[0-9+()\-\s]+$/.test(localMedicalCenterPhone)) {
-      setNotification('Local Medical Center Phone is invalid format.')
+    if (!/^\d{10}$/.test(localMedicalCenterPhone)) {
+      setNotification('Local Medical Center Phone must be exactly 10 digits.')
       return
     }
 
-    // Check uniqueness of project name (client side, optional)
+    // check project name uniqueness
     try {
       const checkRes = await axios.get(
         `/api/projects?name=${encodeURIComponent(name)}`
       )
       if (checkRes.data?.exists) {
-        // if the server returns { exists: true } for the name
         setNotification('Project name already exists. Choose another.')
         return
       }
-    } catch (err) {
-      console.warn('Client side uniqueness check error:', err)
+    } catch (error) {
+      console.warn('Client uniqueness check error:', error)
+      // rely on server
     }
 
-    // 3) Build formData
     try {
       const formData = new FormData()
       formData.append('name', name)
@@ -194,6 +190,7 @@ const AddProject: React.FC<AddProjectProps> = ({ isSidebarOpen }) => {
       formData.append('primaryContactName', primaryContactName)
       formData.append('primaryContactPhone', primaryContactPhone)
       formData.append('objectives', JSON.stringify(selectedObjectives))
+
       if (imageFile) formData.append('image', imageFile)
       if (inductionFile) formData.append('inductionFile', inductionFile)
 
@@ -201,10 +198,9 @@ const AddProject: React.FC<AddProjectProps> = ({ isSidebarOpen }) => {
         headers: { 'Content-Type': 'multipart/form-data' },
       })
 
-      // show success for 4s, no numeric ID
       setNotification('Project created successfully!')
 
-      // reset form
+      // reset
       setName('')
       setLocation('')
       setStartDate('')
@@ -224,21 +220,6 @@ const AddProject: React.FC<AddProjectProps> = ({ isSidebarOpen }) => {
     }
   }
 
-  // sticky local nav
-  const stickyNavStyle: React.CSSProperties = {
-    position: 'sticky',
-    top: 0,
-    zIndex: 999,
-    backgroundColor: SKY_BLUE,
-    fontSize: '1.2rem',
-    color:'OCEAN_BLUE'
-  }
-
-  const labelStyle: React.CSSProperties = {
-    fontSize: '1.1rem', // bigger label font
-    fontWeight: 500,
-  }
-
   return (
     <div
       className={`container-fluid ${
@@ -246,37 +227,53 @@ const AddProject: React.FC<AddProjectProps> = ({ isSidebarOpen }) => {
       }`}
       style={{
         marginLeft: isSidebarOpen ? '220px' : '20px',
-        paddingTop: '0px',
         transition: 'margin 0.3s ease',
         minHeight: '100vh',
+        paddingTop: '15px',
+        backgroundColor: '#F4F7F1',
       }}
     >
-      {notification && (
-        <div className="alert alert-info text-center fs-5">{notification}</div>
-      )}
-
       {/* Local nav for details/objectives/risks */}
+
       <Navbar
-  expand="lg"
-  style={stickyNavStyle}
-  className="d-flex justify-content-center align-items-center sticky-md-top mb-2 px-5 py-2"
->
-        <Navbar.Brand className='me-auto'
+        expand="lg"
+        style={{
+          position: 'sticky',
+          top: 0,
+          zIndex: 999,
+          backgroundColor: SKY_BLUE,
+        }}
+        className="d-flex d-block justify-content-center align-items-center px-4 py-1"
+      >
+        <Navbar.Brand
+          className="me-0"
           style={{
             color: OCEAN_BLUE,
             fontWeight: 'bold',
-            fontSize: '2rem',
+            fontSize: '1.50rem',
           }}
         >
           Create Project
         </Navbar.Brand>
         <Nav className="mx-auto justify-content-center">
-          {/* Center nav items */}
+            {/* Hamburger toggler for small screens */}
+            <button
+              className="navbar-toggler"
+              type="button"
+              data-bs-toggle="collapse"
+              data-bs-target="#navbar.brand"
+              aria-controls="navbar.brand"
+              aria-expanded="false"
+              aria-label="Toggle navigation"
+              style={{ backgroundColor: '#F4F7F1' }}
+            >
+              <span className="navbar-toggler-icon"></span>
+            </button>
           <Nav.Link
             onClick={() => handleNavClick('details')}
             style={{
               fontWeight: activeTab === 'details' ? 'bold' : 'normal',
-              color: FOREST_GREEN,
+              color: '#1A1A1A',
               marginRight: '1rem',
             }}
           >
@@ -286,7 +283,7 @@ const AddProject: React.FC<AddProjectProps> = ({ isSidebarOpen }) => {
             onClick={() => handleNavClick('objectives')}
             style={{
               fontWeight: activeTab === 'objectives' ? 'bold' : 'normal',
-              color: FOREST_GREEN,
+              color: '#1A1A1A',
               marginRight: '1rem',
             }}
           >
@@ -296,19 +293,21 @@ const AddProject: React.FC<AddProjectProps> = ({ isSidebarOpen }) => {
             onClick={() => handleNavClick('risks')}
             style={{
               fontWeight: activeTab === 'risks' ? 'bold' : 'normal',
-              color: FOREST_GREEN,
+              color: '#1A1A1A',
             }}
           >
             Risks
           </Nav.Link>
         </Nav>
       </Navbar>
-
+      {notification && (
+        <div className="alert alert-info text-center fs-5">{notification}</div>
+      )}
       {activeTab === 'details' && (
-        <div className="row mt-4 g-4">
+        <div className="row g-4 mt-2">
           {/* LEFT COLUMN */}
-          <div className="col-md-5">
-            <h3 style={{ color: OCEAN_BLUE }}>{name || '[Project Name]'}</h3>
+          <div className="container-fluid col-md-5 p-3 rounded">
+            <h4 style={{ color: OCEAN_BLUE }}>{name || '[Project Name]'}</h4>
             <div
               className="border p-2 mb-3"
               style={{ minHeight: '200px', textAlign: 'center' }}
@@ -323,9 +322,15 @@ const AddProject: React.FC<AddProjectProps> = ({ isSidebarOpen }) => {
                 <p className="text-muted fs-5">Click to upload project image</p>
               )}
               <div className="mt-2">
+                {/* Hide the file name with custom label */}
+                <label htmlFor="imageUpload" className="btn btn-secondary">
+                  Upload Image
+                </label>
                 <input
+                  id="imageUpload"
                   type="file"
                   accept="image/*"
+                  style={{ display: 'none' }}
                   onChange={(e) => {
                     if (e.target.files && e.target.files.length > 0) {
                       setImageFile(e.target.files[0])
@@ -335,14 +340,13 @@ const AddProject: React.FC<AddProjectProps> = ({ isSidebarOpen }) => {
               </div>
             </div>
 
-            <h4>Emergency Services</h4>
+            <h5>Emergency Services</h5>
             <Form.Group className="mb-3" controlId="emergencyServices">
               <Form.Control
                 required
                 type="text"
                 value={emergencyServices}
                 onChange={(e) => setEmergencyServices(e.target.value)}
-                style={labelStyle}
               />
             </Form.Group>
 
@@ -352,9 +356,7 @@ const AddProject: React.FC<AddProjectProps> = ({ isSidebarOpen }) => {
                   className="mb-3"
                   controlId="localMedicalCenterAddress"
                 >
-                  <Form.Label style={labelStyle}>
-                    Local Medical Center (Address)
-                  </Form.Label>
+                  <Form.Label>Local Medical Center (Address)</Form.Label>
                   <Form.Control
                     required
                     type="text"
@@ -370,12 +372,10 @@ const AddProject: React.FC<AddProjectProps> = ({ isSidebarOpen }) => {
                   className="mb-3"
                   controlId="localMedicalCenterPhone"
                 >
-                  <Form.Label style={labelStyle}>
-                    Local Medical Center (Phone)
-                  </Form.Label>
+                  <Form.Label>Local Medical Center (Phone)</Form.Label>
                   <Form.Control
                     required
-                    pattern="^[0-9+()\-\s]{6,}$"
+                    pattern="^\d{10}$"
                     type="text"
                     value={localMedicalCenterPhone}
                     onChange={(e) => setLocalMedicalCenterPhone(e.target.value)}
@@ -385,7 +385,7 @@ const AddProject: React.FC<AddProjectProps> = ({ isSidebarOpen }) => {
             </Row>
 
             <Form.Group className="mb-3" controlId="localHospital">
-              <Form.Label style={labelStyle}>Local Hospital</Form.Label>
+              <Form.Label>Local Hospital</Form.Label>
               <Form.Control
                 required
                 type="text"
@@ -394,41 +394,60 @@ const AddProject: React.FC<AddProjectProps> = ({ isSidebarOpen }) => {
               />
             </Form.Group>
 
+            {/* Induction doc area */}
             <div className="border p-2">
-              <p className="mb-1 fw-bold fs-5">
+              <p className="mb-1 fw-bold text-center fs-6">
                 Upload Project Induction Instructions
               </p>
-              {inductionFile ? (
-                <Button
-                  variant="link"
-                  onClick={() => {
-                    // open the file in a new tab if needed
-                    const fileUrl = URL.createObjectURL(inductionFile)
-                    window.open(fileUrl, '_blank')
-                  }}
-                >
-                  View Document
-                </Button>
-              ) : (
-                <p className="text-muted">No file chosen yet</p>
+              {inductionFile && (
+                <div className="mb-2 text-center">
+                  {/* “View Document” button */}
+                  <Button
+                    variant="primary"
+                    onClick={() => {
+                      const fileUrl = URL.createObjectURL(inductionFile)
+                      window.open(fileUrl, '_blank')
+                    }}
+                  >
+                    View Document
+                  </Button>
+                  {/* “Delete” button */}
+                  <Button
+                    variant="danger"
+                    onClick={() => {
+                      setInductionFile(null)
+                      setNotification('Induction doc removed.')
+                    }}
+                    className="ms-2"
+                  >
+                    Delete
+                  </Button>
+                </div>
               )}
-              <input
-                type="file"
-                accept=".pdf,.doc,.docx"
-                onChange={(e) => {
-                  if (e.target.files && e.target.files.length > 0) {
-                    setInductionFile(e.target.files[0])
-                  }
-                }}
-              />
+              <div className="d-flex justify-content-center">
+                <label htmlFor="inductionUpload" className="btn btn-secondary">
+                  Upload Induction
+                </label>
+                <input
+                  id="inductionUpload"
+                  type="file"
+                  accept=".pdf,.doc,.docx"
+                  style={{ display: 'none' }}
+                  onChange={(e) => {
+                    if (e.target.files && e.target.files.length > 0) {
+                      setInductionFile(e.target.files[0])
+                    }
+                  }}
+                />
+              </div>
             </div>
           </div>
 
           {/* RIGHT COLUMN */}
-          <div className="col-md-7">
+          <div className="col-md-7 p-3">
             <Form onSubmit={handleSubmit}>
-              <Form.Group controlId="projectName" className="mb-3">
-                <Form.Label style={labelStyle}>Project Name</Form.Label>
+              <Form.Group controlId="projectName" className="mb-3 ">
+                <Form.Label>Project Name</Form.Label>
                 <Form.Control
                   required
                   type="text"
@@ -438,22 +457,19 @@ const AddProject: React.FC<AddProjectProps> = ({ isSidebarOpen }) => {
                 />
               </Form.Group>
 
-              {/* Instead of direct checkboxes, we show a read-only field + 'Edit' button => modal */}
-              <Form.Group className="mb-3">
-                <Form.Label style={labelStyle}>Objectives</Form.Label>
-                <div className="d-flex">
+              {/* read-only multiline for objectives + button => modal */}
+              <Form.Group className="mb-3 fw-bold">
+                <Form.Label>Objectives</Form.Label>
+                <div style={{ display: 'flex', gap: '0.5rem' }}>
                   <Form.Control
                     readOnly
-                    type="text"
+                    as="textarea"
+                    rows={3}
                     value={selectedObjectivesText}
                     placeholder="(No objectives selected)"
                     onClick={openObjModal}
                   />
-                  <Button
-                    variant="secondary"
-                    className="ms-2"
-                    onClick={openObjModal}
-                  >
+                  <Button variant="secondary" onClick={openObjModal}>
                     Edit
                   </Button>
                 </div>
@@ -462,18 +478,20 @@ const AddProject: React.FC<AddProjectProps> = ({ isSidebarOpen }) => {
               <Row>
                 <Col md={6}>
                   <Form.Group controlId="startDate" className="mb-3">
-                    <Form.Label style={labelStyle}>Start Date</Form.Label>
+                    <Form.Label>Start Date</Form.Label>
                     <Form.Control
                       required
                       type="date"
                       value={startDate}
                       onChange={(e) => setStartDate(e.target.value)}
+                      // block past dates
+                      min={todayString}
                     />
                   </Form.Group>
                 </Col>
                 <Col md={6}>
                   <Form.Group controlId="status" className="mb-3">
-                    <Form.Label style={labelStyle}>Status</Form.Label>
+                    <Form.Label>Status</Form.Label>
                     <Form.Select
                       required
                       value={status}
@@ -491,9 +509,7 @@ const AddProject: React.FC<AddProjectProps> = ({ isSidebarOpen }) => {
               <Row>
                 <Col md={6}>
                   <Form.Group className="mb-3" controlId="primaryContactName">
-                    <Form.Label style={labelStyle}>
-                      Primary Contact Name
-                    </Form.Label>
+                    <Form.Label>Primary Contact Name</Form.Label>
                     <Form.Control
                       required
                       type="text"
@@ -504,12 +520,10 @@ const AddProject: React.FC<AddProjectProps> = ({ isSidebarOpen }) => {
                 </Col>
                 <Col md={6}>
                   <Form.Group className="mb-3" controlId="primaryContactPhone">
-                    <Form.Label style={labelStyle}>
-                      Primary Contact Phone
-                    </Form.Label>
+                    <Form.Label>Primary Contact Phone</Form.Label>
                     <Form.Control
                       required
-                      pattern="^[0-9+()\-\s]{6,}$"
+                      pattern="^\d{10}$"
                       type="text"
                       value={primaryContactPhone}
                       onChange={(e) => setPrimaryContactPhone(e.target.value)}
@@ -532,7 +546,7 @@ const AddProject: React.FC<AddProjectProps> = ({ isSidebarOpen }) => {
               </div>
 
               <Form.Group controlId="location" className="mb-3">
-                <Form.Label style={labelStyle}>Project Location</Form.Label>
+                <Form.Label>Project Location</Form.Label>
                 <Autocomplete
                   onLoad={(auto) => (autocompleteRef.current = auto)}
                   onPlaceChanged={handlePlaceChanged}
@@ -547,7 +561,11 @@ const AddProject: React.FC<AddProjectProps> = ({ isSidebarOpen }) => {
                 </Autocomplete>
               </Form.Group>
 
-              <Button variant="primary" type="submit" className="w-100 mt-3">
+              <Button
+                type="submit"
+                className="w-100 mt-3"
+                style={{ backgroundColor: OCEAN_BLUE, color: '#fff' }}
+              >
                 Save
               </Button>
             </Form>
@@ -559,16 +577,15 @@ const AddProject: React.FC<AddProjectProps> = ({ isSidebarOpen }) => {
         <div className="p-4">
           <h3>Project Objectives</h3>
           <p>
-            {' '}
-            Here you might display a more detailed editor for the objectives the
-            user selected.{' '}
+            More detailed editor for the objectives the user selected
+            (optional).
           </p>
         </div>
       )}
       {activeTab === 'risks' && (
         <div className="p-4">
           <h3>Project Risks</h3>
-          <p>Placeholder content for risks tab.</p>
+          <p>Placeholder for risks tab.</p>
         </div>
       )}
 
@@ -578,6 +595,9 @@ const AddProject: React.FC<AddProjectProps> = ({ isSidebarOpen }) => {
           <Modal.Title>Select Objectives</Modal.Title>
         </Modal.Header>
         <Modal.Body>
+          <p className="text-muted mb-3 fs-5 fw-bold text-center">
+            Please choose objectives related to your project
+          </p>
           <ListGroup>
             {allObjectives.map((obj) => (
               <ListGroup.Item
@@ -592,8 +612,8 @@ const AddProject: React.FC<AddProjectProps> = ({ isSidebarOpen }) => {
             ))}
           </ListGroup>
         </Modal.Body>
-        <Modal.Footer>
-          <Button variant="secondary" onClick={closeObjModal}>
+        <Modal.Footer className="d-flex justify-content-center">
+          <Button variant="success" className="w-50" onClick={closeObjModal}>
             Done
           </Button>
         </Modal.Footer>
