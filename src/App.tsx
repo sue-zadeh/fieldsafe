@@ -12,6 +12,7 @@ import Teamlead from './components/teamlead'
 import Registervolunteer from './components/registervolunteer'
 import Volunteer from './components/volunteer'
 import AddProject from './components/AddProject'
+import SearchProject from './components/SearchProject'
 
 const GOOGLE_MAPS_API_KEY = import.meta.env.VITE_GOOGLE_MAPS_API_KEY || ''
 const App: React.FC = () => {
@@ -141,6 +142,10 @@ const App: React.FC = () => {
                   <Route
                     path="/AddProject"
                     element={<AddProject isSidebarOpen={isSidebarOpen} />}
+                  />
+                  <Route
+                    path="/SearchProject"
+                    element={<SearchProject isSidebarOpen={isSidebarOpen} />}
                   />
                 </Routes>
               </LoadScript>

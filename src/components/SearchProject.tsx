@@ -16,8 +16,11 @@ interface Project {
   emergencyServices?: string
   objectiveTitles?: string // from GROUP_CONCAT
 }
+interface SearchProjectProps {
+  isSidebarOpen: boolean
+}
 
-const SearchProject: React.FC = () => {
+const SearchProject: React.FC<SearchProjectProps> = ({isSidebarOpen}) => {
   const [projects, setProjects] = useState<Project[]>([])
   const [notification, setNotification] = useState<string | null>(null)
   const navigate = useNavigate()
@@ -26,6 +29,7 @@ const SearchProject: React.FC = () => {
     axios
       .get('/api/projects/list')
       .then((res) => {
+        console.log('SearchProject data =', res.data); // DEBUG
         setProjects(res.data)
       })
       .catch((err) => {
@@ -68,7 +72,17 @@ const SearchProject: React.FC = () => {
   }
 
   return (
-    <div className="container mt-4">
+    <div
+      className={`container-fluid ${isSidebarOpen ? 'content-expanded' : 'content-collapsed'}`}
+      style={{
+        marginLeft: isSidebarOpen ? '220px' : '20px',
+        transition: 'margin 0.3s ease',
+        minHeight: '100vh',
+        paddingTop: '25px',
+        backgroundColor: '#F4F7F1',
+      }}
+    >
+    {/* <div className="container mt-4"> */}
       {notification && (
         <div className="alert alert-info text-center">{notification}</div>
       )}
