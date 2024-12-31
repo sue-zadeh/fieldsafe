@@ -149,7 +149,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, toggleSidebar }) => {
 
       {isOpen && (
         <>
-          <h2 style={headingStyle}>FieldBase</h2>
+          <h2 style={headingStyle}>FieldSafe</h2>
           <p style={welcomeStyle}>Welcome {displayName}</p>
         </>
       )}

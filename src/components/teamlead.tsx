@@ -3,7 +3,7 @@ import axios from 'axios'
 import { useNavigate } from 'react-router-dom'
 
 // Role type
-type Role = 'Group Admin' | 'Field Staff' | 'Team Leader' | 'Volunteer'
+type Role = 'Group Admin' | 'Field Staff' | 'Team Leader'
 type User = {
   id: number
   firstname: string
@@ -186,7 +186,6 @@ const TeamLead: React.FC<TeamLeadProps> = ({ isSidebarOpen }) => {
                 <option value="Team Leader">Team Leader</option>
                 <option value="Group Admin">Group Admin</option>
                 <option value="Field Staff">Field Staff</option>
-                <option value="Volunteer">Volunteer</option>
               </select>
             </td>
             <td className="text-center">

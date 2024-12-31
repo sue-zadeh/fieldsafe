@@ -1,7 +1,7 @@
 // src/components/AddProject.tsx
 import React, { useState, useEffect, useRef } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
-import axios from 'axios'
+import axios, { AxiosError } from 'axios'
 import { GoogleMap, Marker, Autocomplete } from '@react-google-maps/api'
 import {
   Navbar,
@@ -12,9 +12,10 @@ import {
   Row,
   Modal,
   ListGroup,
+  Toast,
+  ToastContainer,
 } from 'react-bootstrap'
 
-// Colors and Types
 const OCEAN_BLUE = '#0094B6'
 const SKY_BLUE = '#76D6E2'
 
@@ -44,13 +45,13 @@ interface OriginalData {
   objectiveIds: number[]
 }
 
-// For the Google Map container
+// Google map container
 const containerStyle = {
   width: '100%',
   height: '200px',
 }
 
-// Auckland (default)
+// Auckland default
 const centerDefault = { lat: -36.8485, lng: 174.7633 }
 
 const AddProject: React.FC<AddProjectProps> = ({ isSidebarOpen }) => {
@@ -64,23 +65,23 @@ const AddProject: React.FC<AddProjectProps> = ({ isSidebarOpen }) => {
   const [isEdit, setIsEdit] = useState(false)
   const [projectId, setProjectId] = useState<number | null>(null)
 
-  // Form states
+  // Form
   const [name, setName] = useState('')
   const [startDate, setStartDate] = useState('')
   const [status, setStatus] = useState<ProjectStatus>('inprogress')
-  const [notification, setNotification] = useState<string | null>(null)
 
-  // Objectives
+  // Instead of a page-based alert, we'll use Toast
+  const [toastMessage, setToastMessage] = useState<string | null>(null)
+  const [showToast, setShowToast] = useState(false)
+
+  // rest
   const [allObjectives, setAllObjectives] = useState<Objective[]>([])
   const [selectedObjectives, setSelectedObjectives] = useState<number[]>([])
-
-  // Location & map
   const [location, setLocation] = useState('')
   const [mapCenter, setMapCenter] = useState(centerDefault)
   const [markerPos, setMarkerPos] = useState(centerDefault)
   const autocompleteRef = useRef<google.maps.places.Autocomplete | null>(null)
 
-  // Emergency & local info
   const [emergencyServices, setEmergencyServices] = useState(
     '111 will contact all emergency services'
   )
@@ -90,38 +91,32 @@ const AddProject: React.FC<AddProjectProps> = ({ isSidebarOpen }) => {
   const [primaryContactName, setPrimaryContactName] = useState('')
   const [primaryContactPhone, setPrimaryContactPhone] = useState('')
 
-  // File uploads
+  // Files
   const [imageFile, setImageFile] = useState<File | null>(null)
   const [inductionFile, setInductionFile] = useState<File | null>(null)
-
-  // Existing file paths if editing
   const [existingImageUrl, setExistingImageUrl] = useState<string | null>(null)
   const [existingInductionUrl, setExistingInductionUrl] = useState<
     string | null
   >(null)
 
-  // Original data for “no changes” detection
+  // Original data for no-changes detection
   const [originalData, setOriginalData] = useState<OriginalData | null>(null)
 
   // For objectives modal
   const [showObjModal, setShowObjModal] = useState(false)
-
-  // Block past date in the date input
   const todayString = new Date().toISOString().split('T')[0]
 
   // Tab switching
   const [activeTab, setActiveTab] = useState('details')
   const handleNavClick = (tab: string) => setActiveTab(tab)
 
-  // On mount: load objectives, check if editing
+  // LOADING objectives, project data if editing
   useEffect(() => {
-    // Load all objectives
     axios
       .get('/api/objectives')
       .then((res) => setAllObjectives(res.data))
       .catch((err) => console.error('Error fetching objectives:', err))
 
-    // If editing
     if (locationState?.isEdit && locationState.projectId) {
       setIsEdit(true)
       setProjectId(locationState.projectId)
@@ -129,7 +124,6 @@ const AddProject: React.FC<AddProjectProps> = ({ isSidebarOpen }) => {
         .get(`/api/projects/${locationState.projectId}`)
         .then((res) => {
           const { project, objectiveIds } = res.data
-          // Fill states
           setName(project.name || '')
           setStartDate((project.startDate || '').slice(0, 10))
           setStatus(project.status || 'inprogress')
@@ -140,14 +134,12 @@ const AddProject: React.FC<AddProjectProps> = ({ isSidebarOpen }) => {
           setLocalHospital(project.localHospital || '')
           setPrimaryContactName(project.primaryContactName || '')
           setPrimaryContactPhone(project.primaryContactPhone || '')
-
           if (project.imageUrl) setExistingImageUrl(project.imageUrl)
           if (project.inductionFileUrl)
             setExistingInductionUrl(project.inductionFileUrl)
-
           setSelectedObjectives(objectiveIds || [])
 
-          // Save original data
+          // Original data
           setOriginalData({
             name: project.name,
             location: project.location,
@@ -166,32 +158,31 @@ const AddProject: React.FC<AddProjectProps> = ({ isSidebarOpen }) => {
     }
   }, [locationState])
 
-  // auto-clear notifications
+  // Clear toast automatically
   useEffect(() => {
-    if (notification) {
-      const timer = setTimeout(() => setNotification(null), 4000)
+    if (toastMessage) {
+      setShowToast(true)
+      const timer = setTimeout(() => {
+        setShowToast(false)
+        setToastMessage(null)
+      }, 4000)
       return () => clearTimeout(timer)
     }
-  }, [notification])
+  }, [toastMessage])
 
-  // Toggle objective selection
   const toggleObjective = (objId: number) => {
     setSelectedObjectives((prev) =>
-      prev.includes(objId)
-        ? prev.filter((id) => id !== objId)
-        : [...prev, objId]
+      prev.includes(objId) ? prev.filter((x) => x !== objId) : [...prev, objId]
     )
   }
   const openObjModal = () => setShowObjModal(true)
   const closeObjModal = () => setShowObjModal(false)
 
-  // Summarize objectives as multiline text
   const selectedObjectivesText = allObjectives
     .filter((obj) => selectedObjectives.includes(obj.id))
     .map((o) => `${o.title} (${o.measurement})`)
     .join('\n')
 
-  // google places
   const handlePlaceChanged = () => {
     if (autocompleteRef.current) {
       const place = autocompleteRef.current.getPlace()
@@ -205,37 +196,45 @@ const AddProject: React.FC<AddProjectProps> = ({ isSidebarOpen }) => {
     }
   }
 
-  // handle form submit
+  // show toast
+  const showToastMessage = (msg: string) => {
+    setToastMessage(msg)
+  }
+
   const navigateToSearch = () => navigate('/searchproject')
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
 
-    // required checks
+    // validations
     if (!name || !location || !startDate || !emergencyServices) {
-      setNotification('All fields are required, including Emergency Services.')
+      showToastMessage('All fields are required, including Emergency Services.')
       return
     }
-    // phone checks
     if (!/^\d{10}$/.test(primaryContactPhone)) {
-      setNotification('Primary Contact Phone must be exactly 10 digits.')
+      showToastMessage('Primary Contact Phone must be exactly 10 digits.')
       return
     }
     if (!/^\d{10}$/.test(localMedicalCenterPhone)) {
-      setNotification('Local Medical Center Phone must be exactly 10 digits.')
+      showToastMessage('Local Medical Center Phone must be exactly 10 digits.')
       return
     }
 
-    // check uniqueness client side
-    try {
-      const checkRes = await axios.get(
-        `/api/projects?name=${encodeURIComponent(name)}`
-      )
-      if (checkRes.data?.exists && !isEdit) {
-        setNotification('Project name already exists. Choose another.')
-        return
+    // check uniqueness if not editing
+    if (!isEdit) {
+      try {
+        const checkRes = await axios.get(
+          `/api/projects?name=${encodeURIComponent(name)}`
+        )
+        if (checkRes.data?.exists) {
+          showToastMessage(
+            'Project name already exists. Please choose another.'
+          )
+          return
+        }
+      } catch (error) {
+        console.warn('Client uniqueness check error:', error)
       }
-    } catch (err) {
-      console.warn('Uniqueness check error', err)
     }
 
     // Build formData
@@ -256,13 +255,12 @@ const AddProject: React.FC<AddProjectProps> = ({ isSidebarOpen }) => {
     formData.append('primaryContactPhone', primaryContactPhone)
     formData.append('objectives', JSON.stringify(selectedObjectives))
 
-    // new files => override existing
     if (imageFile) formData.append('image', imageFile)
     if (inductionFile) formData.append('inductionFile', inductionFile)
 
-    // Create or Edit?
+    // Edit vs Create
     if (isEdit && projectId) {
-      // “no changes” check
+      // check no changes
       if (originalData) {
         const isNoChange =
           originalData.name === name &&
@@ -290,11 +288,19 @@ const AddProject: React.FC<AddProjectProps> = ({ isSidebarOpen }) => {
         await axios.put(`/api/projects/${projectId}`, formData, {
           headers: { 'Content-Type': 'multipart/form-data' },
         })
-        setNotification('Project updated successfully!')
+        showToastMessage('Project updated successfully!')
         setTimeout(navigateToSearch, 1000)
       } catch (err) {
-        console.error('Error updating project:', err)
-        setNotification('Failed to update project.')
+        const axiosErr = err as AxiosError<{ message: string }>
+        if (axiosErr.response?.status === 400) {
+          // name is taken
+          showToastMessage(
+            'Project name already exists. Please choose another.'
+          )
+        } else {
+          console.error('Error updating project:', err)
+          showToastMessage('Failed to update project.')
+        }
       }
     } else {
       // create
@@ -302,7 +308,8 @@ const AddProject: React.FC<AddProjectProps> = ({ isSidebarOpen }) => {
         await axios.post('/api/projects', formData, {
           headers: { 'Content-Type': 'multipart/form-data' },
         })
-        setNotification('Project created successfully!')
+        showToastMessage('Project created successfully!')
+
         // reset
         setName('')
         setLocation('')
@@ -322,8 +329,16 @@ const AddProject: React.FC<AddProjectProps> = ({ isSidebarOpen }) => {
 
         setTimeout(navigateToSearch, 1000)
       } catch (err) {
-        console.error('Error creating project:', err)
-        setNotification('Failed to create project.')
+        // handle "Project name already taken." from server
+        const axiosErr = err as AxiosError<{ message: string }>
+        if (axiosErr.response?.status === 400) {
+          showToastMessage(
+            'Project name already exists. Please choose another.'
+          )
+        } else {
+          console.error('Error creating project:', err)
+          showToastMessage('Failed to create project.')
+        }
       }
     }
   }
@@ -340,84 +355,86 @@ const AddProject: React.FC<AddProjectProps> = ({ isSidebarOpen }) => {
         minHeight: '100vh',
       }}
     >
-  {/* Fixed top navbar with toggler */}
-      {/* Local nav for details/objectives/risks */}
+      {/* Toast popup container, top-right or wherever you prefer */}
+      <ToastContainer position="top-end" className="p-3">
+        <Toast onClose={() => setShowToast(false)} show={showToast} bg="info">
+          <Toast.Header>
+            <strong className="me-auto">Notice</strong>
+          </Toast.Header>
+          <Toast.Body>{toastMessage}</Toast.Body>
+        </Toast>
+      </ToastContainer>
 
       <Navbar
-        expand="lg"
+        className="navbar navbar-expand-lg"
         style={{
           position: 'sticky',
           top: 0,
           zIndex: 999,
           backgroundColor: SKY_BLUE,
         }}
-        className="d-flex d-block justify-content-center align-items-center px-4 py-1"
       >
-        <Navbar.Brand
-          className="me-0"
-          style={{
-            color: OCEAN_BLUE,
-            fontWeight: 'bold',
-            fontSize: '1.50rem',
-          }}
-        >
-          {isEdit ? 'Edit Project' : 'Create Project'}
-        </Navbar.Brand>
-        <Nav className="mx-auto justify-content-center">
-          {/* Hamburger toggler for small screens */}
+        <div className="container-fluid">
+          <Navbar.Brand
+            style={{
+              color: OCEAN_BLUE,
+              fontWeight: 'bold',
+              fontSize: '1.50rem',
+            }}
+          >
+            {isEdit ? 'Edit Project' : 'Create Project'}
+          </Navbar.Brand>
+          {/* Hamburger toggler */}
           <button
             className="navbar-toggler"
             type="button"
             data-bs-toggle="collapse"
-            data-bs-target="#navbar.brand"
-            aria-controls="navbar.brand"
+            data-bs-target="#addProjectNav"
+            aria-controls="addProjectNav"
             aria-expanded="false"
             aria-label="Toggle navigation"
             style={{ backgroundColor: '#F4F7F1' }}
           >
             <span className="navbar-toggler-icon"></span>
           </button>
-          <Nav.Link
-            onClick={() => handleNavClick('details')}
-            style={{
-              fontWeight: activeTab === 'details' ? 'bold' : 'normal',
-              color: '#1A1A1A',
-              marginRight: '1rem',
-            }}
-          >
-            Details
-          </Nav.Link>
-          <Nav.Link
-            onClick={() => handleNavClick('objectives')}
-            style={{
-              fontWeight: activeTab === 'objectives' ? 'bold' : 'normal',
-              color: '#1A1A1A',
-              marginRight: '1rem',
-            }}
-          >
-            Objectives
-          </Nav.Link>
-          <Nav.Link
-            onClick={() => handleNavClick('risks')}
-            style={{
-              fontWeight: activeTab === 'risks' ? 'bold' : 'normal',
-              color: '#1A1A1A',
-            }}
-          >
-            Risks
-          </Nav.Link>
-        </Nav>
-      </Navbar>
-      
-      {/* offset content so it isn't behind the fixed navbar */}
-      <div style={{ marginTop: '1rem', padding: '1rem' }}>
-          {/* Notification */}
-        {notification && (
-          <div className="alert alert-info text-center fs-5">
-            {notification}
-          </div>
-        )}
 
+          <div className="collapse navbar-collapse" id="addProjectNav">
+            <Nav className="ms-auto">
+              <Nav.Link
+                onClick={() => handleNavClick('details')}
+                style={{
+                  fontWeight: activeTab === 'details' ? 'bold' : 'normal',
+                  color: '#1A1A1A',
+                  marginRight: '1rem',
+                }}
+              >
+                Details
+              </Nav.Link>
+              <Nav.Link
+                onClick={() => handleNavClick('objectives')}
+                style={{
+                  fontWeight: activeTab === 'objectives' ? 'bold' : 'normal',
+                  color: '#1A1A1A',
+                  marginRight: '1rem',
+                }}
+              >
+                Objectives
+              </Nav.Link>
+              <Nav.Link
+                onClick={() => handleNavClick('risks')}
+                style={{
+                  fontWeight: activeTab === 'risks' ? 'bold' : 'normal',
+                  color: '#1A1A1A',
+                }}
+              >
+                Risks
+              </Nav.Link>
+            </Nav>
+          </div>
+        </div>
+      </Navbar>
+
+      <div style={{ marginTop: '1rem', padding: '1rem' }}>
         {activeTab === 'details' && (
           <div className="row g-4">
             {/* LEFT COLUMN */}
@@ -451,7 +468,6 @@ const AddProject: React.FC<AddProjectProps> = ({ isSidebarOpen }) => {
                   </p>
                 )}
                 <div className="mt-2 d-flex justify-content-center">
-                  {/* Hide the file name  */}
                   <label htmlFor="imageUpload" className="btn btn-secondary">
                     {imageFile || existingImageUrl
                       ? 'Replace Image'
@@ -528,7 +544,7 @@ const AddProject: React.FC<AddProjectProps> = ({ isSidebarOpen }) => {
                 />
               </Form.Group>
 
-              {/* Induction doc area */}
+              {/* Induction doc */}
               <div className="border p-2">
                 <p className="mb-1 fw-bold text-center fs-6">
                   Upload Project Induction Instructions
@@ -554,7 +570,7 @@ const AddProject: React.FC<AddProjectProps> = ({ isSidebarOpen }) => {
                         )
                           return
                         setInductionFile(null)
-                        setNotification('Induction doc removed.')
+                        showToastMessage('Induction doc removed.')
                       }}
                       className="ms-2"
                     >
@@ -576,7 +592,7 @@ const AddProject: React.FC<AddProjectProps> = ({ isSidebarOpen }) => {
                       onClick={() => {
                         if (!window.confirm('Remove existing doc?')) return
                         setExistingInductionUrl(null)
-                        setNotification(
+                        showToastMessage(
                           'Existing doc removed. Will be overwritten if you upload a new doc.'
                         )
                       }}

@@ -40,8 +40,8 @@ const Login: React.FC<LoginProps> = ({ onLoginSuccess }) => {
         localStorage.setItem('authToken', response.data.token)
 
         // **Store firstname and lastname in localStorage - used for welcome in sidebar
-      localStorage.setItem('firstname', response.data.firstname); 
-      localStorage.setItem('lastname', response.data.lastname);
+        localStorage.setItem('firstname', response.data.firstname)
+        localStorage.setItem('lastname', response.data.lastname)
 
         // Optionally store email if remember me is checked
         if (rememberMe) {
@@ -115,7 +115,7 @@ const Login: React.FC<LoginProps> = ({ onLoginSuccess }) => {
         style={{ backgroundColor: '#FFFFFF', width: '400px' }}
       >
         <h2 className="text-center mb-4" style={{ color: '#76D6E2' }}>
-          Welcome to FieldBase
+          Welcome to FieldSafe
         </h2>
         <h3 className="text-center my-4" style={{ color: '#76D6E2' }}>
           <i>{isForgotPassword ? 'Forgot Password' : 'Login'}</i>

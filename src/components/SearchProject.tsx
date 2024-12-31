@@ -122,16 +122,21 @@ const SearchProject: React.FC<SearchProjectProps> = ({isSidebarOpen}) => {
                 </span>
               </div>
               <div className="card-body">
-                <h5 className="card-title mb-2">{p.name}</h5>
+                <h4 className="card-title mb-2">{p.name}</h4>
                 {/* objectiveTitles from bridging table */}
                 {p.objectiveTitles && (
                   <p className="text-muted fs-6">
-                    <strong>Objectives:</strong> {p.objectiveTitles}
+                    <strong>Objectives:</strong> <br />{p.objectiveTitles}
                   </p>
                 )}
                 <p className="mb-1">
+                  <strong>Location:</strong> {p.location}
+                </p>
+                <p className="mb-1">
                   <strong>Start Date:</strong> {p.startDate}
                 </p>
+
+                
                 {p.primaryContactName && (
                   <p className="mb-1">
                     <strong>Contact:</strong> {p.primaryContactName} (
