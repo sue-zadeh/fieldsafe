@@ -366,72 +366,69 @@ const AddProject: React.FC<AddProjectProps> = ({ isSidebarOpen }) => {
       </ToastContainer>
 
       <Navbar
-        className="navbar navbar-expand-lg"
+        expand="lg"
         style={{
           position: 'sticky',
           top: 0,
           zIndex: 999,
           backgroundColor: SKY_BLUE,
         }}
+        className="d-flex d-block justify-content-center align-items-center px-4 py-1"
       >
-        <div className="container-fluid">
-          <Navbar.Brand
-            style={{
-              color: OCEAN_BLUE,
-              fontWeight: 'bold',
-              fontSize: '1.50rem',
-            }}
-          >
-            {isEdit ? 'Edit Project' : 'Create Project'}
-          </Navbar.Brand>
-          {/* Hamburger toggler */}
+        <Navbar.Brand
+          className="me-0"
+          style={{
+            color: OCEAN_BLUE,
+            fontWeight: 'bold',
+            fontSize: '1.50rem',
+          }}
+        >
+          {isEdit ? 'Edit Project' : 'Create Project'}
+        </Navbar.Brand>
+        <Nav className="mx-auto justify-content-center">
+          {/* Hamburger toggler for small screens */}
           <button
             className="navbar-toggler"
             type="button"
             data-bs-toggle="collapse"
-            data-bs-target="#addProjectNav"
-            aria-controls="addProjectNav"
+            data-bs-target="#navbar.brand"
+            aria-controls="navbar.brand"
             aria-expanded="false"
             aria-label="Toggle navigation"
             style={{ backgroundColor: '#F4F7F1' }}
           >
             <span className="navbar-toggler-icon"></span>
           </button>
-
-          <div className="collapse navbar-collapse" id="addProjectNav">
-            <Nav className="ms-auto">
-              <Nav.Link
-                onClick={() => handleNavClick('details')}
-                style={{
-                  fontWeight: activeTab === 'details' ? 'bold' : 'normal',
-                  color: '#1A1A1A',
-                  marginRight: '1rem',
-                }}
-              >
-                Details
-              </Nav.Link>
-              <Nav.Link
-                onClick={() => handleNavClick('objectives')}
-                style={{
-                  fontWeight: activeTab === 'objectives' ? 'bold' : 'normal',
-                  color: '#1A1A1A',
-                  marginRight: '1rem',
-                }}
-              >
-                Objectives
-              </Nav.Link>
-              <Nav.Link
-                onClick={() => handleNavClick('risks')}
-                style={{
-                  fontWeight: activeTab === 'risks' ? 'bold' : 'normal',
-                  color: '#1A1A1A',
-                }}
-              >
-                Risks
-              </Nav.Link>
-            </Nav>
-          </div>
-        </div>
+          <Nav.Link
+            onClick={() => handleNavClick('details')}
+            style={{
+              fontWeight: activeTab === 'details' ? 'bold' : 'normal',
+              color: '#1A1A1A',
+              marginRight: '1rem',
+            }}
+          >
+            Details
+          </Nav.Link>
+          <Nav.Link
+            onClick={() => handleNavClick('objectives')}
+            style={{
+              fontWeight: activeTab === 'objectives' ? 'bold' : 'normal',
+              color: '#1A1A1A',
+              marginRight: '1rem',
+            }}
+          >
+            Objectives
+          </Nav.Link>
+          <Nav.Link
+            onClick={() => handleNavClick('risks')}
+            style={{
+              fontWeight: activeTab === 'risks' ? 'bold' : 'normal',
+              color: '#1A1A1A',
+            }}
+          >
+            Risks
+          </Nav.Link>
+        </Nav>
       </Navbar>
 
       <div style={{ marginTop: '1rem', padding: '1rem' }}>
