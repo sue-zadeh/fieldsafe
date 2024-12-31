@@ -86,9 +86,12 @@ const SearchProject: React.FC<SearchProjectProps> = ({isSidebarOpen}) => {
       {notification && (
         <div className="alert alert-info text-center">{notification}</div>
       )}
-      <h2 className="mb-4">All Projects</h2>
+      <h2 className="mb-4" style={{
+            color: '#0094B6',
+            fontWeight: 'bold',
+            }} >All Projects</h2>
 
-      <div className="row g-4">
+      <div className="row g-5">
         {projects.map((p) => (
           <div key={p.id} className="col-md-4">
             <div className="card h-100">

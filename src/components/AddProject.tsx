@@ -12,8 +12,6 @@ import {
   Row,
   Modal,
   ListGroup,
-  Toast,
-  ToastContainer,
 } from 'react-bootstrap'
 
 const OCEAN_BLUE = '#0094B6'
@@ -43,6 +41,8 @@ interface OriginalData {
   primaryContactName: string
   primaryContactPhone: string
   objectiveIds: number[]
+  imageUrl?: string
+  inductionFileUrl?: string
 }
 
 // Google map container
@@ -72,7 +72,7 @@ const AddProject: React.FC<AddProjectProps> = ({ isSidebarOpen }) => {
 
   // Instead of a page-based alert, we'll use Toast
   const [toastMessage, setToastMessage] = useState<string | null>(null)
-  const [showToast, setShowToast] = useState(false)
+  const [notification, setNotification] = useState<string | null>(null)
 
   // rest
   const [allObjectives, setAllObjectives] = useState<Objective[]>([])
@@ -90,7 +90,7 @@ const AddProject: React.FC<AddProjectProps> = ({ isSidebarOpen }) => {
   const [localHospital, setLocalHospital] = useState('')
   const [primaryContactName, setPrimaryContactName] = useState('')
   const [primaryContactPhone, setPrimaryContactPhone] = useState('')
-
+  const [imageUrl, setimageUrl] = useState('')
   // Files
   const [imageFile, setImageFile] = useState<File | null>(null)
   const [inductionFile, setInductionFile] = useState<File | null>(null)
@@ -127,6 +127,8 @@ const AddProject: React.FC<AddProjectProps> = ({ isSidebarOpen }) => {
           setName(project.name || '')
           setStartDate((project.startDate || '').slice(0, 10))
           setStatus(project.status || 'inprogress')
+          setimageUrl(project.imageUrl || '')
+          setInductionFile(project.inductionFileUrl || '')
           setLocation(project.location || '')
           setEmergencyServices(project.emergencyServices || '')
           setLocalMedicalCenterAddress(project.localMedicalCenterAddress || '')
@@ -145,6 +147,8 @@ const AddProject: React.FC<AddProjectProps> = ({ isSidebarOpen }) => {
             location: project.location,
             startDate: (project.startDate || '').slice(0, 10),
             status: project.status,
+            imageUrl: project.imageUrl,
+            inductionFileUrl: project.inductionFileUrl,
             emergencyServices: project.emergencyServices,
             localMedicalCenterAddress: project.localMedicalCenterAddress,
             localMedicalCenterPhone: project.localMedicalCenterPhone,
@@ -165,7 +169,7 @@ const AddProject: React.FC<AddProjectProps> = ({ isSidebarOpen }) => {
       const timer = setTimeout(() => {
         setShowToast(false)
         setToastMessage(null)
-      }, 4000)
+      }, 6000)
       return () => clearTimeout(timer)
     }
   }, [toastMessage])
@@ -267,6 +271,8 @@ const AddProject: React.FC<AddProjectProps> = ({ isSidebarOpen }) => {
           originalData.location === location &&
           originalData.startDate === startDate &&
           originalData.status === status &&
+          originalData.imageUrl === imageUrl &&
+          // originalData.inductionFileUrl === inductionFileUrl &&
           originalData.emergencyServices === emergencyServices &&
           originalData.localMedicalCenterAddress ===
             localMedicalCenterAddress &&
@@ -351,32 +357,24 @@ const AddProject: React.FC<AddProjectProps> = ({ isSidebarOpen }) => {
       style={{
         marginLeft: isSidebarOpen ? '220px' : '20px',
         transition: 'margin 0.3s ease',
-        paddingTop: '20px',
+        paddingTop: '15px',
         minHeight: '100vh',
       }}
     >
-      {/* Toast popup container, top-right or wherever you prefer */}
-      <ToastContainer position="top-end" className="p-3">
-        <Toast onClose={() => setShowToast(false)} show={showToast} bg="info">
-          <Toast.Header>
-            <strong className="me-auto">Notice</strong>
-          </Toast.Header>
-          <Toast.Body>{toastMessage}</Toast.Body>
-        </Toast>
-      </ToastContainer>
-
+      {/* NAVBAR (replaced custom hamburger with React-Bootstrap toggle) */}
       <Navbar
         expand="lg"
         style={{
           position: 'sticky',
           top: 0,
           zIndex: 999,
+          width: '100%',
           backgroundColor: SKY_BLUE,
         }}
-        className="d-flex d-block justify-content-center align-items-center px-4 py-1"
+        className="px-4 py-1"
       >
         <Navbar.Brand
-          className="me-0"
+          className="m-0"
           style={{
             color: OCEAN_BLUE,
             fontWeight: 'bold',
@@ -385,57 +383,60 @@ const AddProject: React.FC<AddProjectProps> = ({ isSidebarOpen }) => {
         >
           {isEdit ? 'Edit Project' : 'Create Project'}
         </Navbar.Brand>
-        <Nav className="mx-auto justify-content-center">
-          {/* Hamburger toggler for small screens */}
-          <button
-            className="navbar-toggler"
-            type="button"
-            data-bs-toggle="collapse"
-            data-bs-target="#navbar.brand"
-            aria-controls="navbar.brand"
-            aria-expanded="false"
-            aria-label="Toggle navigation"
-            style={{ backgroundColor: '#F4F7F1' }}
-          >
-            <span className="navbar-toggler-icon"></span>
-          </button>
-          <Nav.Link
-            onClick={() => handleNavClick('details')}
-            style={{
-              fontWeight: activeTab === 'details' ? 'bold' : 'normal',
-              color: '#1A1A1A',
-              marginRight: '1rem',
-            }}
-          >
-            Details
-          </Nav.Link>
-          <Nav.Link
-            onClick={() => handleNavClick('objectives')}
-            style={{
-              fontWeight: activeTab === 'objectives' ? 'bold' : 'normal',
-              color: '#1A1A1A',
-              marginRight: '1rem',
-            }}
-          >
-            Objectives
-          </Nav.Link>
-          <Nav.Link
-            onClick={() => handleNavClick('risks')}
-            style={{
-              fontWeight: activeTab === 'risks' ? 'bold' : 'normal',
-              color: '#1A1A1A',
-            }}
-          >
-            Risks
-          </Nav.Link>
-        </Nav>
+
+        {/* This is the standard toggle for small screens */}
+        <Navbar.Toggle
+          aria-controls="basic-navbar-nav"
+          style={{ backgroundColor: '#F4F7F1' }}
+        />
+
+        {/* Collapsible navbar content */}
+        <Navbar.Collapse id="basic-navbar-nav">
+          <Nav className="mx-auto justify-content-center">
+            <Nav.Link
+              onClick={() => handleNavClick('details')}
+              style={{
+                fontWeight: activeTab === 'details' ? 'bold' : 'normal',
+                color: '#1A1A1A',
+                marginRight: '1rem',
+              }}
+            >
+              Details
+            </Nav.Link>
+            <Nav.Link
+              onClick={() => handleNavClick('objectives')}
+              style={{
+                fontWeight: activeTab === 'objectives' ? 'bold' : 'normal',
+                color: '#1A1A1A',
+                marginRight: '1rem',
+              }}
+            >
+              Objectives
+            </Nav.Link>
+            <Nav.Link
+              onClick={() => handleNavClick('risks')}
+              style={{
+                fontWeight: activeTab === 'risks' ? 'bold' : 'normal',
+                color: '#1A1A1A',
+              }}
+            >
+              Risks
+            </Nav.Link>
+          </Nav>
+        </Navbar.Collapse>
       </Navbar>
+      {/* END NAVBAR */}
+
+      {/* Notification */}
+      {notification && (
+        <div className="alert alert-info text-center fs-5">{notification}</div>
+      )}
 
       <div style={{ marginTop: '1rem', padding: '1rem' }}>
         {activeTab === 'details' && (
-          <div className="row g-4">
+          <div className="row g-5">
             {/* LEFT COLUMN */}
-            <div className="col-md-5 p-0 rounded">
+            <div className="col-md-5 p-0 rounded ">
               <h4 style={{ color: OCEAN_BLUE }}>{name || '[Project Name]'}</h4>
 
               <div className="border pt-0 mb-3" style={{ textAlign: 'center' }}>
