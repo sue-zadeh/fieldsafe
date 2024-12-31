@@ -3,6 +3,8 @@ import React, { useState, useEffect, useRef } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 import axios, { AxiosError } from 'axios'
 import { GoogleMap, Marker, Autocomplete } from '@react-google-maps/api'
+import AddObjectives from './AddObjectives' // Adjust path as needed
+
 import {
   Navbar,
   Nav,
@@ -65,13 +67,12 @@ const AddProject: React.FC<AddProjectProps> = ({ isSidebarOpen }) => {
   const [isEdit, setIsEdit] = useState(false)
   const [projectId, setProjectId] = useState<number | null>(null)
 
-  // Form
+  // Form fields
   const [name, setName] = useState('')
   const [startDate, setStartDate] = useState('')
   const [status, setStatus] = useState<ProjectStatus>('inprogress')
 
-  // Instead of a page-based alert, we'll use Toast
-  const [toastMessage, setToastMessage] = useState<string | null>(null)
+  // Notification (instead of toast)
   const [notification, setNotification] = useState<string | null>(null)
 
   // rest
@@ -91,6 +92,7 @@ const AddProject: React.FC<AddProjectProps> = ({ isSidebarOpen }) => {
   const [primaryContactName, setPrimaryContactName] = useState('')
   const [primaryContactPhone, setPrimaryContactPhone] = useState('')
   const [imageUrl, setimageUrl] = useState('')
+
   // Files
   const [imageFile, setImageFile] = useState<File | null>(null)
   const [inductionFile, setInductionFile] = useState<File | null>(null)
@@ -110,7 +112,7 @@ const AddProject: React.FC<AddProjectProps> = ({ isSidebarOpen }) => {
   const [activeTab, setActiveTab] = useState('details')
   const handleNavClick = (tab: string) => setActiveTab(tab)
 
-  // LOADING objectives, project data if editing
+  // LOAD objectives and project data if editing
   useEffect(() => {
     axios
       .get('/api/objectives')
@@ -128,7 +130,7 @@ const AddProject: React.FC<AddProjectProps> = ({ isSidebarOpen }) => {
           setStartDate((project.startDate || '').slice(0, 10))
           setStatus(project.status || 'inprogress')
           setimageUrl(project.imageUrl || '')
-          setInductionFile(project.inductionFileUrl || '')
+          setInductionFile(project.inductionFileUrl || '') // We'll keep it separate from the actual file
           setLocation(project.location || '')
           setEmergencyServices(project.emergencyServices || '')
           setLocalMedicalCenterAddress(project.localMedicalCenterAddress || '')
@@ -136,9 +138,11 @@ const AddProject: React.FC<AddProjectProps> = ({ isSidebarOpen }) => {
           setLocalHospital(project.localHospital || '')
           setPrimaryContactName(project.primaryContactName || '')
           setPrimaryContactPhone(project.primaryContactPhone || '')
+
           if (project.imageUrl) setExistingImageUrl(project.imageUrl)
           if (project.inductionFileUrl)
             setExistingInductionUrl(project.inductionFileUrl)
+
           setSelectedObjectives(objectiveIds || [])
 
           // Original data
@@ -162,17 +166,18 @@ const AddProject: React.FC<AddProjectProps> = ({ isSidebarOpen }) => {
     }
   }, [locationState])
 
-  // Clear toast automatically
+  // Auto-clear notification after 6s
   useEffect(() => {
-    if (toastMessage) {
-      setShowToast(true)
+    if (notification) {
       const timer = setTimeout(() => {
-        setShowToast(false)
-        setToastMessage(null)
+        setNotification(null)
       }, 6000)
       return () => clearTimeout(timer)
     }
-  }, [toastMessage])
+  }, [notification])
+
+  // Helper to show a notification
+  const notify = (msg: string) => setNotification(msg)
 
   const toggleObjective = (objId: number) => {
     setSelectedObjectives((prev) =>
@@ -200,27 +205,26 @@ const AddProject: React.FC<AddProjectProps> = ({ isSidebarOpen }) => {
     }
   }
 
-  // show toast
-  const showToastMessage = (msg: string) => {
-    setToastMessage(msg)
-  }
-
+  // Navigate back to search after success
   const navigateToSearch = () => navigate('/searchproject')
 
+  // ===========================
+  //       CREATE OR EDIT
+  // ===========================
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
 
     // validations
     if (!name || !location || !startDate || !emergencyServices) {
-      showToastMessage('All fields are required, including Emergency Services.')
+      notify('All fields are required, including Emergency Services.')
       return
     }
     if (!/^\d{10}$/.test(primaryContactPhone)) {
-      showToastMessage('Primary Contact Phone must be exactly 10 digits.')
+      notify('Primary Contact Phone must be exactly 10 digits.')
       return
     }
     if (!/^\d{10}$/.test(localMedicalCenterPhone)) {
-      showToastMessage('Local Medical Center Phone must be exactly 10 digits.')
+      notify('Local Medical Center Phone must be exactly 10 digits.')
       return
     }
 
@@ -231,9 +235,7 @@ const AddProject: React.FC<AddProjectProps> = ({ isSidebarOpen }) => {
           `/api/projects?name=${encodeURIComponent(name)}`
         )
         if (checkRes.data?.exists) {
-          showToastMessage(
-            'Project name already exists. Please choose another.'
-          )
+          notify('Project name already exists. Please choose another.')
           return
         }
       } catch (error) {
@@ -262,9 +264,9 @@ const AddProject: React.FC<AddProjectProps> = ({ isSidebarOpen }) => {
     if (imageFile) formData.append('image', imageFile)
     if (inductionFile) formData.append('inductionFile', inductionFile)
 
-    // Edit vs Create
+    // If editing => PUT
     if (isEdit && projectId) {
-      // check no changes
+      // check for no changes
       if (originalData) {
         const isNoChange =
           originalData.name === name &&
@@ -272,7 +274,7 @@ const AddProject: React.FC<AddProjectProps> = ({ isSidebarOpen }) => {
           originalData.startDate === startDate &&
           originalData.status === status &&
           originalData.imageUrl === imageUrl &&
-          // originalData.inductionFileUrl === inductionFileUrl &&
+          // originalData.inductionFileUrl === inductionFileUrl, etc.
           originalData.emergencyServices === emergencyServices &&
           originalData.localMedicalCenterAddress ===
             localMedicalCenterAddress &&
@@ -294,27 +296,24 @@ const AddProject: React.FC<AddProjectProps> = ({ isSidebarOpen }) => {
         await axios.put(`/api/projects/${projectId}`, formData, {
           headers: { 'Content-Type': 'multipart/form-data' },
         })
-        showToastMessage('Project updated successfully!')
+        notify('Project updated successfully!')
         setTimeout(navigateToSearch, 1000)
       } catch (err) {
         const axiosErr = err as AxiosError<{ message: string }>
         if (axiosErr.response?.status === 400) {
-          // name is taken
-          showToastMessage(
-            'Project name already exists. Please choose another.'
-          )
+          notify('Project name already exists. Please choose another.')
         } else {
           console.error('Error updating project:', err)
-          showToastMessage('Failed to update project.')
+          notify('Failed to update project.')
         }
       }
     } else {
-      // create
+      // CREATE
       try {
         await axios.post('/api/projects', formData, {
           headers: { 'Content-Type': 'multipart/form-data' },
         })
-        showToastMessage('Project created successfully!')
+        notify('Project created successfully!')
 
         // reset
         setName('')
@@ -335,16 +334,82 @@ const AddProject: React.FC<AddProjectProps> = ({ isSidebarOpen }) => {
 
         setTimeout(navigateToSearch, 1000)
       } catch (err) {
-        // handle "Project name already taken." from server
         const axiosErr = err as AxiosError<{ message: string }>
         if (axiosErr.response?.status === 400) {
-          showToastMessage(
-            'Project name already exists. Please choose another.'
-          )
+          notify('Project name already exists. Please choose another.')
         } else {
           console.error('Error creating project:', err)
-          showToastMessage('Failed to create project.')
+          notify('Failed to create project.')
         }
+      }
+    }
+  }
+
+  // ===========================
+  //   SAVE as a new project in edit page
+  // ===========================
+  const handleSaveAsNewProject = async () => {
+    // This duplicates the current form data into a new project
+    if (!name || !location || !startDate || !emergencyServices) {
+      notify('All fields are required, including Emergency Services.')
+      return
+    }
+    if (!/^\d{10}$/.test(primaryContactPhone)) {
+      notify('Primary Contact Phone must be exactly 10 digits.')
+      return
+    }
+    if (!/^\d{10}$/.test(localMedicalCenterPhone)) {
+      notify('Local Medical Center Phone must be exactly 10 digits.')
+      return
+    }
+
+    // Check name uniqueness
+    try {
+      const checkRes = await axios.get(
+        `/api/projects?name=${encodeURIComponent(name)}`
+      )
+      if (checkRes.data?.exists) {
+        notify('Project name already exists. Please choose another.')
+        return
+      }
+    } catch (error) {
+      console.warn('Uniqueness check error (save as new):', error)
+    }
+
+    // Build new formData
+    const formData = new FormData()
+    formData.append('name', name)
+    formData.append('location', location)
+    formData.append('startDate', startDate)
+    formData.append('status', status)
+    const adminId = localStorage.getItem('adminId')
+    if (adminId) {
+      formData.append('createdBy', adminId)
+    }
+    formData.append('emergencyServices', emergencyServices)
+    formData.append('localMedicalCenterAddress', localMedicalCenterAddress)
+    formData.append('localMedicalCenterPhone', localMedicalCenterPhone)
+    formData.append('localHospital', localHospital)
+    formData.append('primaryContactName', primaryContactName)
+    formData.append('primaryContactPhone', primaryContactPhone)
+    formData.append('objectives', JSON.stringify(selectedObjectives))
+
+    if (imageFile) formData.append('image', imageFile)
+    if (inductionFile) formData.append('inductionFile', inductionFile)
+
+    try {
+      await axios.post('/api/projects', formData, {
+        headers: { 'Content-Type': 'multipart/form-data' },
+      })
+      notify('Project duplicated successfully!')
+      setTimeout(navigateToSearch, 1000)
+    } catch (err) {
+      const axiosErr = err as AxiosError<{ message: string }>
+      if (axiosErr.response?.status === 400) {
+        notify('Project name already exists. Please choose another.')
+      } else {
+        console.error('Error duplicating project:', err)
+        notify('Failed to duplicate project.')
       }
     }
   }
@@ -357,40 +422,34 @@ const AddProject: React.FC<AddProjectProps> = ({ isSidebarOpen }) => {
       style={{
         marginLeft: isSidebarOpen ? '220px' : '20px',
         transition: 'margin 0.3s ease',
-        paddingTop: '15px',
+        paddingTop: '5px',
         minHeight: '100vh',
       }}
     >
-      {/* NAVBAR (replaced custom hamburger with React-Bootstrap toggle) */}
+      {/* Nav bar for projects page */}
       <Navbar
         expand="lg"
         style={{
-          position: 'sticky',
-          top: 0,
-          zIndex: 999,
+          backgroundColor: '#c4edf2',
           width: '100%',
-          backgroundColor: SKY_BLUE,
         }}
         className="px-4 py-1"
       >
         <Navbar.Brand
-          className="m-0"
+          className="m-0 fs-3"
           style={{
             color: OCEAN_BLUE,
             fontWeight: 'bold',
-            fontSize: '1.50rem',
           }}
         >
           {isEdit ? 'Edit Project' : 'Create Project'}
         </Navbar.Brand>
 
-        {/* This is the standard toggle for small screens */}
+        {/* Toggle for small screens */}
         <Navbar.Toggle
           aria-controls="basic-navbar-nav"
           style={{ backgroundColor: '#F4F7F1' }}
         />
-
-        {/* Collapsible navbar content */}
         <Navbar.Collapse id="basic-navbar-nav">
           <Nav className="mx-auto justify-content-center">
             <Nav.Link
@@ -414,6 +473,16 @@ const AddProject: React.FC<AddProjectProps> = ({ isSidebarOpen }) => {
               Objectives
             </Nav.Link>
             <Nav.Link
+              onClick={() => handleNavClick('objectives')}
+              style={{
+                fontWeight: activeTab === 'objectives' ? 'bold' : 'normal',
+                color: '#1A1A1A',
+                marginRight: '1rem',
+              }}
+            >
+              Hazards
+            </Nav.Link>
+            <Nav.Link
               onClick={() => handleNavClick('risks')}
               style={{
                 fontWeight: activeTab === 'risks' ? 'bold' : 'normal',
@@ -425,11 +494,13 @@ const AddProject: React.FC<AddProjectProps> = ({ isSidebarOpen }) => {
           </Nav>
         </Navbar.Collapse>
       </Navbar>
-      {/* END NAVBAR */}
+      {/* END Secondary Nav */}
 
-      {/* Notification */}
+      {/* Notification (displays for 6s) */}
       {notification && (
-        <div className="alert alert-info text-center fs-5">{notification}</div>
+        <div className="alert alert-info text-center fs-6 fw-bold">
+          {notification}
+        </div>
       )}
 
       <div style={{ marginTop: '1rem', padding: '1rem' }}>
@@ -439,7 +510,7 @@ const AddProject: React.FC<AddProjectProps> = ({ isSidebarOpen }) => {
             <div className="col-md-5 p-0 rounded ">
               <h4 style={{ color: OCEAN_BLUE }}>{name || '[Project Name]'}</h4>
 
-              <div className="border pt-0 mb-3" style={{ textAlign: 'center' }}>
+              <div className="border pt-0 mb-3 text-center">
                 {imageFile ? (
                   <img
                     src={URL.createObjectURL(imageFile)}
@@ -568,7 +639,7 @@ const AddProject: React.FC<AddProjectProps> = ({ isSidebarOpen }) => {
                         )
                           return
                         setInductionFile(null)
-                        showToastMessage('Induction doc removed.')
+                        notify('Induction doc removed.')
                       }}
                       className="ms-2"
                     >
@@ -590,7 +661,7 @@ const AddProject: React.FC<AddProjectProps> = ({ isSidebarOpen }) => {
                       onClick={() => {
                         if (!window.confirm('Remove existing doc?')) return
                         setExistingInductionUrl(null)
-                        showToastMessage(
+                        notify(
                           'Existing doc removed. Will be overwritten if you upload a new doc.'
                         )
                       }}
@@ -750,26 +821,43 @@ const AddProject: React.FC<AddProjectProps> = ({ isSidebarOpen }) => {
                   </Autocomplete>
                 </Form.Group>
 
-                <Button
-                  type="submit"
-                  className="w-100 mt-3"
-                  style={{ backgroundColor: OCEAN_BLUE, color: '#fff' }}
-                >
-                  {isEdit ? 'Save Changes' : 'Save'}
-                </Button>
+                {/* If editing => show two buttons: "Save Changes" and "Save as New Project" */}
+                {isEdit ? (
+                  <div className="d-flex flex-column gap-2">
+                    <Button
+                      type="submit"
+                      style={{ backgroundColor: OCEAN_BLUE, color: '#fff' }}
+                    >
+                      Save Changes
+                    </Button>
+                    <Button variant="warning" onClick={handleSaveAsNewProject}>
+                      Save as New Project
+                    </Button>
+                  </div>
+                ) : (
+                  /* If creating => single "Save" button */
+                  <Button
+                    type="submit"
+                    className="w-100 mt-3"
+                    style={{ backgroundColor: OCEAN_BLUE, color: '#fff' }}
+                  >
+                    Save
+                  </Button>
+                )}
               </Form>
             </div>
           </div>
         )}
 
+        {/* Additional tabs: Objectives, Risks, etc. */}
         {activeTab === 'objectives' && (
           <div className="p-4">
             <h3>Project Objectives</h3>
-            <p>More detailed editor for objectives the user selected.</p>
+            <AddObjectives isSidebarOpen={isSidebarOpen} />
           </div>
         )}
         {activeTab === 'risks' && (
-          <div className="p-4">
+          <div className="d-f column p-4">
             <h3>Project Risks</h3>
             <p>Placeholder for risks tab.</p>
           </div>

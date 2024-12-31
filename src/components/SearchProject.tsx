@@ -20,7 +20,7 @@ interface SearchProjectProps {
   isSidebarOpen: boolean
 }
 
-const SearchProject: React.FC<SearchProjectProps> = ({isSidebarOpen}) => {
+const SearchProject: React.FC<SearchProjectProps> = ({ isSidebarOpen }) => {
   const [projects, setProjects] = useState<Project[]>([])
   const [notification, setNotification] = useState<string | null>(null)
   const navigate = useNavigate()
@@ -29,7 +29,7 @@ const SearchProject: React.FC<SearchProjectProps> = ({isSidebarOpen}) => {
     axios
       .get('/api/projects/list')
       .then((res) => {
-        console.log('SearchProject data =', res.data); // DEBUG
+        console.log('SearchProject data =', res.data) // DEBUG
         setProjects(res.data)
       })
       .catch((err) => {
@@ -73,7 +73,9 @@ const SearchProject: React.FC<SearchProjectProps> = ({isSidebarOpen}) => {
 
   return (
     <div
-      className={`container-fluid ${isSidebarOpen ? 'content-expanded' : 'content-collapsed'}`}
+      className={`container-fluid ${
+        isSidebarOpen ? 'content-expanded' : 'content-collapsed'
+      }`}
       style={{
         marginLeft: isSidebarOpen ? '220px' : '20px',
         transition: 'margin 0.3s ease',
@@ -82,14 +84,19 @@ const SearchProject: React.FC<SearchProjectProps> = ({isSidebarOpen}) => {
         backgroundColor: '#F4F7F1',
       }}
     >
-    {/* <div className="container mt-4"> */}
+      {/* <div className="container mt-4"> */}
       {notification && (
         <div className="alert alert-info text-center">{notification}</div>
       )}
-      <h2 className="mb-4" style={{
-            color: '#0094B6',
-            fontWeight: 'bold',
-            }} >All Projects</h2>
+      <h2
+        className="mb-4"
+        style={{
+          color: '#0094B6',
+          fontWeight: 'bold',
+        }}
+      >
+        All Projects
+      </h2>
 
       <div className="row g-5">
         {projects.map((p) => (
@@ -118,20 +125,28 @@ const SearchProject: React.FC<SearchProjectProps> = ({isSidebarOpen}) => {
                 )}
                 {/* status in bottom-right corner of image area */}
                 <span
-                  className="badge bg-info text-dark position-absolute"
+                  className="badge bg-info p-2 text-dark position-absolute fs-6"
                   style={{ bottom: '5px', right: '5px' }}
                 >
                   {p.status}
                 </span>
               </div>
               <div className="card-body">
-                <h4 className="card-title mb-2">{p.name}</h4>
+                <h3 className="card-title mb-2">{p.name}</h3>
                 {/* objectiveTitles from bridging table */}
                 {p.objectiveTitles && (
                   <p className="text-muted fs-6">
-                    <strong>Objectives:</strong> <br />{p.objectiveTitles}
+                    <strong>Objectives:</strong>
+                    <br />
+                    {p.objectiveTitles.split(',').map((obj, idx) => (
+                      <React.Fragment key={idx}>
+                        {obj.trim()}
+                        <br />
+                      </React.Fragment>
+                    ))}
                   </p>
                 )}
+
                 <p className="mb-1">
                   <strong>Location:</strong> {p.location}
                 </p>
@@ -139,7 +154,6 @@ const SearchProject: React.FC<SearchProjectProps> = ({isSidebarOpen}) => {
                   <strong>Start Date:</strong> {p.startDate}
                 </p>
 
-                
                 {p.primaryContactName && (
                   <p className="mb-1">
                     <strong>Contact:</strong> {p.primaryContactName} (
@@ -149,6 +163,9 @@ const SearchProject: React.FC<SearchProjectProps> = ({isSidebarOpen}) => {
                 {p.emergencyServices && (
                   <p className="mb-1">
                     <strong>Emergency:</strong> {p.emergencyServices}
+                    <br />
+                    <strong>local Medical Center Address/Phone:</strong>{' '}
+                    {p.localMedicalCenterAddress} ({p.localMedicalCenterPhone})
                   </p>
                 )}
                 {p.inductionFileUrl && (

@@ -193,7 +193,7 @@ router.post(
 
 /**
  * ============ PUT /api/projects/:id (UPDATE) ============
- *  Also updates bridging objectives.
+ *  updates bridging objectives.
  */
 router.put(
   '/:id',
@@ -221,7 +221,7 @@ router.put(
         objectives, // JSON array of IDs
       } = req.body
 
-      // (B) Check name uniqueness excluding self
+      // Check name uniqueness excluding self
       const [dupRows] = await pool.query(
         'SELECT id FROM projects WHERE name = ? AND id != ?',
         [name, id]
