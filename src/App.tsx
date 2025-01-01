@@ -14,6 +14,10 @@ import Volunteer from './components/volunteer'
 import AddProject from './components/AddProject'
 import SearchProject from './components/SearchProject'
 import AddObjective from './components/addobjective'
+import Objective from './components/o'
+
+import Layout from './components/layout'
+
 const GOOGLE_MAPS_API_KEY = import.meta.env.VITE_GOOGLE_MAPS_API_KEY || ''
 const App: React.FC = () => {
   const [isLoggedIn, setIsLoggedIn] = useState(false)
@@ -111,6 +115,8 @@ const App: React.FC = () => {
                 googleMapsApiKey={GOOGLE_MAPS_API_KEY}
                 libraries={['places']}
               >
+                {/*================ Route for pages ============ */}
+
                 <Routes>
                   <Route
                     path="/registerroles"
@@ -143,9 +149,24 @@ const App: React.FC = () => {
                     path="/AddProject"
                     element={<AddProject isSidebarOpen={isSidebarOpen} />}
                   />
+                  {/* All routes will use the Layout */}
+                  <Route
+                    path="/"
+                    element={
+                      <Layout
+                        isSidebarOpen={isSidebarOpen}
+                        toggleSidebar={toggleSidebar}
+                      />
+                    }
+                  />
+                  {/* Nested routes */}
                   <Route
                     path="/Addobjective"
                     element={<AddObjective isSidebarOpen={isSidebarOpen} />}
+                  />
+                  <Route
+                    path="/objective"
+                    element={<Objective isSidebarOpen={isSidebarOpen} />}
                   />
                   <Route
                     path="/SearchProject"

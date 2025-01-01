@@ -129,15 +129,23 @@ const AddObjectives: React.FC<AddObjectivesProps> = ({ isSidebarOpen }) => {
 
   return (
     <div
-      className="container-fluid"
+      className={`container-fluid d-flex align-items-center justify-content-center mt-5 ${
+        isSidebarOpen ? 'content-expanded' : 'content-collapsed'
+      }`}
       style={{
-        padding: '20px',
+        marginLeft: isSidebarOpen ? '220px' : '20px',
+        paddingTop: '20px',
         marginTop: '2.5rem',
-        transition: 'all 0.3s ease',
+        transition: 'margin 0.3s ease',
       }}
     >
       <h2
-        style={{ color: '#0094B6', fontWeight: 'bold', paddingBottom: '2rem' }}
+        style={{
+          color: '#0094B6',
+          fontWeight: 'bold',
+          paddingBottom: '2rem',
+          paddingTop: '2rem',
+        }}
       >
         Add Objectives
       </h2>

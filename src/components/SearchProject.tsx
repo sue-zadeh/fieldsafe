@@ -2,6 +2,7 @@
 import React, { useState, useEffect } from 'react'
 import axios from 'axios'
 import { useNavigate } from 'react-router-dom'
+import { Navbar, Nav } from 'react-bootstrap'
 
 interface Project {
   id: number
@@ -23,6 +24,9 @@ interface SearchProjectProps {
 const SearchProject: React.FC<SearchProjectProps> = ({ isSidebarOpen }) => {
   const [projects, setProjects] = useState<Project[]>([])
   const [notification, setNotification] = useState<string | null>(null)
+  const [activeTab, setActiveTab] = useState('details')
+  const handleNavClick = (tab: string) => setActiveTab(tab)
+
   const navigate = useNavigate()
 
   useEffect(() => {
@@ -95,6 +99,48 @@ const SearchProject: React.FC<SearchProjectProps> = ({ isSidebarOpen }) => {
           fontWeight: 'bold',
         }}
       >
+        {/* Nav bar for projects page */}
+        <Navbar
+          expand="lg"
+          style={{
+            backgroundColor: '#c4edf2',
+            width: '100%',
+          }}
+          className="py-2"
+        >
+          {/* Hamburger menue-Toggle for small screens */}
+          <Navbar.Toggle
+            aria-controls="basic-navbar-nav"
+            style={{ backgroundColor: '#F4F7F1' }}
+          />
+          <Navbar.Collapse id="basic-navbar-nav">
+            <Nav className="mx-auto justify-content-center">
+              <Nav.Link
+                onClick={() => handleNavClick('activeprojects')}
+                style={{
+                  fontWeight:
+                    activeTab === 'activeprojects' ? 'bold' : 'normal',
+                  color: '#1A1A1A',
+                  marginRight: '1rem',
+                }}
+              >
+                Active projects
+              </Nav.Link>
+              <Nav.Link
+                onClick={() => handleNavClick('archiveprojects')}
+                style={{
+                  fontWeight:
+                    activeTab === 'archiveprojects' ? 'bold' : 'normal',
+                  color: '#1A1A1A',
+                  marginRight: '1rem',
+                }}
+              >
+                Archive Projects
+              </Nav.Link>
+            </Nav>
+          </Navbar.Collapse>
+        </Navbar>
+        {/* END Secondary Nav */}
         All Projects
       </h2>
 
