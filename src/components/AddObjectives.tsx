@@ -1,3 +1,4 @@
+// src/components/AddObjectives.tsx
 import React, { useState, useEffect, FormEvent } from 'react'
 import axios from 'axios'
 import { Table, Form, Button, Alert } from 'react-bootstrap'
@@ -8,7 +9,6 @@ interface Objective {
   measurement: string
   dateStart?: string
   dateEnd?: string
-  // plus any other fields you want
 }
 
 interface AddObjectivesProps {
@@ -21,7 +21,6 @@ const AddObjectives: React.FC<AddObjectivesProps> = ({ isSidebarOpen }) => {
   const [measurement, setMeasurement] = useState('')
   const [notification, setNotification] = useState<string | null>(null)
 
-  // Load objectives on component mount
   useEffect(() => {
     fetchObjectives()
   }, [])
@@ -36,7 +35,7 @@ const AddObjectives: React.FC<AddObjectivesProps> = ({ isSidebarOpen }) => {
     }
   }
 
-  // Auto-clear notification
+  // auto-clear notification
   useEffect(() => {
     if (notification) {
       const timer = setTimeout(() => setNotification(null), 4000)
@@ -54,15 +53,14 @@ const AddObjectives: React.FC<AddObjectivesProps> = ({ isSidebarOpen }) => {
 
     try {
       await axios.post('/api/objectives', {
-        title,
-        measurement,
-        // If your DB requires project_id or dateStart, dateEnd, pass them here
+        // no project_id needed
+        title: title.trim(),
+        measurement: measurement.trim(),
       })
       setNotification('Objective added successfully!')
       setTitle('')
       setMeasurement('')
-      // Reload to see the newly added objective
-      fetchObjectives()
+      fetchObjectives() // reload list
     } catch (err) {
       console.error('Error adding objective:', err)
       setNotification('Failed to add objective.')
@@ -71,18 +69,20 @@ const AddObjectives: React.FC<AddObjectivesProps> = ({ isSidebarOpen }) => {
 
   return (
     <div
-      className={`container-fluid ${
-        isSidebarOpen ? 'content-expanded' : 'content-collapsed'
-      }`}
+      className="container-fluid"
       style={{
-        // marginLeft: isSidebarOpen ? '220px' : '20px',
+        // no marginLeft so it doesn't push beyond your existing page layout
         transition: 'margin 0.3s ease',
         paddingTop: '10px',
         minHeight: '100vh',
       }}
     >
       <h2
-        style={{ color: '#0094B6', fontWeight: 'bold', paddingBottom: '2rem ' }}
+        style={{
+          color: '#0094B6',
+          fontWeight: 'bold',
+          paddingBottom: '2rem',
+        }}
       >
         Add Objectives
       </h2>
@@ -93,27 +93,21 @@ const AddObjectives: React.FC<AddObjectivesProps> = ({ isSidebarOpen }) => {
         </Alert>
       )}
 
-      <div className=" row form-container bg-white p-4 rounded shadow">
-        {/* LEFT SIDE: the existing objectives in a box/table */}
-        <div className="col-md-6 ">
+      <div className="row form-container bg-white p-4 rounded shadow">
+        {/* LEFT: objectives list */}
+        <div className="col-md-6">
           <h4 className="pb-3">
             <b>Objectives List</b>
           </h4>
           {objectives.length === 0 ? (
             <p className="text-muted">No objectives yet</p>
           ) : (
-            <Table
-              bordered
-              hover
-              className=" row form-container bg-white p-4 rounded shadow"
-            >
+            <Table bordered hover className="bg-white p-4 rounded shadow">
               <thead>
                 <tr>
                   <th>ID</th>
                   <th>Title</th>
                   <th>Measurement</th>
-                  {/* we have dateStart/dateEnd, add columns in the objectives table,
-                   we can add it here, if Dave wants  */}
                 </tr>
               </thead>
               <tbody>
@@ -128,8 +122,9 @@ const AddObjectives: React.FC<AddObjectivesProps> = ({ isSidebarOpen }) => {
             </Table>
           )}
         </div>
-        {/* RIGHT SIDE: the form */}
-        <div className="col-md-6 form-container bg-white p-4 rounded shadow ">
+
+        {/* RIGHT: add form */}
+        <div className="col-md-6 bg-white p-4 rounded shadow">
           <h4>Add a New Objective</h4>
           <Form onSubmit={handleSubmit}>
             <Form.Group className="m-3" controlId="objectiveTitle">
@@ -150,27 +145,14 @@ const AddObjectives: React.FC<AddObjectivesProps> = ({ isSidebarOpen }) => {
               </Form.Label>
               <Form.Control
                 type="text"
-                placeholder="Units of measure, e.g. 'Hours', 'Hectares', etc."
+                placeholder="Units, e.g. 'Hours', 'Hectares'... "
                 value={measurement}
                 onChange={(e) => setMeasurement(e.target.value)}
               />
             </Form.Group>
 
-            {/* If Dave wants dateStart and dateEnd, we can add fields here:
-              <Form.Group className="mb-3" controlId="dateStart">
-                <Form.Label>Date Start</Form.Label>
-                <Form.Control
-                  type="date"
-                  value={dateStart}
-                  onChange={(e) => setDateStart(e.target.value)}
-                />
-              </Form.Group>
-              etc...
-            */}
-
             <Button
               type="submit"
-              // variant="primary"
               className="w-100 mt-3 text-dark fs-5"
               style={{ backgroundColor: '#76D6E2', color: '#fff' }}
             >

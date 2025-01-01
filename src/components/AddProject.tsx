@@ -3,7 +3,7 @@ import React, { useState, useEffect, useRef } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 import axios, { AxiosError } from 'axios'
 import { GoogleMap, Marker, Autocomplete } from '@react-google-maps/api'
-import AddObjectives from './AddObjectives' // Adjust path as needed
+import AddObjectives from './AddObjectives' // Adjust path for objectives nav item
 
 import {
   Navbar,
@@ -17,7 +17,7 @@ import {
 } from 'react-bootstrap'
 
 const OCEAN_BLUE = '#0094B6'
-const SKY_BLUE = '#76D6E2'
+// const SKY_BLUE = '#76D6E2'
 
 type ProjectStatus = 'inprogress' | 'completed' | 'onhold'
 

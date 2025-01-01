@@ -65,7 +65,6 @@ FOREIGN KEY (createdBy) REFERENCES login(id)
 --the objectives table
 CREATE TABLE IF NOT EXISTS objectives (
   id INT AUTO_INCREMENT PRIMARY KEY,
-  project_id INT NOT NULL,               
   title VARCHAR(255) NOT NULL,
   measurement VARCHAR(255),
   dateStart DATE,
