@@ -314,7 +314,7 @@ const Navbar: React.FC<NavbarProps> = ({
                 style={{
                   color: '#1A1A1A',
                   fontWeight:
-                    isActive('/addobjective') || isActive('/addobjective')
+                    isActive('/objectives') || isActive('/objectives')
                       ? 'bold'
                       : 'normal',
                 }}
@@ -325,10 +325,10 @@ const Navbar: React.FC<NavbarProps> = ({
               <ul className="dropdown-menu" aria-labelledby="objectiveDropdown">
                 <li>
                   <Link
-                    to="/addobjective"
+                    to="/objectives"
                     className="dropdown-item"
                     style={{
-                      fontWeight: isActive('/addobjective') ? 'bold' : 'normal',
+                      fontWeight: isActive('/objectives') ? 'bold' : 'normal',
                     }}
                   >
                     <FaBullseye style={{ marginRight: '5px' }} />

@@ -15,7 +15,9 @@ interface Project {
   primaryContactName?: string
   primaryContactPhone?: string
   emergencyServices?: string
-  objectiveTitles?: string // from GROUP_CONCAT
+  objectiveTitles?: string
+  localMedicalCenterAddress?: string
+  localMedicalCenterPhone?: string
 }
 interface SearchProjectProps {
   isSidebarOpen: boolean
@@ -84,7 +86,7 @@ const SearchProject: React.FC<SearchProjectProps> = ({ isSidebarOpen }) => {
         marginLeft: isSidebarOpen ? '220px' : '20px',
         transition: 'margin 0.3s ease',
         minHeight: '100vh',
-        paddingTop: '25px',
+        paddingTop: '10px',
         backgroundColor: '#F4F7F1',
       }}
     >
@@ -92,55 +94,55 @@ const SearchProject: React.FC<SearchProjectProps> = ({ isSidebarOpen }) => {
       {notification && (
         <div className="alert alert-info text-center">{notification}</div>
       )}
+
+      {/* Nav bar for projects page */}
+      <Navbar
+        expand="lg"
+        style={{
+          backgroundColor: '#c4edf2',
+          width: '100%',
+        }}
+        className="py-2"
+      >
+        {/* Hamburger menue-Toggle for small screens */}
+        <Navbar.Toggle
+          aria-controls="basic-navbar-nav"
+          style={{ backgroundColor: '#F4F7F1' }}
+        />
+        <Navbar.Collapse id="basic-navbar-nav">
+          <Nav className="mx-auto justify-content-center">
+            <Nav.Link
+              onClick={() => handleNavClick('activeprojects')}
+              style={{
+                fontWeight: activeTab === 'activeprojects' ? 'bold' : 'normal',
+                color: '#1A1A1A',
+                marginRight: '1rem',
+              }}
+            >
+              Active projects
+            </Nav.Link>
+            <Nav.Link
+              onClick={() => handleNavClick('archiveprojects')}
+              style={{
+                fontWeight: activeTab === 'archiveprojects' ? 'bold' : 'normal',
+                color: '#1A1A1A',
+                marginRight: '1rem',
+              }}
+            >
+              Archive Projects
+            </Nav.Link>
+          </Nav>
+        </Navbar.Collapse>
+      </Navbar>
+      {/* END Secondary Nav */}
+
       <h2
-        className="mb-4"
+        className="m-4 fs-1"
         style={{
           color: '#0094B6',
           fontWeight: 'bold',
         }}
       >
-        {/* Nav bar for projects page */}
-        <Navbar
-          expand="lg"
-          style={{
-            backgroundColor: '#c4edf2',
-            width: '100%',
-          }}
-          className="py-2"
-        >
-          {/* Hamburger menue-Toggle for small screens */}
-          <Navbar.Toggle
-            aria-controls="basic-navbar-nav"
-            style={{ backgroundColor: '#F4F7F1' }}
-          />
-          <Navbar.Collapse id="basic-navbar-nav">
-            <Nav className="mx-auto justify-content-center">
-              <Nav.Link
-                onClick={() => handleNavClick('activeprojects')}
-                style={{
-                  fontWeight:
-                    activeTab === 'activeprojects' ? 'bold' : 'normal',
-                  color: '#1A1A1A',
-                  marginRight: '1rem',
-                }}
-              >
-                Active projects
-              </Nav.Link>
-              <Nav.Link
-                onClick={() => handleNavClick('archiveprojects')}
-                style={{
-                  fontWeight:
-                    activeTab === 'archiveprojects' ? 'bold' : 'normal',
-                  color: '#1A1A1A',
-                  marginRight: '1rem',
-                }}
-              >
-                Archive Projects
-              </Nav.Link>
-            </Nav>
-          </Navbar.Collapse>
-        </Navbar>
-        {/* END Secondary Nav */}
         All Projects
       </h2>
 

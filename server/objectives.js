@@ -65,7 +65,7 @@ router.put('/:id', async (req, res) => {
     return res.json({ message: 'Objective updated successfully!' })
   } catch (error) {
     if (error.code === 'ER_DUP_ENTRY') {
-      // e.g. user trying to rename to an existing title
+      // uniqueness objective title ============
       return res
         .status(400)
         .json({ message: 'Objective title already exists.' })
@@ -75,20 +75,29 @@ router.put('/:id', async (req, res) => {
   }
 })
 
-// DELETE /api/objectives/:id
+// DELETE Objective ================
+// server/routes/objectives.js ===============
 router.delete('/:id', async (req, res) => {
   const { id } = req.params
   try {
-    const sql = 'DELETE FROM objectives WHERE id = ?'
-    const [result] = await pool.query(sql, [id])
+    // First, delete related records in project_objectives to maintain referential integrity
+    await pool.query('DELETE FROM project_objectives WHERE objective_id = ?', [
+      id,
+    ])
+
+    // Then, delete the objective itself
+    const [result] = await pool.query('DELETE FROM objectives WHERE id = ?', [
+      id,
+    ])
+
     if (result.affectedRows === 0) {
-      return res.status(404).json({ message: 'Objective not found' })
+      return res.status(404).json({ message: 'Objective not found.' })
     }
-    return res.json({ message: 'Objective deleted successfully!' })
+
+    res.json({ message: 'Objective deleted successfully!' })
   } catch (error) {
     console.error('Error deleting objective:', error)
-    return res.status(500).json({ message: 'Failed to delete objective.' })
+    res.status(500).json({ message: 'Internal server error.' })
   }
 })
-
 export default router

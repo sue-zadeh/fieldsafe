@@ -365,7 +365,7 @@ const AddProject: React.FC<AddProjectProps> = ({ isSidebarOpen }) => {
       return
     }
 
-    // Check name uniqueness
+    // Check name uniqueness ====================
     try {
       const checkRes = await axios.get(
         `/api/projects?name=${encodeURIComponent(name)}`
@@ -378,7 +378,7 @@ const AddProject: React.FC<AddProjectProps> = ({ isSidebarOpen }) => {
       console.warn('Uniqueness check error (save as new):', error)
     }
 
-    // Build new formData
+    // Build new formData =============
     const formData = new FormData()
     formData.append('name', name)
     formData.append('location', location)

@@ -14,9 +14,9 @@ import Volunteer from './components/volunteer'
 import AddProject from './components/AddProject'
 import SearchProject from './components/SearchProject'
 import AddObjective from './components/addobjective'
-import Objective from './components/o'
+import Objective from './components/objectives'
 
-import Layout from './components/layout'
+// import Layout from './components/layout'
 
 const GOOGLE_MAPS_API_KEY = import.meta.env.VITE_GOOGLE_MAPS_API_KEY || ''
 const App: React.FC = () => {
@@ -150,7 +150,7 @@ const App: React.FC = () => {
                     element={<AddProject isSidebarOpen={isSidebarOpen} />}
                   />
                   {/* All routes will use the Layout */}
-                  <Route
+                  {/* <Route
                     path="/"
                     element={
                       <Layout
@@ -158,14 +158,14 @@ const App: React.FC = () => {
                         toggleSidebar={toggleSidebar}
                       />
                     }
-                  />
+                  /> */}
                   {/* Nested routes */}
                   <Route
                     path="/Addobjective"
                     element={<AddObjective isSidebarOpen={isSidebarOpen} />}
                   />
                   <Route
-                    path="/objective"
+                    path="/objectives"
                     element={<Objective isSidebarOpen={isSidebarOpen} />}
                   />
                   <Route

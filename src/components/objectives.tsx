@@ -12,11 +12,11 @@ interface Objective {
   dateEnd?: string
 }
 
-interface AddObjectivesProps {
+interface ObjectivesProps {
   isSidebarOpen: boolean
 }
 
-const AddObjectives: React.FC<AddObjectivesProps> = ({ isSidebarOpen }) => {
+const AddObjectives: React.FC<ObjectivesProps> = ({ isSidebarOpen }) => {
   const [objectives, setObjectives] = useState<Objective[]>([])
   const [title, setTitle] = useState('')
   const [measurement, setMeasurement] = useState('')
@@ -129,7 +129,7 @@ const AddObjectives: React.FC<AddObjectivesProps> = ({ isSidebarOpen }) => {
 
   return (
     <div
-      className={`container-fluid d-flex align-items-center justify-content-center mt-5 ${
+      className={`container-fluid ${
         isSidebarOpen ? 'content-expanded' : 'content-collapsed'
       }`}
       style={{
