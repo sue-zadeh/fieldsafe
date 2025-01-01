@@ -55,7 +55,7 @@ const AddObjectives: React.FC<AddObjectivesProps> = ({ isSidebarOpen }) => {
     try {
       await axios.post('/api/objectives', {
         title,
-        measurement
+        measurement,
         // If your DB requires project_id or dateStart, dateEnd, pass them here
       })
       setNotification('Objective added successfully!')
@@ -75,13 +75,17 @@ const AddObjectives: React.FC<AddObjectivesProps> = ({ isSidebarOpen }) => {
         isSidebarOpen ? 'content-expanded' : 'content-collapsed'
       }`}
       style={{
-        marginLeft: isSidebarOpen ? '220px' : '20px',
+        // marginLeft: isSidebarOpen ? '220px' : '20px',
         transition: 'margin 0.3s ease',
-        paddingTop: '20px',
+        paddingTop: '10px',
         minHeight: '100vh',
       }}
     >
-      <h2 style={{ color: '#0094B6', fontWeight: 'bold' }}>Add Objectives</h2>
+      <h2
+        style={{ color: '#0094B6', fontWeight: 'bold', paddingBottom: '2rem ' }}
+      >
+        Add Objectives
+      </h2>
 
       {notification && (
         <Alert variant="info" className="text-center">
@@ -89,14 +93,20 @@ const AddObjectives: React.FC<AddObjectivesProps> = ({ isSidebarOpen }) => {
         </Alert>
       )}
 
-      <div className="row g-5">
+      <div className=" row form-container bg-white p-4 rounded shadow">
         {/* LEFT SIDE: the existing objectives in a box/table */}
-        <div className="col-md-6">
-          <h4>Objectives List</h4>
+        <div className="col-md-6 ">
+          <h4 className="pb-3">
+            <b>Objectives List</b>
+          </h4>
           {objectives.length === 0 ? (
             <p className="text-muted">No objectives yet</p>
           ) : (
-            <Table bordered hover>
+            <Table
+              bordered
+              hover
+              className=" row form-container bg-white p-4 rounded shadow"
+            >
               <thead>
                 <tr>
                   <th>ID</th>
@@ -119,11 +129,13 @@ const AddObjectives: React.FC<AddObjectivesProps> = ({ isSidebarOpen }) => {
           )}
         </div>
         {/* RIGHT SIDE: the form */}
-        <div className="col-md-6">
+        <div className="col-md-6 form-container bg-white p-4 rounded shadow ">
           <h4>Add a New Objective</h4>
           <Form onSubmit={handleSubmit}>
-            <Form.Group className="mb-3" controlId="objectiveTitle">
-              <Form.Label>Objective Title</Form.Label>
+            <Form.Group className="m-3" controlId="objectiveTitle">
+              <Form.Label>
+                <b>Objective Title</b>
+              </Form.Label>
               <Form.Control
                 type="text"
                 placeholder="Write a new objective here"
@@ -133,7 +145,9 @@ const AddObjectives: React.FC<AddObjectivesProps> = ({ isSidebarOpen }) => {
             </Form.Group>
 
             <Form.Group className="mb-3" controlId="measurement">
-              <Form.Label>Measurement</Form.Label>
+              <Form.Label>
+                <b>Measurement</b>
+              </Form.Label>
               <Form.Control
                 type="text"
                 placeholder="Units of measure, e.g. 'Hours', 'Hectares', etc."
@@ -154,7 +168,12 @@ const AddObjectives: React.FC<AddObjectivesProps> = ({ isSidebarOpen }) => {
               etc...
             */}
 
-            <Button type="submit" variant="primary">
+            <Button
+              type="submit"
+              // variant="primary"
+              className="w-100 mt-3 text-dark fs-5"
+              style={{ backgroundColor: '#76D6E2', color: '#fff' }}
+            >
               Save
             </Button>
           </Form>

@@ -435,17 +435,11 @@ const AddProject: React.FC<AddProjectProps> = ({ isSidebarOpen }) => {
         }}
         className="px-4 py-1"
       >
-        <Navbar.Brand
-          className="m-0 fs-3"
-          style={{
-            color: OCEAN_BLUE,
-            fontWeight: 'bold',
-          }}
-        >
-          {isEdit ? 'Edit Project' : 'Create Project'}
-        </Navbar.Brand>
+        {/* <Navbar.Brand */}
 
-        {/* Toggle for small screens */}
+        {/* </Navbar.Brand> */}
+
+        {/* Hamburger menue-Toggle for small screens */}
         <Navbar.Toggle
           aria-controls="basic-navbar-nav"
           style={{ backgroundColor: '#F4F7F1' }}
@@ -473,9 +467,9 @@ const AddProject: React.FC<AddProjectProps> = ({ isSidebarOpen }) => {
               Objectives
             </Nav.Link>
             <Nav.Link
-              onClick={() => handleNavClick('objectives')}
+              onClick={() => handleNavClick('hazard')}
               style={{
-                fontWeight: activeTab === 'objectives' ? 'bold' : 'normal',
+                fontWeight: activeTab === 'hazard' ? 'bold' : 'normal',
                 color: '#1A1A1A',
                 marginRight: '1rem',
               }}
@@ -495,6 +489,16 @@ const AddProject: React.FC<AddProjectProps> = ({ isSidebarOpen }) => {
         </Navbar.Collapse>
       </Navbar>
       {/* END Secondary Nav */}
+      <h3
+        className="m-2 fw-title"
+        style={{
+          color: OCEAN_BLUE,
+          fontWeight: 'bold',
+        }}
+      >
+        {' '}
+        {isEdit ? 'Edit Project' : 'Create Project'}
+      </h3>
 
       {/* Notification (displays for 6s) */}
       {notification && (
@@ -503,11 +507,11 @@ const AddProject: React.FC<AddProjectProps> = ({ isSidebarOpen }) => {
         </div>
       )}
 
-      <div style={{ marginTop: '1rem', padding: '1rem' }}>
+      <div style={{ marginTop: '2rem', padding: '1rem' }}>
         {activeTab === 'details' && (
-          <div className="row g-5">
+          <div className="row">
             {/* LEFT COLUMN */}
-            <div className="col-md-5 p-0 rounded ">
+            <div className="col-md-5 p-0 rounded p-3 ">
               <h4 style={{ color: OCEAN_BLUE }}>{name || '[Project Name]'}</h4>
 
               <div className="border pt-0 mb-3 text-center">
@@ -556,7 +560,7 @@ const AddProject: React.FC<AddProjectProps> = ({ isSidebarOpen }) => {
                   />
                 </div>
               </div>
-
+              {/* Emergensy Services */}
               <h5>Emergency Services</h5>
               <Form.Group className="mb-3" controlId="emergencyServices">
                 <Form.Control
@@ -702,9 +706,9 @@ const AddProject: React.FC<AddProjectProps> = ({ isSidebarOpen }) => {
             </div>
 
             {/* RIGHT COLUMN */}
-            <div className="col-md-7 p-3">
+            <div className="form-container bg-white  rounded shadow col-md-7 px-3 pt-0">
               <Form onSubmit={handleSubmit}>
-                <Form.Group controlId="projectName" className="mb-3">
+                <Form.Group controlId="projectName" className="my-3 fw-bold">
                   <Form.Label>Project Name</Form.Label>
                   <Form.Control
                     required
@@ -721,7 +725,7 @@ const AddProject: React.FC<AddProjectProps> = ({ isSidebarOpen }) => {
                     <Form.Control
                       readOnly
                       as="textarea"
-                      rows={3}
+                      rows={2}
                       value={selectedObjectivesText}
                       placeholder="(No objectives selected)"
                       onClick={openObjModal}
@@ -823,7 +827,7 @@ const AddProject: React.FC<AddProjectProps> = ({ isSidebarOpen }) => {
 
                 {/* If editing => show two buttons: "Save Changes" and "Save as New Project" */}
                 {isEdit ? (
-                  <div className="d-flex flex-column gap-2">
+                  <div className="d-flex flex-column pb-3 fs-5 gap-2">
                     <Button
                       type="submit"
                       style={{ backgroundColor: OCEAN_BLUE, color: '#fff' }}
@@ -838,7 +842,7 @@ const AddProject: React.FC<AddProjectProps> = ({ isSidebarOpen }) => {
                   /* If creating => single "Save" button */
                   <Button
                     type="submit"
-                    className="w-100 mt-3"
+                    className="w-100 m-3 fs-5"
                     style={{ backgroundColor: OCEAN_BLUE, color: '#fff' }}
                   >
                     Save
@@ -851,8 +855,8 @@ const AddProject: React.FC<AddProjectProps> = ({ isSidebarOpen }) => {
 
         {/* Additional tabs: Objectives, Risks, etc. */}
         {activeTab === 'objectives' && (
-          <div className="p-4">
-            <h3>Project Objectives</h3>
+          <div className="py-4">
+            {/* <h3 ><b>Project Objectives</b></h3> */}
             <AddObjectives isSidebarOpen={isSidebarOpen} />
           </div>
         )}
