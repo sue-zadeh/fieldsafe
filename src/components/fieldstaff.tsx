@@ -33,7 +33,7 @@ const FieldStaff: React.FC<FieldStaffProps> = ({ isSidebarOpen }) => {
   const navigate = useNavigate()
 
   //------------------------------------------------------------
-  // (A) On mount, fetch ALL "Field Staff"
+  // On mount, fetch ALL "Field Staff"
   const fetchAllStaff = async () => {
     try {
       const res = await axios.get('/api/staff', {
@@ -54,7 +54,7 @@ const FieldStaff: React.FC<FieldStaffProps> = ({ isSidebarOpen }) => {
   }, [])
 
   //------------------------------------------------------------
-  // (B) Immediate search on typing
+  // Immediate search on typing
   useEffect(() => {
     const doSearch = async () => {
       if (!searchQuery.trim()) {
@@ -76,7 +76,7 @@ const FieldStaff: React.FC<FieldStaffProps> = ({ isSidebarOpen }) => {
   }, [searchQuery])
 
   //------------------------------------------------------------
-  // (C) Change role
+  //  Change role
   const handleRoleChange = async (userId: number, newRole: Role) => {
     try {
       // Optimistic update

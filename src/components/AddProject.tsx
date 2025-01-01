@@ -3,7 +3,7 @@ import React, { useState, useEffect, useRef } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 import axios, { AxiosError } from 'axios'
 import { GoogleMap, Marker, Autocomplete } from '@react-google-maps/api'
-import AddObjectives from './AddObjectives' // Adjust path for objectives nav item
+import AddObjectives from './addobjective' // Adjust path for objectives nav item
 
 import {
   Navbar,
@@ -499,9 +499,13 @@ const AddProject: React.FC<AddProjectProps> = ({ isSidebarOpen }) => {
             fontWeight: 'bold',
           }}
         >
-          {' '}
-          {isEdit ? 'Edit Project' : 'Create Project'}
-          {/* {isObjectives ? 'Objectives: ' : 'Create Project'} */}
+          {
+            activeTab === 'details'
+              ? isEdit
+                ? 'Edit Project'
+                : 'Create Project'
+              : '' /* or do not render anything */
+          }
         </h3>
       </div>
 

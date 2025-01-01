@@ -13,7 +13,7 @@ import Registervolunteer from './components/registervolunteer'
 import Volunteer from './components/volunteer'
 import AddProject from './components/AddProject'
 import SearchProject from './components/SearchProject'
-import AddObjectives from './components/AddObjectives'
+import AddObjective from './components/addobjective'
 const GOOGLE_MAPS_API_KEY = import.meta.env.VITE_GOOGLE_MAPS_API_KEY || ''
 const App: React.FC = () => {
   const [isLoggedIn, setIsLoggedIn] = useState(false)
@@ -144,8 +144,8 @@ const App: React.FC = () => {
                     element={<AddProject isSidebarOpen={isSidebarOpen} />}
                   />
                   <Route
-                    path="/AddProject/AddObjectives"
-                    element={<AddObjectives isSidebarOpen={isSidebarOpen} />}
+                    path="/Addobjective"
+                    element={<AddObjective isSidebarOpen={isSidebarOpen} />}
                   />
                   <Route
                     path="/SearchProject"

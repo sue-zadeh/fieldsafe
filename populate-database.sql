@@ -70,4 +70,6 @@ VALUES
 
 -- Populate the project_objectives table
 INSERT INTO project_objectives (project_id, objective_id)
-VALUES (1, 1), (1, 2);
+VALUES
+ (1, 1),
+ (1, 2);

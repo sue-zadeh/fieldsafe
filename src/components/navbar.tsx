@@ -302,27 +302,27 @@ const Navbar: React.FC<NavbarProps> = ({
               </ul>
             </li>
 
-            {/* Objectives */}
+            {/*===== Objectives ======= */}
             <li className="nav-item dropdown px-3">
               <a
                 className="nav-link dropdown-toggle"
                 href="#"
-                id="objectivesDropdown"
+                id="objectiveDropdown"
                 role="button"
                 data-bs-toggle="dropdown"
                 aria-expanded="false"
                 style={{
                   color: '#1A1A1A',
-                  fontWeight: isActive('/addobjective') ? 'bold' : 'normal',
+                  fontWeight:
+                    isActive('/addobjective') || isActive('/addobjective')
+                      ? 'bold'
+                      : 'normal',
                 }}
               >
                 <FaBullseye style={{ marginRight: '5px' }} />
                 Objectives
               </a>
-              <ul
-                className="dropdown-menu"
-                aria-labelledby="objectivesDropdown"
-              >
+              <ul className="dropdown-menu" aria-labelledby="objectiveDropdown">
                 <li>
                   <Link
                     to="/addobjective"
@@ -335,9 +335,8 @@ const Navbar: React.FC<NavbarProps> = ({
                     Add Objective
                   </Link>
                 </li>
-              </ul>
-            </li>
-
+        </ul>
+        </li>
             {/* Logout */}
             {isLoggedIn && (
               <li className="nav-item">
