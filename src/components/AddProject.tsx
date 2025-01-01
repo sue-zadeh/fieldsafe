@@ -65,6 +65,8 @@ const AddProject: React.FC<AddProjectProps> = ({ isSidebarOpen }) => {
 
   // Are we editing?
   const [isEdit, setIsEdit] = useState(false)
+  // const [isObjectives, setIsObjectives] = useState(false)
+
   const [projectId, setProjectId] = useState<number | null>(null)
 
   // Form fields
@@ -433,7 +435,7 @@ const AddProject: React.FC<AddProjectProps> = ({ isSidebarOpen }) => {
           backgroundColor: '#c4edf2',
           width: '100%',
         }}
-        className="px-4 py-1"
+        className="py-2"
       >
         {/* <Navbar.Brand */}
 
@@ -489,16 +491,19 @@ const AddProject: React.FC<AddProjectProps> = ({ isSidebarOpen }) => {
         </Navbar.Collapse>
       </Navbar>
       {/* END Secondary Nav */}
-      <h3
-        className="m-2 fw-title"
-        style={{
-          color: OCEAN_BLUE,
-          fontWeight: 'bold',
-        }}
-      >
-        {' '}
-        {isEdit ? 'Edit Project' : 'Create Project'}
-      </h3>
+      <div>
+        <h3
+          className="m-2 fw-4"
+          style={{
+            color: OCEAN_BLUE,
+            fontWeight: 'bold',
+          }}
+        >
+          {' '}
+          {isEdit ? 'Edit Project' : 'Create Project'}
+          {/* {isObjectives ? 'Objectives: ' : 'Create Project'} */}
+        </h3>
+      </div>
 
       {/* Notification (displays for 6s) */}
       {notification && (
@@ -507,7 +512,7 @@ const AddProject: React.FC<AddProjectProps> = ({ isSidebarOpen }) => {
         </div>
       )}
 
-      <div style={{ marginTop: '2rem', padding: '1rem' }}>
+      <div style={{ marginTop: '2rem' }}>
         {activeTab === 'details' && (
           <div className="row">
             {/* LEFT COLUMN */}
