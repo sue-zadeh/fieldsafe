@@ -77,6 +77,16 @@ const SearchProject: React.FC<SearchProjectProps> = ({ isSidebarOpen }) => {
     }
   }
 
+  // Helper function to format date
+  const formatDate = (dateString: string): string => {
+    const date = new Date(dateString)
+    return date.toLocaleDateString(undefined, {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric',
+    })
+  }
+
   return (
     <div
       className={`container-fluid ${
@@ -90,7 +100,7 @@ const SearchProject: React.FC<SearchProjectProps> = ({ isSidebarOpen }) => {
         backgroundColor: '#F4F7F1',
       }}
     >
-      {/* <div className="container mt-4"> */}
+      {/* Notification */}
       {notification && (
         <div className="alert alert-info text-center">{notification}</div>
       )}
@@ -104,7 +114,7 @@ const SearchProject: React.FC<SearchProjectProps> = ({ isSidebarOpen }) => {
         }}
         className="py-2"
       >
-        {/* Hamburger menue-Toggle for small screens */}
+        {/* Hamburger menu Toggle for small screens */}
         <Navbar.Toggle
           aria-controls="basic-navbar-nav"
           style={{ backgroundColor: '#F4F7F1' }}
@@ -176,7 +186,7 @@ const SearchProject: React.FC<SearchProjectProps> = ({ isSidebarOpen }) => {
                   className="badge bg-info p-2 text-dark position-absolute fs-6"
                   style={{ bottom: '5px', right: '5px' }}
                 >
-                  {p.status}
+                  {p.status.charAt(0).toUpperCase() + p.status.slice(1)}
                 </span>
               </div>
               <div className="card-body">
@@ -199,7 +209,7 @@ const SearchProject: React.FC<SearchProjectProps> = ({ isSidebarOpen }) => {
                   <strong>Location:</strong> {p.location}
                 </p>
                 <p className="mb-1">
-                  <strong>Start Date:</strong> {p.startDate}
+                  <strong>Start Date:</strong> {formatDate(p.startDate)}
                 </p>
 
                 {p.primaryContactName && (
@@ -212,7 +222,7 @@ const SearchProject: React.FC<SearchProjectProps> = ({ isSidebarOpen }) => {
                   <p className="mb-1">
                     <strong>Emergency:</strong> {p.emergencyServices}
                     <br />
-                    <strong>local Medical Center Address/Phone:</strong>{' '}
+                    <strong>Local Medical Center Address/Phone:</strong>{' '}
                     {p.localMedicalCenterAddress} ({p.localMedicalCenterPhone})
                   </p>
                 )}
