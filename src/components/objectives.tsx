@@ -121,11 +121,14 @@ const AddObjectives: React.FC<ObjectivesProps> = ({ isSidebarOpen }) => {
 
   return (
     <div
-      className="container-fluid"
+      className={`container-fluid ${
+        isSidebarOpen ? 'content-expanded' : 'content-collapsed'
+      }`}
       style={{
+        marginLeft: isSidebarOpen ? '220px' : '20px',
         transition: 'margin 0.3s ease',
-        paddingTop: '5px',
-        minHeight: '100vh',
+        paddingTop: '3rem',
+        // minHeight: '100vh',
       }}
     >
       <h2

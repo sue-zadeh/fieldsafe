@@ -193,7 +193,7 @@ const SearchProject: React.FC<SearchProjectProps> = ({ isSidebarOpen }) => {
                 <h3 className="card-title mb-2">{p.name}</h3>
                 {/* objectiveTitles from bridging table */}
                 {p.objectiveTitles && (
-                  <p className="text-muted fs-6">
+                  <p className="text-dark fs-6">
                     <strong>Objectives:</strong>
                     <br />
                     {p.objectiveTitles.split(',').map((obj, idx) => (

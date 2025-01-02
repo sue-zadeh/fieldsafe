@@ -586,7 +586,10 @@ const AddProject: React.FC<AddProjectProps> = ({ isSidebarOpen }) => {
                     className="mb-3"
                     controlId="localMedicalCenterAddress"
                   >
-                    <Form.Label>Local Medical Center (Address)</Form.Label>
+                    <Form.Label>
+                      Local Medical Center <br />
+                      (Address)
+                    </Form.Label>
                     <Form.Control
                       required
                       type="text"
@@ -602,7 +605,10 @@ const AddProject: React.FC<AddProjectProps> = ({ isSidebarOpen }) => {
                     className="mb-3"
                     controlId="localMedicalCenterPhone"
                   >
-                    <Form.Label>Local Medical Center (Phone)</Form.Label>
+                    <Form.Label>
+                      Local Medical Center <br />
+                      (Phone)
+                    </Form.Label>
                     <Form.Control
                       required
                       pattern="^\d{10}$"

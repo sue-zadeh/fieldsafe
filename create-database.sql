@@ -79,6 +79,7 @@ CREATE TABLE IF NOT EXISTS project_objectives (
   id INT AUTO_INCREMENT PRIMARY KEY,
   project_id INT NOT NULL,
   objective_id INT NOT NULL,
+  amount INT NOT NULL DEFAULT 1
   FOREIGN KEY (project_id) REFERENCES projects(id),
   FOREIGN KEY (objective_id) REFERENCES objectives(id)
 );

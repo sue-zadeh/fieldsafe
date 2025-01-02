@@ -76,11 +76,10 @@ router.put('/:id', async (req, res) => {
 })
 
 // DELETE Objective ================
-// server/routes/objectives.js ===============
 router.delete('/:id', async (req, res) => {
   const { id } = req.params
   try {
-    // First, delete related records in project_objectives to maintain referential integrity
+    // First, delete related records in project_objectives
     await pool.query('DELETE FROM project_objectives WHERE objective_id = ?', [
       id,
     ])
