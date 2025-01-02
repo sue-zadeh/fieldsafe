@@ -96,7 +96,7 @@ const RegisterRoles: React.FC<RegisterroleProps> = ({ isSidebarOpen }) => {
       await axios.post('/api/send-email', {
         email: formData.email,
         subject: 'Registration Confirmation',
-        message: `Dear ${formData.firstname} ${formData.lastname},\n\nYou have been successfully registered as a ${formData.role}.\n\nBest regards,\nYour Team`,
+        message: `Dear ${formData.firstname} ${formData.lastname},\n\nYou are now  registered as a ${formData.role} Member for your organisation’s FieldSafe App use.\n we welcome your feedback on its use.\n\nBest regards,\nYour Team`,
       })
     } catch (error) {
       console.error('Error sending email:', error)
@@ -198,68 +198,68 @@ const RegisterRoles: React.FC<RegisterroleProps> = ({ isSidebarOpen }) => {
 
         {/* Fields */}
         <form className="form-container bg-white p-4 rounded shadow">
-        <div className="mb-3">
-          <label>First Name</label>
-          <input
-            type="text"
-            name="firstname"
-            value={formData.firstname}
-            onChange={handleInputChange}
-            className="form-control"
-          />
-        </div>
-        <div className="mb-3">
-          <label>Last Name</label>
-          <input
-            type="text"
-            name="lastname"
-            value={formData.lastname}
-            onChange={handleInputChange}
-            className="form-control"
-          />
-        </div>
-        <div className="mb-3">
-          <label>Email</label>
-          <input
-            type="email"
-            name="email"
-            value={formData.email}
-            onChange={handleInputChange}
-            className="form-control"
-          />
-        </div>
-        <div className="mb-3">
-          <label>Phone</label>
-          <input
-            type="text"
-            name="phone"
-            value={formData.phone}
-            onChange={handleInputChange}
-            className="form-control"
-          />
-        </div>
-        <div className="mb-3">
-          <label>Role</label>
-          <select
-            name="role"
-            value={formData.role}
-            onChange={handleInputChange}
-            className="form-select"
-          >
-            <option value="Group Admin">Group Admin</option>
-            <option value="Field Staff">Field Staff</option>
-            <option value="Team Leader">Team Leader</option>
-          </select>
-        </div>
+          <div className="mb-3">
+            <label>First Name</label>
+            <input
+              type="text"
+              name="firstname"
+              value={formData.firstname}
+              onChange={handleInputChange}
+              className="form-control"
+            />
+          </div>
+          <div className="mb-3">
+            <label>Last Name</label>
+            <input
+              type="text"
+              name="lastname"
+              value={formData.lastname}
+              onChange={handleInputChange}
+              className="form-control"
+            />
+          </div>
+          <div className="mb-3">
+            <label>Email</label>
+            <input
+              type="email"
+              name="email"
+              value={formData.email}
+              onChange={handleInputChange}
+              className="form-control"
+            />
+          </div>
+          <div className="mb-3">
+            <label>Phone</label>
+            <input
+              type="text"
+              name="phone"
+              value={formData.phone}
+              onChange={handleInputChange}
+              className="form-control"
+            />
+          </div>
+          <div className="mb-3">
+            <label>Role</label>
+            <select
+              name="role"
+              value={formData.role}
+              onChange={handleInputChange}
+              className="form-select"
+            >
+              <option value="Group Admin">Group Admin</option>
+              <option value="Field Staff">Field Staff</option>
+              <option value="Team Leader">Team Leader</option>
+            </select>
+          </div>
 
-        {/* Button */}
-        <button
-          type="button"
-          className="btn btn-primary w-100 mt-4"
-          onClick={handleSubmit}
-        >
-          {formData.id ? 'Save Changes' : 'Register and Send Email'}
-        </button>
+          {/* Button */}
+          <button
+            type="button"
+            className="btn btn-primary w-100 mt-4"
+            onClick={handleSubmit}
+          >
+            {formData.id ? 'Save Changes' : 'Register and Send Email'}
+          </button>
         </form>
       </div>
     </div>

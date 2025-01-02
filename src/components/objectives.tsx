@@ -121,13 +121,10 @@ const AddObjectives: React.FC<ObjectivesProps> = ({ isSidebarOpen }) => {
 
   return (
     <div
-      className={`container-fluid ${
-        isSidebarOpen ? 'content-expanded' : 'content-collapsed'
-      }`}
+      className="container-fluid"
       style={{
-        marginLeft: isSidebarOpen ? '220px' : '20px',
         transition: 'margin 0.3s ease',
-        paddingTop: '3rem',
+        paddingTop: '5px',
         minHeight: '100vh',
       }}
     >
@@ -155,17 +152,18 @@ const AddObjectives: React.FC<ObjectivesProps> = ({ isSidebarOpen }) => {
             <Table bordered hover className="bg-white px-5 p-4 rounded shadow">
               <thead>
                 <tr>
-                  <th>ID</th>
-                  <th>Title</th>
-                  <th>Measurement</th>
+                  <th className="text-center">#</th>
+                  <th className="text-center">Title</th>
+                  <th className="text-center">Measurement</th>
+                  <th className="text-center">Actions</th>
                 </tr>
               </thead>
               <tbody>
-                {objectives.map((obj) => {
+                {objectives.map((obj, index) => {
                   const isEditing = editObj && editObj.id === obj.id
                   return (
                     <tr key={obj.id}>
-                      {/* <td>{obj.id}</td> */}
+                      <td className="text-center">{index + 1}</td>
                       <td>
                         {isEditing ? (
                           <Form.Control
