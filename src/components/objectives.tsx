@@ -1,10 +1,8 @@
-// src/components/AddObjectives.tsx
 import React, { useState, useEffect, FormEvent } from 'react'
 import axios from 'axios'
 import { Table, Form, Button, Alert, ButtonGroup } from 'react-bootstrap'
-// import Layout from './layout'
 
-interface Objective {
+interface Objectives {
   id: number
   title: string
   measurement: string
@@ -17,13 +15,13 @@ interface ObjectivesProps {
 }
 
 const AddObjectives: React.FC<ObjectivesProps> = ({ isSidebarOpen }) => {
-  const [objectives, setObjectives] = useState<Objective[]>([])
+  const [objectives, setObjectives] = useState<Objectives[]>([])
   const [title, setTitle] = useState('')
   const [measurement, setMeasurement] = useState('')
   const [notification, setNotification] = useState<string | null>(null)
 
   // For editing an existing objective
-  const [editObj, setEditObj] = useState<Objective | null>(null)
+  const [editObj, setEditObj] = useState<Objectives | null>(null)
 
   useEffect(() => {
     fetchObjectives()
@@ -39,7 +37,7 @@ const AddObjectives: React.FC<ObjectivesProps> = ({ isSidebarOpen }) => {
     }
   }
 
-  // Auto-clear notification
+  // auto-clear notification
   useEffect(() => {
     if (notification) {
       const timer = setTimeout(() => setNotification(null), 4000)
@@ -47,9 +45,7 @@ const AddObjectives: React.FC<ObjectivesProps> = ({ isSidebarOpen }) => {
     }
   }, [notification])
 
-  // ===============================
   // ADD NEW OBJECTIVE
-  // ===============================
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault()
     if (!title.trim() || !measurement.trim()) {
@@ -72,10 +68,8 @@ const AddObjectives: React.FC<ObjectivesProps> = ({ isSidebarOpen }) => {
     }
   }
 
-  // ===============================
-  // EDIT HANDLERS
-  // ===============================
-  const handleEditClick = (obj: Objective) => {
+  // EDIT MODE
+  const handleEditClick = (obj: Objectives) => {
     setEditObj({ ...obj })
   }
 
@@ -107,9 +101,7 @@ const AddObjectives: React.FC<ObjectivesProps> = ({ isSidebarOpen }) => {
     }
   }
 
-  // ===============================
   // DELETE
-  // ===============================
   const handleDelete = async (id: number) => {
     if (!window.confirm('Are you sure you want to delete this objective?')) {
       return
@@ -134,18 +126,13 @@ const AddObjectives: React.FC<ObjectivesProps> = ({ isSidebarOpen }) => {
       }`}
       style={{
         marginLeft: isSidebarOpen ? '220px' : '20px',
-        paddingTop: '20px',
-        marginTop: '2.5rem',
         transition: 'margin 0.3s ease',
+        paddingTop: '3rem',
+        minHeight: '100vh',
       }}
     >
       <h2
-        style={{
-          color: '#0094B6',
-          fontWeight: 'bold',
-          paddingBottom: '2rem',
-          paddingTop: '2rem',
-        }}
+        style={{ color: '#0094B6', fontWeight: 'bold', paddingBottom: '4rem' }}
       >
         Add Objectives
       </h2>
@@ -157,7 +144,7 @@ const AddObjectives: React.FC<ObjectivesProps> = ({ isSidebarOpen }) => {
       )}
 
       <div className="row form-container bg-white p-4 g-4 rounded shadow">
-        {/* LEFT: Objectives List */}
+        {/* LEFT: objectives list */}
         <div className="col-md-6">
           <h4 className="pb-3">
             <b>Objectives List</b>
@@ -171,7 +158,6 @@ const AddObjectives: React.FC<ObjectivesProps> = ({ isSidebarOpen }) => {
                   <th>ID</th>
                   <th>Title</th>
                   <th>Measurement</th>
-                  <th>Actions</th>
                 </tr>
               </thead>
               <tbody>
@@ -179,7 +165,7 @@ const AddObjectives: React.FC<ObjectivesProps> = ({ isSidebarOpen }) => {
                   const isEditing = editObj && editObj.id === obj.id
                   return (
                     <tr key={obj.id}>
-                      <td>{obj.id}</td>
+                      {/* <td>{obj.id}</td> */}
                       <td>
                         {isEditing ? (
                           <Form.Control
@@ -257,8 +243,8 @@ const AddObjectives: React.FC<ObjectivesProps> = ({ isSidebarOpen }) => {
           )}
         </div>
 
-        {/* RIGHT: Add Form */}
-        <div className="col-md-6 bg-white px-5 pt-5 rounded shadow">
+        {/* RIGHT: add form */}
+        <div className="col-md-6 bg-white px-5 pt-5 rounded shadow ">
           <h4>Add a New Objective</h4>
           <Form onSubmit={handleSubmit}>
             <Form.Group className="m-3" controlId="objectiveTitle">
@@ -279,7 +265,7 @@ const AddObjectives: React.FC<ObjectivesProps> = ({ isSidebarOpen }) => {
               </Form.Label>
               <Form.Control
                 type="text"
-                placeholder="Units, e.g. 'kgs', 'Hectares'..."
+                placeholder="Units, e.g. 'Hours', 'Hectares'..."
                 value={measurement}
                 onChange={(e) => setMeasurement(e.target.value)}
               />
@@ -298,4 +284,5 @@ const AddObjectives: React.FC<ObjectivesProps> = ({ isSidebarOpen }) => {
     </div>
   )
 }
+
 export default AddObjectives

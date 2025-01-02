@@ -155,6 +155,7 @@ const AddObjectives: React.FC<AddObjectivesProps> = ({ isSidebarOpen }) => {
                   <th>ID</th>
                   <th>Title</th>
                   <th>Measurement</th>
+                  <th>Actions</th>
                 </tr>
               </thead>
               <tbody>
@@ -162,7 +163,7 @@ const AddObjectives: React.FC<AddObjectivesProps> = ({ isSidebarOpen }) => {
                   const isEditing = editObj && editObj.id === obj.id
                   return (
                     <tr key={obj.id}>
-                      {/* <td>{obj.id}</td> */}
+                      <td>{obj.id}</td>
                       <td>
                         {isEditing ? (
                           <Form.Control
