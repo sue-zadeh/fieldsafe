@@ -19,7 +19,7 @@ import {
 const OCEAN_BLUE = '#0094B6'
 // const SKY_BLUE = '#76D6E2'
 
-type ProjectStatus = 'inprogress' | 'completed' | 'onhold' | 'Archived'
+type ProjectStatus = 'inprogress' | 'completed' | 'onhold' | 'archived'
 
 interface Objective {
   id: number
@@ -173,7 +173,7 @@ const AddProject: React.FC<AddProjectProps> = ({ isSidebarOpen }) => {
     if (notification) {
       const timer = setTimeout(() => {
         setNotification(null)
-      }, 9000)
+      }, 10000)
       return () => clearTimeout(timer)
     }
   }, [notification])
@@ -208,13 +208,8 @@ const AddProject: React.FC<AddProjectProps> = ({ isSidebarOpen }) => {
   }
 
   // Navigate back to search after success
-  const navigateToSearch = () => {
-    if (status === 'Archived') {
-      navigate('/searchproject', { state: { activeTab: 'archived' } })
-    } else {
-      navigate('/searchproject', { state: { activeTab: 'active' } })
-    }
-  }
+  const navigateToSearch = () => navigate('/searchproject')
+
   // ===========================
   //       CREATE OR EDIT
   // ===========================
@@ -304,7 +299,7 @@ const AddProject: React.FC<AddProjectProps> = ({ isSidebarOpen }) => {
           headers: { 'Content-Type': 'multipart/form-data' },
         })
         notify('Project updated successfully!')
-        setTimeout(navigateToSearch, 5000)
+        setTimeout(navigateToSearch, 1000)
       } catch (err) {
         const axiosErr = err as AxiosError<{ message: string }>
         if (axiosErr.response?.status === 400) {
@@ -618,7 +613,6 @@ const AddProject: React.FC<AddProjectProps> = ({ isSidebarOpen }) => {
                       required
                       pattern="^\d{10}$"
                       type="text"
-                      // placeholder="Enter local medical center phone number"
                       value={localMedicalCenterPhone}
                       onChange={(e) =>
                         setLocalMedicalCenterPhone(e.target.value)
@@ -766,7 +760,7 @@ const AddProject: React.FC<AddProjectProps> = ({ isSidebarOpen }) => {
                         type="date"
                         value={startDate}
                         onChange={(e) => setStartDate(e.target.value)}
-                        min={!isEdit ? todayString : undefined}
+                        min={todayString}
                       />
                     </Form.Group>
                   </Col>
@@ -783,7 +777,7 @@ const AddProject: React.FC<AddProjectProps> = ({ isSidebarOpen }) => {
                         <option value="inprogress">In Progress</option>
                         <option value="completed">Completed</option>
                         <option value="onhold">On Hold</option>
-                        <option value="Archived">Archived</option>
+                        <option value="archived">Archived</option>
                       </Form.Select>
                     </Form.Group>
                   </Col>

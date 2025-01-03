@@ -13,7 +13,9 @@ import {
   BsCalendarCheck,
   BsPersonFillAdd,
 } from 'react-icons/bs'
-import Logo from '../assets/logo3.png'
+// import Logo from '../assets/logo3.png'
+import Logo from '../assets/logo1.png'
+
 
 interface NavbarProps {
   onLogout: () => void
@@ -35,7 +37,7 @@ const Navbar: React.FC<NavbarProps> = ({
     <nav
       className="navbar navbar-expand-lg"
       style={{
-        backgroundColor: '#76D6E2',
+        backgroundColor: '#F4F7F1',
         color: '#1A1A1A',
         padding: '0.15rem 3rem',
         position: 'fixed',

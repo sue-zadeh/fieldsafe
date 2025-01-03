@@ -12,9 +12,10 @@ import Teamlead from './components/teamlead'
 import Registervolunteer from './components/registervolunteer'
 import Volunteer from './components/volunteer'
 import AddProject from './components/AddProject'
-import SearchProject from './components/SearchProject'
+import SearchProject from './components/searchproject'
 import AddObjective from './components/addobjective'
 import Objective from './components/objectives'
+import ArchiveProj from './components/archiveprojects'
 
 // import Layout from './components/layout'
 
@@ -171,6 +172,10 @@ const App: React.FC = () => {
                   <Route
                     path="/SearchProject"
                     element={<SearchProject isSidebarOpen={isSidebarOpen} />}
+                  />
+                  <Route
+                    path="/archiveprojects"
+                    element={<ArchiveProj isSidebarOpen={isSidebarOpen} />}
                   />
                 </Routes>
               </LoadScript>

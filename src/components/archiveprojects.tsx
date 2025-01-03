@@ -19,24 +19,15 @@ interface Project {
   localMedicalCenterAddress?: string
   localMedicalCenterPhone?: string
 }
-interface SearchProjectProps {
+interface ArchProjectProps {
   isSidebarOpen: boolean
 }
 
-const SearchProject: React.FC<SearchProjectProps> = ({ isSidebarOpen }) => {
+const ArchiveProjects: React.FC<ArchProjectProps> = ({ isSidebarOpen }) => {
   const [projects, setProjects] = useState<Project[]>([])
-  const [filteredProjects, setFilteredProjects] = useState<Project[]>([])
   const [notification, setNotification] = useState<string | null>(null)
-  const [activeTab, setActiveTab] = useState<'active' | 'archived'>('active') // Add activeTab state
-
-  const handleNavClick = (tab: 'active' | 'archived') => {
-    setActiveTab(tab)
-    if (tab === 'active') {
-      setFilteredProjects(projects.filter((p) => p.status !== 'archived'))
-    } else {
-      setFilteredProjects(projects.filter((p) => p.status === 'archived'))
-    }
-  }
+  const [activeTab, setActiveTab] = useState('details')
+  const handleNavClick = (tab: string) => setActiveTab(tab)
 
   const navigate = useNavigate()
 
@@ -44,20 +35,19 @@ const SearchProject: React.FC<SearchProjectProps> = ({ isSidebarOpen }) => {
     axios
       .get('/api/projects/list')
       .then((res) => {
+        console.log('SearchProject data =', res.data) // DEBUG
         setProjects(res.data)
-        setFilteredProjects(
-          res.data.filter((p: any) => p.status !== 'archived')
-        ) // Initially show active projects
       })
       .catch((err) => {
         console.error('Error fetching projects:', err)
         setNotification('Failed to fetch projects.')
       })
   }, [])
-  // Notification auto-clear
+
+  // auto clear notifications
   useEffect(() => {
     if (notification) {
-      const timer = setTimeout(() => setNotification(null), 9000)
+      const timer = setTimeout(() => setNotification(null), 4000)
       return () => clearTimeout(timer)
     }
   }, [notification])
@@ -116,34 +106,44 @@ const SearchProject: React.FC<SearchProjectProps> = ({ isSidebarOpen }) => {
       )}
 
       {/* Nav bar for projects page */}
-      {/* Nav bar */}
-      <Navbar expand="lg" style={{ backgroundColor: '#c4edf2', width: '100%' }}>
-        <Navbar.Toggle aria-controls="basic-navbar-nav" />
+      <Navbar
+        expand="lg"
+        style={{
+          backgroundColor: '#c4edf2',
+          width: '100%',
+        }}
+        className="py-2"
+      >
+        {/* Hamburger menu Toggle for small screens */}
+        <Navbar.Toggle
+          aria-controls="basic-navbar-nav"
+          style={{ backgroundColor: '#F4F7F1' }}
+        />
         <Navbar.Collapse id="basic-navbar-nav">
           <Nav className="mx-auto justify-content-center">
             <Nav.Link
-              onClick={() => handleNavClick('active')}
+              onClick={() => handleNavClick('Searchproject')}
               style={{
-                fontWeight: activeTab === 'active' ? 'bold' : 'normal',
+                fontWeight: activeTab === 'activeprojects' ? 'bold' : 'normal',
                 color: '#1A1A1A',
                 marginRight: '1rem',
               }}
             >
-              Active Projects
+              Active projects
             </Nav.Link>
             <Nav.Link
-              onClick={() => handleNavClick('archived')}
+              onClick={() => handleNavClick('archiveprojects')}
               style={{
-                fontWeight: activeTab === 'archived' ? 'bold' : 'normal',
+                fontWeight: activeTab === 'archiveprojects' ? 'bold' : 'normal',
                 color: '#1A1A1A',
+                marginRight: '1rem',
               }}
             >
-              Archived Projects
+              Archive Projects
             </Nav.Link>
           </Nav>
         </Navbar.Collapse>
       </Navbar>
-
       {/* END Secondary Nav */}
 
       <h2
@@ -153,13 +153,12 @@ const SearchProject: React.FC<SearchProjectProps> = ({ isSidebarOpen }) => {
           fontWeight: 'bold',
         }}
       >
-        {activeTab === 'active' ? 'Active Projects' : 'Archived Projects'}
+        All Projects
       </h2>
 
       <div className="row g-5">
-        {filteredProjects.map((p) => (
+        {projects.map((p) => (
           <div key={p.id} className="col-md-4">
-            {/* Existing project card */}
             <div className="card h-100">
               <div className="position-relative">
                 {p.imageUrl ? (
@@ -263,4 +262,4 @@ const SearchProject: React.FC<SearchProjectProps> = ({ isSidebarOpen }) => {
   )
 }
 
-export default SearchProject
+export default ArchiveProjects
