@@ -25,9 +25,18 @@ interface SearchProjectProps {
 
 const SearchProject: React.FC<SearchProjectProps> = ({ isSidebarOpen }) => {
   const [projects, setProjects] = useState<Project[]>([])
+  const [filteredProjects, setFilteredProjects] = useState<Project[]>([])
   const [notification, setNotification] = useState<string | null>(null)
-  const [activeTab, setActiveTab] = useState('details')
-  const handleNavClick = (tab: string) => setActiveTab(tab)
+  const [activeTab, setActiveTab] = useState<'active' | 'archived'>('active') // Add activeTab state
+
+  const handleNavClick = (tab: 'active' | 'archived') => {
+    setActiveTab(tab)
+    if (tab === 'active') {
+      setFilteredProjects(projects.filter((p) => p.status !== 'archived'))
+    } else {
+      setFilteredProjects(projects.filter((p) => p.status === 'archived'))
+    }
+  }
 
   const navigate = useNavigate()
 
@@ -35,19 +44,20 @@ const SearchProject: React.FC<SearchProjectProps> = ({ isSidebarOpen }) => {
     axios
       .get('/api/projects/list')
       .then((res) => {
-        console.log('SearchProject data =', res.data) // DEBUG
         setProjects(res.data)
+        setFilteredProjects(
+          res.data.filter((p: any) => p.status !== 'archived')
+        ) // Initially show active projects
       })
       .catch((err) => {
         console.error('Error fetching projects:', err)
         setNotification('Failed to fetch projects.')
       })
   }, [])
-
-  // auto clear notifications
+  // Notification auto-clear
   useEffect(() => {
     if (notification) {
-      const timer = setTimeout(() => setNotification(null), 4000)
+      const timer = setTimeout(() => setNotification(null), 5000)
       return () => clearTimeout(timer)
     }
   }, [notification])
@@ -106,44 +116,34 @@ const SearchProject: React.FC<SearchProjectProps> = ({ isSidebarOpen }) => {
       )}
 
       {/* Nav bar for projects page */}
-      <Navbar
-        expand="lg"
-        style={{
-          backgroundColor: '#c4edf2',
-          width: '100%',
-        }}
-        className="py-2"
-      >
-        {/* Hamburger menu Toggle for small screens */}
-        <Navbar.Toggle
-          aria-controls="basic-navbar-nav"
-          style={{ backgroundColor: '#F4F7F1' }}
-        />
+      {/* Nav bar */}
+      <Navbar expand="lg" style={{ backgroundColor: '#c4edf2', width: '100%' }}>
+        <Navbar.Toggle aria-controls="basic-navbar-nav" />
         <Navbar.Collapse id="basic-navbar-nav">
           <Nav className="mx-auto justify-content-center">
             <Nav.Link
-              onClick={() => handleNavClick('activeprojects')}
+              onClick={() => handleNavClick('active')}
               style={{
-                fontWeight: activeTab === 'activeprojects' ? 'bold' : 'normal',
+                fontWeight: activeTab === 'active' ? 'bold' : 'normal',
                 color: '#1A1A1A',
                 marginRight: '1rem',
               }}
             >
-              Active projects
+              Active Projects
             </Nav.Link>
             <Nav.Link
-              onClick={() => handleNavClick('archiveprojects')}
+              onClick={() => handleNavClick('archived')}
               style={{
-                fontWeight: activeTab === 'archiveprojects' ? 'bold' : 'normal',
+                fontWeight: activeTab === 'archived' ? 'bold' : 'normal',
                 color: '#1A1A1A',
-                marginRight: '1rem',
               }}
             >
-              Archive Projects
+              Archived Projects
             </Nav.Link>
           </Nav>
         </Navbar.Collapse>
       </Navbar>
+
       {/* END Secondary Nav */}
 
       <h2
@@ -153,12 +153,13 @@ const SearchProject: React.FC<SearchProjectProps> = ({ isSidebarOpen }) => {
           fontWeight: 'bold',
         }}
       >
-        All Projects
+        {activeTab === 'active' ? 'Active Projects' : 'Archived Projects'}
       </h2>
 
       <div className="row g-5">
-        {projects.map((p) => (
+        {filteredProjects.map((p) => (
           <div key={p.id} className="col-md-4">
+            {/* Existing project card */}
             <div className="card h-100">
               <div className="position-relative">
                 {p.imageUrl ? (

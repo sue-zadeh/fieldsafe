@@ -47,7 +47,7 @@ CREATE TABLE IF NOT EXISTS projects (
   name VARCHAR(255) UNIQUE NOT NULL,
   location VARCHAR(255) NOT NULL,
   startDate DATE NOT NULL,
-  status ENUM('inprogress', 'completed', 'onhold') NOT NULL DEFAULT 'inprogress',
+  status ENUM('inprogress', 'completed', 'onhold', 'archived') NOT NULL DEFAULT 'inprogress',
   createdBy INT,
   emergencyServices VARCHAR(255) DEFAULT '111 will contact all emergency services',
   localMedicalCenterAddress VARCHAR(255),
