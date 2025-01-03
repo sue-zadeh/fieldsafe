@@ -1,4 +1,3 @@
-// src/components/SearchProject.tsx
 import React, { useState, useEffect } from 'react'
 import axios from 'axios'
 import { useNavigate } from 'react-router-dom'
@@ -19,6 +18,7 @@ interface Project {
   localMedicalCenterAddress?: string
   localMedicalCenterPhone?: string
 }
+
 interface SearchProjectProps {
   isSidebarOpen: boolean
 }
@@ -26,16 +26,14 @@ interface SearchProjectProps {
 const SearchProject: React.FC<SearchProjectProps> = ({ isSidebarOpen }) => {
   const [projects, setProjects] = useState<Project[]>([])
   const [notification, setNotification] = useState<string | null>(null)
-  const [activeTab, setActiveTab] = useState('details')
-  const handleNavClick = (tab: string) => setActiveTab(tab)
-
+  const [activeTab, setActiveTab] = useState('activeprojects') // Default to "Active Projects"
   const navigate = useNavigate()
 
+  // Fetch all projects
   useEffect(() => {
     axios
       .get('/api/projects/list')
       .then((res) => {
-        console.log('SearchProject data =', res.data) // DEBUG
         setProjects(res.data)
       })
       .catch((err) => {
@@ -44,16 +42,25 @@ const SearchProject: React.FC<SearchProjectProps> = ({ isSidebarOpen }) => {
       })
   }, [])
 
-  // auto clear notifications
+  // Auto-clear notifications
   useEffect(() => {
     if (notification) {
-      const timer = setTimeout(() => setNotification(null), 4000)
+      const timer = setTimeout(() => setNotification(null), 9000)
       return () => clearTimeout(timer)
     }
   }, [notification])
 
+  const handleNavClick = (tab: string) => {
+    setActiveTab(tab)
+  }
+
+  // Filter projects based on active tab
+  const filteredProjects =
+    activeTab === 'activeprojects'
+      ? projects.filter((p) => p.status !== 'archived')
+      : projects.filter((p) => p.status === 'archived')
+
   const handleEdit = (p: Project) => {
-    // Navigate to /addproject with edit mode
     navigate('/addproject', {
       state: {
         isEdit: true,
@@ -69,7 +76,6 @@ const SearchProject: React.FC<SearchProjectProps> = ({ isSidebarOpen }) => {
     try {
       await axios.delete(`/api/projects/${p.id}`)
       setNotification('Project deleted successfully!')
-      // reload list
       setProjects((prev) => prev.filter((proj) => proj.id !== p.id))
     } catch (err) {
       console.error('Error deleting project:', err)
@@ -105,16 +111,15 @@ const SearchProject: React.FC<SearchProjectProps> = ({ isSidebarOpen }) => {
         <div className="alert alert-info text-center">{notification}</div>
       )}
 
-      {/* Nav bar for projects page */}
+      {/* Navbar for tabs */}
       <Navbar
         expand="lg"
+        className="py-2"
         style={{
           backgroundColor: '#c4edf2',
           width: '100%',
         }}
-        className="py-2"
       >
-        {/* Hamburger menu Toggle for small screens */}
         <Navbar.Toggle
           aria-controls="basic-navbar-nav"
           style={{ backgroundColor: '#F4F7F1' }}
@@ -129,7 +134,7 @@ const SearchProject: React.FC<SearchProjectProps> = ({ isSidebarOpen }) => {
                 marginRight: '1rem',
               }}
             >
-              Active projects
+              Active Projects
             </Nav.Link>
             <Nav.Link
               onClick={() => handleNavClick('archiveprojects')}
@@ -144,7 +149,6 @@ const SearchProject: React.FC<SearchProjectProps> = ({ isSidebarOpen }) => {
           </Nav>
         </Navbar.Collapse>
       </Navbar>
-      {/* END Secondary Nav */}
 
       <h2
         className="m-4 fs-1"
@@ -153,11 +157,13 @@ const SearchProject: React.FC<SearchProjectProps> = ({ isSidebarOpen }) => {
           fontWeight: 'bold',
         }}
       >
-        All Projects
+        {activeTab === 'activeprojects'
+          ? 'Active Projects'
+          : 'Archived Projects'}
       </h2>
 
       <div className="row g-5">
-        {projects.map((p) => (
+        {filteredProjects.map((p) => (
           <div key={p.id} className="col-md-4">
             <div className="card h-100">
               <div className="position-relative">
@@ -181,7 +187,7 @@ const SearchProject: React.FC<SearchProjectProps> = ({ isSidebarOpen }) => {
                     No Image
                   </div>
                 )}
-                {/* status in bottom-right corner of image area */}
+                {/* Status in bottom-right corner */}
                 <span
                   className="badge bg-info p-2 text-dark position-absolute fs-6"
                   style={{ bottom: '5px', right: '5px' }}
@@ -191,7 +197,6 @@ const SearchProject: React.FC<SearchProjectProps> = ({ isSidebarOpen }) => {
               </div>
               <div className="card-body">
                 <h3 className="card-title mb-2">{p.name}</h3>
-                {/* objectiveTitles from bridging table */}
                 {p.objectiveTitles && (
                   <p className="text-dark fs-6">
                     <strong>Objectives:</strong>
@@ -204,14 +209,12 @@ const SearchProject: React.FC<SearchProjectProps> = ({ isSidebarOpen }) => {
                     ))}
                   </p>
                 )}
-
                 <p className="mb-1">
                   <strong>Location:</strong> {p.location}
                 </p>
                 <p className="mb-1">
                   <strong>Start Date:</strong> {formatDate(p.startDate)}
                 </p>
-
                 {p.primaryContactName && (
                   <p className="mb-1">
                     <strong>Contact:</strong> {p.primaryContactName} (

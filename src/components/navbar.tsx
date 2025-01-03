@@ -37,7 +37,7 @@ const Navbar: React.FC<NavbarProps> = ({
     <nav
       className="navbar navbar-expand-lg"
       style={{
-        backgroundColor: '#F4F7F1',
+        backgroundColor: '#76D6E2',
         color: '#1A1A1A',
         padding: '0.15rem 3rem',
         position: 'fixed',

@@ -432,7 +432,7 @@ const AddProject: React.FC<AddProjectProps> = ({ isSidebarOpen }) => {
       <Navbar
         expand="lg"
         style={{
-          backgroundColor: '#c4edf2',
+          backgroundColor: '#F4F7F1',
           width: '100%',
         }}
         className="py-2"
@@ -760,7 +760,7 @@ const AddProject: React.FC<AddProjectProps> = ({ isSidebarOpen }) => {
                         type="date"
                         value={startDate}
                         onChange={(e) => setStartDate(e.target.value)}
-                        min={todayString}
+                        min={!isEdit ? todayString : undefined}
                       />
                     </Form.Group>
                   </Col>
