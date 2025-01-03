@@ -45,9 +45,7 @@ const SearchProject: React.FC<SearchProjectProps> = ({ isSidebarOpen }) => {
       .get('/api/projects/list')
       .then((res) => {
         setProjects(res.data)
-        setFilteredProjects(
-          res.data.filter((p: any) => p.status !== 'archived')
-        ) // Initially show active projects
+        setFilteredProjects(res.data.filter((p) => p.status !== 'archived')) // Initially show active projects
       })
       .catch((err) => {
         console.error('Error fetching projects:', err)
@@ -154,7 +152,7 @@ const SearchProject: React.FC<SearchProjectProps> = ({ isSidebarOpen }) => {
         }}
       >
         {activeTab === 'active' ? 'Active Projects' : 'Archived Projects'}
-      </h2>
+        </h2>
 
       <div className="row g-5">
         {filteredProjects.map((p) => (

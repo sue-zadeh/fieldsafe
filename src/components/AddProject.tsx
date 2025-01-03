@@ -19,7 +19,7 @@ import {
 const OCEAN_BLUE = '#0094B6'
 // const SKY_BLUE = '#76D6E2'
 
-type ProjectStatus = 'inprogress' | 'completed' | 'onhold'
+type ProjectStatus = 'inprogress' | 'completed' | 'onhold'| 'Archived'
 
 interface Objective {
   id: number
@@ -777,6 +777,7 @@ const AddProject: React.FC<AddProjectProps> = ({ isSidebarOpen }) => {
                         <option value="inprogress">In Progress</option>
                         <option value="completed">Completed</option>
                         <option value="onhold">On Hold</option>
+                        <option value="Archived">Archived</option>
                       </Form.Select>
                     </Form.Group>
                   </Col>

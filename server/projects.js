@@ -49,7 +49,8 @@ router.get('/list', async (req, res) => {
         LEFT JOIN project_objectives po ON p.id = po.project_id
         LEFT JOIN objectives o ON po.objective_id = o.id
         GROUP BY p.id
-        ORDER BY p.id DESC
+        ORDER BY p.id DESC;
+        
       `)
       return res.json(rows)
     }
