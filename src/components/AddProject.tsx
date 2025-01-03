@@ -19,7 +19,7 @@ import {
 const OCEAN_BLUE = '#0094B6'
 // const SKY_BLUE = '#76D6E2'
 
-type ProjectStatus = 'inprogress' | 'completed' | 'onhold'| 'Archived'
+type ProjectStatus = 'inprogress' | 'completed' | 'onhold' | 'Archived'
 
 interface Objective {
   id: number
@@ -173,7 +173,7 @@ const AddProject: React.FC<AddProjectProps> = ({ isSidebarOpen }) => {
     if (notification) {
       const timer = setTimeout(() => {
         setNotification(null)
-      }, 6000)
+      }, 9000)
       return () => clearTimeout(timer)
     }
   }, [notification])
@@ -208,8 +208,13 @@ const AddProject: React.FC<AddProjectProps> = ({ isSidebarOpen }) => {
   }
 
   // Navigate back to search after success
-  const navigateToSearch = () => navigate('/searchproject')
-
+  const navigateToSearch = () => {
+    if (status === 'Archived') {
+      navigate('/searchproject', { state: { activeTab: 'archived' } })
+    } else {
+      navigate('/searchproject', { state: { activeTab: 'active' } })
+    }
+  }
   // ===========================
   //       CREATE OR EDIT
   // ===========================
@@ -299,7 +304,7 @@ const AddProject: React.FC<AddProjectProps> = ({ isSidebarOpen }) => {
           headers: { 'Content-Type': 'multipart/form-data' },
         })
         notify('Project updated successfully!')
-        setTimeout(navigateToSearch, 1000)
+        setTimeout(navigateToSearch, 5000)
       } catch (err) {
         const axiosErr = err as AxiosError<{ message: string }>
         if (axiosErr.response?.status === 400) {
@@ -613,6 +618,7 @@ const AddProject: React.FC<AddProjectProps> = ({ isSidebarOpen }) => {
                       required
                       pattern="^\d{10}$"
                       type="text"
+                      // placeholder="Enter local medical center phone number"
                       value={localMedicalCenterPhone}
                       onChange={(e) =>
                         setLocalMedicalCenterPhone(e.target.value)
@@ -760,7 +766,7 @@ const AddProject: React.FC<AddProjectProps> = ({ isSidebarOpen }) => {
                         type="date"
                         value={startDate}
                         onChange={(e) => setStartDate(e.target.value)}
-                        min={todayString}
+                        min={!isEdit ? todayString : undefined}
                       />
                     </Form.Group>
                   </Col>
