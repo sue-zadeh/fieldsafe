@@ -15,7 +15,7 @@ import AddProject from './components/AddProject'
 import SearchProject from './components/searchproject'
 import AddObjective from './components/addobjective'
 import Objective from './components/objectives'
-import ArchiveProj from './components/archiveprojects'
+// import ArchiveProj from './components/archiveprojects'
 
 // import Layout from './components/layout'
 
@@ -173,10 +173,10 @@ const App: React.FC = () => {
                     path="/SearchProject"
                     element={<SearchProject isSidebarOpen={isSidebarOpen} />}
                   />
-                  <Route
+                  {/* <Route
                     path="/archiveprojects"
                     element={<ArchiveProj isSidebarOpen={isSidebarOpen} />}
-                  />
+                  /> */}
                 </Routes>
               </LoadScript>
             </div>

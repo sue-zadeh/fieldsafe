@@ -268,6 +268,29 @@ const AddProject: React.FC<AddProjectProps> = ({ isSidebarOpen }) => {
 
     // If editing => PUT
     if (isEdit && projectId) {
+      try {
+        await axios.put(`/api/projects/${projectId}`, formData, {
+          headers: { 'Content-Type': 'multipart/form-data' },
+        })
+        notify('Project updated successfully!')
+        setTimeout(() => {
+          navigate('/searchproject', {
+            state: {
+              redirectTo:
+                status === 'archived' ? 'archiveprojects' : 'activeprojects',
+            },
+          })
+        }, 1000)
+      } catch (err) {
+        const axiosErr = err as AxiosError<{ message: string }>
+        if (axiosErr.response?.status === 400) {
+          notify('Project name already exists. Please choose another.')
+        } else {
+          console.error('Error updating project:', err)
+          notify('Failed to update project.')
+        }
+      }
+
       // check for no changes
       if (originalData) {
         const isNoChange =
@@ -299,7 +322,7 @@ const AddProject: React.FC<AddProjectProps> = ({ isSidebarOpen }) => {
           headers: { 'Content-Type': 'multipart/form-data' },
         })
         notify('Project updated successfully!')
-        setTimeout(navigateToSearch, 1000)
+        setTimeout(navigateToSearch, 2000)
       } catch (err) {
         const axiosErr = err as AxiosError<{ message: string }>
         if (axiosErr.response?.status === 400) {
@@ -315,6 +338,7 @@ const AddProject: React.FC<AddProjectProps> = ({ isSidebarOpen }) => {
         await axios.post('/api/projects', formData, {
           headers: { 'Content-Type': 'multipart/form-data' },
         })
+
         notify('Project created successfully!')
 
         // reset
@@ -334,7 +358,14 @@ const AddProject: React.FC<AddProjectProps> = ({ isSidebarOpen }) => {
         setExistingInductionUrl(null)
         setSelectedObjectives([])
 
-        setTimeout(navigateToSearch, 1000)
+        setTimeout(() => {
+          navigate('/searchproject', {
+            state: {
+              redirectTo:
+                status === 'archived' ? 'archiveprojects' : 'activeprojects',
+            },
+          })
+        }, 1000)
       } catch (err) {
         const axiosErr = err as AxiosError<{ message: string }>
         if (axiosErr.response?.status === 400) {
@@ -432,7 +463,7 @@ const AddProject: React.FC<AddProjectProps> = ({ isSidebarOpen }) => {
       <Navbar
         expand="lg"
         style={{
-          backgroundColor: '#F4F7F1',
+          backgroundColor: '#c4edf2',
           width: '100%',
         }}
         className="py-2"

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react'
 import axios from 'axios'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, useLocation } from 'react-router-dom'
 import { Navbar, Nav } from 'react-bootstrap'
 
 interface Project {
@@ -28,6 +28,7 @@ const SearchProject: React.FC<SearchProjectProps> = ({ isSidebarOpen }) => {
   const [notification, setNotification] = useState<string | null>(null)
   const [activeTab, setActiveTab] = useState('activeprojects') // Default to "Active Projects"
   const navigate = useNavigate()
+  const location = useLocation()
 
   // Fetch all projects
   useEffect(() => {
@@ -41,6 +42,14 @@ const SearchProject: React.FC<SearchProjectProps> = ({ isSidebarOpen }) => {
         setNotification('Failed to fetch projects.')
       })
   }, [])
+
+  // Handle tab navigation from AddProject page
+  useEffect(() => {
+    const state = location.state as { redirectTo?: string }
+    if (state?.redirectTo) {
+      setActiveTab(state.redirectTo)
+    }
+  }, [location.state])
 
   // Auto-clear notifications
   useEffect(() => {
@@ -65,6 +74,8 @@ const SearchProject: React.FC<SearchProjectProps> = ({ isSidebarOpen }) => {
       state: {
         isEdit: true,
         projectId: p.id,
+        redirectTo:
+          p.status === 'archived' ? 'archiveprojects' : 'activeprojects',
       },
     })
   }
