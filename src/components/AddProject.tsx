@@ -129,10 +129,10 @@ const AddProject: React.FC<AddProjectProps> = ({ isSidebarOpen }) => {
         .then((res) => {
           const { project, objectiveIds } = res.data
           setName(project.name || '')
-          setStartDate((project.startDate || '').slice(0, 10))
+          setStartDate(project.startDate.slice(0, 10))
           setStatus(project.status || 'inprogress')
           setimageUrl(project.imageUrl || '')
-          setInductionFile(project.inductionFileUrl || '') // We'll keep it separate from the actual file
+          setInductionFile(project.inductionFileUrl || '')
           setLocation(project.location || '')
           setEmergencyServices(project.emergencyServices || '')
           setLocalMedicalCenterAddress(project.localMedicalCenterAddress || '')

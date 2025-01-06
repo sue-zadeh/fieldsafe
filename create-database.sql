@@ -1,3 +1,6 @@
+-- some code i need them to use in mysql terminal
+--ALTER TABLE login
+  --MODIFY role ENUM('Admin', 'Field Staff', 'Team Leader', 'Group Admin') NOT NULL;
 
 -- Schema fieldbase
 
@@ -8,6 +11,7 @@
 --DROP TABLE IF EXISTS projects;
 --DROP TABLE IF EXISTS project_objectives;
 
+
 --the login table
 CREATE TABLE IF NOT EXISTS login (
     id INT AUTO_INCREMENT PRIMARY KEY,
@@ -15,7 +19,7 @@ CREATE TABLE IF NOT EXISTS login (
     lastname VARCHAR(50),
     username VARCHAR(255) UNIQUE NOT NULL,
     password VARCHAR(255) NOT NULL,
-    role VARCHAR(50)
+    role ENUM('admin','Field Staff', 'Team Leader', 'Group Admin') NOT NULL;
 );
 
 
@@ -27,6 +31,9 @@ CREATE TABLE IF NOT EXISTS staffs (
     email VARCHAR(100) UNIQUE NOT NULL,
     phone VARCHAR(15),
     role ENUM('Field Staff', 'Team Leader', 'Group Admin') NOT NULL
+    login_id INT,
+    FOREIGN KEY (login_id) REFERENCES login(id) ON DELETE CASCADE
+    
 );
 
 -- the volunteers table

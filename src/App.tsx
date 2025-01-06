@@ -1,6 +1,7 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useRef } from 'react'
 import { Routes, Route, useNavigate } from 'react-router-dom'
-import { LoadScript } from '@react-google-maps/api' // <-- load script for google maps functionality
+import { LoadScript } from '@react-google-maps/api'
+import { Modal, Button } from 'react-bootstrap'
 
 import Navbar from './components/navbar'
 import Login from './components/login'
@@ -16,25 +17,126 @@ import SearchProject from './components/searchproject'
 import AddObjective from './components/addobjective'
 import Objective from './components/objectives'
 // import ArchiveProj from './components/archiveprojects'
-
 // import Layout from './components/layout'
 
 const GOOGLE_MAPS_API_KEY = import.meta.env.VITE_GOOGLE_MAPS_API_KEY || ''
+
 const App: React.FC = () => {
   const [isLoggedIn, setIsLoggedIn] = useState(false)
   const [logoutMessage, setLogoutMessage] = useState<string | null>(null)
   const [isLoggingOut, setIsLoggingOut] = useState(false)
   const [isLoading, setIsLoading] = useState(true)
-  const [isSidebarOpen, setIsSidebarOpen] = useState(window.innerWidth >= 768) // Responsive sidebar
+  const [isSidebarOpen, setIsSidebarOpen] = useState(window.innerWidth >= 768)
   const navigate = useNavigate()
 
-  // Handle window resize for sidebar responsiveness
+  // For inactivity:
+  const [inactivityTimeout, setInactivityTimeout] = useState<number>(
+    10 * 60_000
+  )
+  // ^ e.g. 10 minutes, in ms
+  const [showSessionModal, setShowSessionModal] = useState(false)
+  const [countdown, setCountdown] = useState(30) // seconds left in the warning modal
+  const [showSessionExpiredAlert, setShowSessionExpiredAlert] = useState(false)
+
+  // references for timeouts so we can clear them
+  const sessionTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const logoutTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+
+  // ------------------------------------------
+  // On mount: handle window resize for sidebar responsiveness
   useEffect(() => {
-    const handleResize = () => setIsSidebarOpen(window.innerWidth >= 768)
+    const handleResize = () => {
+      setIsSidebarOpen(window.innerWidth >= 768)
+    }
     window.addEventListener('resize', handleResize)
     return () => window.removeEventListener('resize', handleResize)
   }, [])
 
+  // ------------------------------------------
+  // Inactivity watchers
+  useEffect(() => {
+    const startInactivityTimer = () => {
+      // 1) Show modal 30 secs before logout
+      const sessionTimer = setTimeout(() => {
+        setShowSessionModal(true)
+      }, inactivityTimeout - 30_000) // e.g. 9.5 minutes if inactivityTimeout=10 min
+
+      // 2) Then auto-logout at inactivityTimeout
+      const logoutTimer = setTimeout(() => {
+        // If we reached here, user never clicked "Stay Logged In"
+        handleAutoLogout()
+      }, inactivityTimeout)
+
+      sessionTimeoutRef.current = sessionTimer
+      logoutTimeoutRef.current = logoutTimer
+    }
+
+    const resetTimer = () => {
+      // user moved mouse or typed => reset everything
+      if (sessionTimeoutRef.current) {
+        clearTimeout(sessionTimeoutRef.current)
+      }
+      if (logoutTimeoutRef.current) {
+        clearTimeout(logoutTimeoutRef.current)
+      }
+      setShowSessionModal(false)
+      setCountdown(30)
+      startInactivityTimer()
+    }
+
+    // Start timers on mount
+    startInactivityTimer()
+    // Reset if user interacts
+    window.addEventListener('mousemove', resetTimer)
+    window.addEventListener('keydown', resetTimer)
+
+    return () => {
+      // cleanup
+      if (sessionTimeoutRef.current) clearTimeout(sessionTimeoutRef.current)
+      if (logoutTimeoutRef.current) clearTimeout(logoutTimeoutRef.current)
+      window.removeEventListener('mousemove', resetTimer)
+      window.removeEventListener('keydown', resetTimer)
+    }
+  }, [inactivityTimeout])
+
+  // If the session modal is visible, start the 30-sec countdown
+  useEffect(() => {
+    if (showSessionModal) {
+      const intervalId = setInterval(() => {
+        setCountdown((prev) => {
+          if (prev <= 1) {
+            clearInterval(intervalId)
+          }
+          return prev > 0 ? prev - 1 : 0
+        })
+      }, 1000)
+      return () => clearInterval(intervalId)
+    }
+  }, [showSessionModal])
+
+  // If countdown hits 0, auto-logout
+  useEffect(() => {
+    if (countdown === 0 && showSessionModal) {
+      handleAutoLogout()
+    }
+    // eslint-disable-next-line
+  }, [countdown])
+
+  const handleStayLoggedIn = () => {
+    setShowSessionModal(false)
+    setCountdown(30)
+    // The timers themselves get reset by the user’s mouse or key press
+  }
+
+  const handleAutoLogout = () => {
+    setShowSessionModal(false)
+    setCountdown(30)
+    // Actually do the logout
+    setShowSessionExpiredAlert(true) // show a one-time alert that session expired
+    handleLogout()
+  }
+
+  // ------------------------------------------
   // Token validation on page load
   useEffect(() => {
     const validateToken = async () => {
@@ -53,6 +155,8 @@ const App: React.FC = () => {
           } else {
             console.error('Invalid token or session expired')
             localStorage.removeItem('authToken')
+            // So if user had a stale token, show an alert once:
+            setShowSessionExpiredAlert(true)
           }
         } catch (error) {
           console.error('Error validating token:', error)
@@ -75,14 +179,17 @@ const App: React.FC = () => {
     setIsLoggedIn(false)
     setLogoutMessage('You have successfully logged out.')
 
+    // Redirect after a slight delay
     setTimeout(() => {
       setLogoutMessage(null)
       setIsLoggingOut(false)
       navigate('/')
-    }, 2000)
+    }, 1500)
   }
 
-  const toggleSidebar = () => setIsSidebarOpen((prev) => !prev)
+  const toggleSidebar = () => {
+    setIsSidebarOpen((prev) => !prev)
+  }
 
   const mainContentStyle: React.CSSProperties = {
     marginLeft: isSidebarOpen ? '20px' : '5px',
@@ -92,13 +199,23 @@ const App: React.FC = () => {
     transition: 'all 0.3s ease',
   }
 
-  if (isLoading) return <div>Loading...</div>
+  if (isLoading) {
+    return <div>Loading...</div>
+  }
 
   return (
     <div>
+      {/* If the session just expired, show an alert once */}
+      {showSessionExpiredAlert && (
+        <div className="alert alert-warning text-center">
+          Your session has expired due to inactivity. Please log in again.
+        </div>
+      )}
+      {/* If we just logged out, show a success message */}
       {logoutMessage && (
         <div className="alert alert-success text-center">{logoutMessage}</div>
       )}
+
       {!isLoggedIn ? (
         <Login onLoginSuccess={handleLoginSuccess} />
       ) : (
@@ -111,19 +228,15 @@ const App: React.FC = () => {
           <div className="d-flex flex-grow-1">
             <Sidebar isOpen={isSidebarOpen} toggleSidebar={toggleSidebar} />
             <div style={mainContentStyle}>
-              {/* Load Google Maps script  */}
               <LoadScript
                 googleMapsApiKey={GOOGLE_MAPS_API_KEY}
                 libraries={['places']}
               >
-                {/*================ Route for pages ============ */}
-
                 <Routes>
                   <Route
                     path="/registerroles"
                     element={<Registerroles isSidebarOpen={isSidebarOpen} />}
                   />
-
                   <Route
                     path="/groupadmin"
                     element={<Groupadmin isSidebarOpen={isSidebarOpen} />}
@@ -150,17 +263,6 @@ const App: React.FC = () => {
                     path="/AddProject"
                     element={<AddProject isSidebarOpen={isSidebarOpen} />}
                   />
-                  {/* All routes will use the Layout */}
-                  {/* <Route
-                    path="/"
-                    element={
-                      <Layout
-                        isSidebarOpen={isSidebarOpen}
-                        toggleSidebar={toggleSidebar}
-                      />
-                    }
-                  /> */}
-                  {/* Nested routes */}
                   <Route
                     path="/Addobjective"
                     element={<AddObjective isSidebarOpen={isSidebarOpen} />}
@@ -173,16 +275,32 @@ const App: React.FC = () => {
                     path="/SearchProject"
                     element={<SearchProject isSidebarOpen={isSidebarOpen} />}
                   />
-                  {/* <Route
-                    path="/archiveprojects"
-                    element={<ArchiveProj isSidebarOpen={isSidebarOpen} />}
-                  /> */}
+                  {/* etc. */}
                 </Routes>
               </LoadScript>
             </div>
           </div>
         </div>
       )}
+
+      {/* Session Timeout Warning Modal */}
+      <Modal show={showSessionModal} onHide={handleAutoLogout}>
+        <Modal.Header closeButton>
+          <Modal.Title>Session Timeout Warning</Modal.Title>
+        </Modal.Header>
+        <Modal.Body>
+          Your session will expire in {countdown} seconds. Do you want to stay
+          logged in?
+        </Modal.Body>
+        <Modal.Footer>
+          <Button variant="primary" onClick={handleStayLoggedIn}>
+            Stay Logged In
+          </Button>
+          <Button variant="danger" onClick={handleAutoLogout}>
+            Logout
+          </Button>
+        </Modal.Footer>
+      </Modal>
     </div>
   )
 }
