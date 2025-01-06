@@ -11,7 +11,6 @@
 --DROP TABLE IF EXISTS projects;
 --DROP TABLE IF EXISTS project_objectives;
 
-
 --the login table
 CREATE TABLE IF NOT EXISTS login (
     id INT AUTO_INCREMENT PRIMARY KEY,
