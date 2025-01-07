@@ -155,6 +155,79 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, toggleSidebar }) => {
       )}
 
       <div>
+        <NavItem label="Projects" dropdownId="project">
+          <ul style={dropdownListStyle}>
+            <li>
+              <Link
+                to="/addproject"
+                style={{
+                  ...dropdownLinkStyle,
+                  ...(isActive('/addproject')
+                    ? { fontWeight: 'bold', color: '#000' }
+                    : {}),
+                }}
+              >
+                {' '}
+                <BsCalendar2Plus style={{ marginRight: '8px' }} />
+                {location.pathname === '/editproject'
+                  ? 'Edit Project'
+                  : 'Add Project'}{' '}
+              </Link>
+            </li>
+            <li>
+              <Link
+                to="/searchproject"
+                style={{
+                  ...dropdownLinkStyle,
+                  ...(isActive('/searchproject')
+                    ? { fontWeight: 'bold', color: '#000' }
+                    : {}),
+                }}
+              >
+                {' '}
+                <BsCalendarCheck style={{ marginRight: '8px' }} />
+                Search Project
+              </Link>
+            </li>
+          </ul>
+        </NavItem>
+
+        {/* Activity notes */}
+
+        <NavItem label="Activity Notes" dropdownId="activity">
+          <ul style={dropdownListStyle}>
+            <li>
+              <Link
+                to="/addactivity"
+                style={{
+                  ...dropdownLinkStyle,
+                  ...(isActive('/addactivity')
+                    ? { fontWeight: 'bold', color: '#000' }
+                    : {}),
+                }}
+              >
+                <MdLocalActivity style={{ marginRight: '8px' }} />
+                Add Activity
+              </Link>
+            </li>
+            <li>
+              <Link
+                to="/searchactivity"
+                style={{
+                  ...dropdownLinkStyle,
+                  ...(isActive('/searchactivity')
+                    ? { fontWeight: 'bold', color: '#000' }
+                    : {}),
+                }}
+              >
+                <FaTasks style={{ marginRight: '8px' }} />
+                Search Activity
+              </Link>
+            </li>
+          </ul>
+        </NavItem>
+
+        {/* All USERS */}
         <NavItem label="Organization Profile" dropdownId="organization">
           <ul style={dropdownListStyle}>
             <li>
@@ -167,7 +240,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, toggleSidebar }) => {
                     : {}),
                 }}
               >
-                <FaUserPlus style={{ marginRight: '8px' }} /> Add Staff
+                <FaUserPlus style={{ marginRight: '8px' }} /> Add User
               </Link>
             </li>
             <li>
@@ -213,6 +286,21 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, toggleSidebar }) => {
                 Field Staff
               </Link>
             </li>
+
+            <li>
+              <Link
+                to="/objectives"
+                style={{
+                  ...dropdownLinkStyle,
+                  ...(isActive('/objectives')
+                    ? { fontWeight: 'bold', color: '#000' }
+                    : {}),
+                }}
+              >
+                <FaBullseye style={{ marginRight: '8px' }} />
+                Add Objective
+              </Link>
+            </li>
           </ul>
         </NavItem>
 
@@ -245,92 +333,6 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, toggleSidebar }) => {
               >
                 <MdVolunteerActivism style={{ marginRight: '8px' }} />
                 Volunteer
-              </Link>
-            </li>
-          </ul>
-        </NavItem>
-
-        <NavItem label="Project" dropdownId="project">
-          <ul style={dropdownListStyle}>
-            <li>
-              <Link
-                to="/addproject"
-                style={{
-                  ...dropdownLinkStyle,
-                  ...(isActive('/addproject')
-                    ? { fontWeight: 'bold', color: '#000' }
-                    : {}),
-                }}
-              >
-                {' '}
-                <BsCalendar2Plus style={{ marginRight: '8px' }} />
-                Add Project
-              </Link>
-            </li>
-            <li>
-              <Link
-                to="/searchproject"
-                style={{
-                  ...dropdownLinkStyle,
-                  ...(isActive('/searchproject')
-                    ? { fontWeight: 'bold', color: '#000' }
-                    : {}),
-                }}
-              >
-                {' '}
-                <BsCalendarCheck style={{ marginRight: '8px' }} />
-                Search Project
-              </Link>
-            </li>
-          </ul>
-        </NavItem>
-
-        <NavItem label="objectives" dropdownId="objectives">
-          <ul style={dropdownListStyle}>
-            <li>
-              <Link
-                to="/objectives"
-                style={{
-                  ...dropdownLinkStyle,
-                  ...(isActive('/objectives')
-                    ? { fontWeight: 'bold', color: '#000' }
-                    : {}),
-                }}
-              >
-                <FaBullseye style={{ marginRight: '8px' }} />
-                Add Objective
-              </Link>
-            </li>
-          </ul>
-        </NavItem>
-        <NavItem label="Activity Notes" dropdownId="activity">
-          <ul style={dropdownListStyle}>
-            <li>
-              <Link
-                to="/addactivity"
-                style={{
-                  ...dropdownLinkStyle,
-                  ...(isActive('/addactivity')
-                    ? { fontWeight: 'bold', color: '#000' }
-                    : {}),
-                }}
-              >
-                <MdLocalActivity style={{ marginRight: '8px' }} />
-                Add Activity
-              </Link>
-            </li>
-            <li>
-              <Link
-                to="/searchactivity"
-                style={{
-                  ...dropdownLinkStyle,
-                  ...(isActive('/searchactivity')
-                    ? { fontWeight: 'bold', color: '#000' }
-                    : {}),
-                }}
-              >
-                <FaTasks style={{ marginRight: '8px' }} />
-                Search Activity
               </Link>
             </li>
           </ul>

@@ -1,25 +1,39 @@
 import React, { useState, useEffect } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 import axios from 'axios'
+import {
+  FaUser,
+  FaEnvelope,
+  FaPhone,
+  FaEye,
+  FaEyeSlash,
+  FaLock,
+} from 'react-icons/fa'
+import { AiFillIdcard } from 'react-icons/ai'
+import { MdPassword } from 'react-icons/md'
+import { Card, Form, Button, Row, Col, InputGroup } from 'react-bootstrap'
 
-// Props
+// For staff roles
+type Role = 'Group Admin' | 'Field Staff' | 'Team Leader'
+
+interface User {
+  id: number
+  firstname: string
+  lastname: string
+  email: string // also used as "username"
+  phone: string
+  role: Role
+  password: string
+}
+
 interface RegisterroleProps {
   isSidebarOpen: boolean
 }
 
-// User type
-type Role = 'Group Admin' | 'Field Staff' | 'Team Leader'
-type User = {
-  id: number
-  firstname: string
-  lastname: string
-  email: string
-  phone: string
-  role: Role
-}
-
 const RegisterRoles: React.FC<RegisterroleProps> = ({ isSidebarOpen }) => {
   const [users, setUsers] = useState<User[]>([])
+
+  // The main form data
   const [formData, setFormData] = useState<User>({
     id: 0,
     firstname: '',
@@ -27,29 +41,37 @@ const RegisterRoles: React.FC<RegisterroleProps> = ({ isSidebarOpen }) => {
     email: '',
     phone: '',
     role: 'Group Admin',
+    password: '',
   })
+
+  // Confirm password
+  const [confirmPassword, setConfirmPassword] = useState('')
+  const [showPassword, setShowPassword] = useState(false)
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false)
+
   const [notification, setNotification] = useState<string | null>(null)
+  const [isSendingEmail, setIsSendingEmail] = useState(false) // for button spinner/feedback
 
   const location = useLocation()
   const navigate = useNavigate()
 
-  // ----------------------------------------
-  // On first render or if editing user
+  // ----------------------------------------------------------------
+  // Fetch staff for uniqueness checks & fill form if editing
   useEffect(() => {
-    // If there's a "user" in location.state, fill the form for editing
-    if (location.state?.user) {
-      setFormData(location.state.user)
-    }
-
-    // Fetch all users for email uniqueness check
     axios
       .get('/api/staff')
       .then((res) => setUsers(res.data))
-      .catch((err) => console.error('Error fetching users:', err))
+      .catch((err) => console.error('Error fetching staff:', err))
+
+    if (location.state?.user) {
+      // If editing, fill form
+      const existing = location.state.user as User
+      setFormData(existing)
+    }
   }, [location])
 
-  // ----------------------------------------
-  // Clear notification after a few seconds
+  // ----------------------------------------------------------------
+  // Clear notifications after a few seconds
   useEffect(() => {
     if (notification) {
       const timer = setTimeout(() => setNotification(null), 4000)
@@ -57,60 +79,81 @@ const RegisterRoles: React.FC<RegisterroleProps> = ({ isSidebarOpen }) => {
     }
   }, [notification])
 
-  // ----------------------------------------
-  // Form validation to ensure fields are filled correctly
-  const validateForm = (): string | null => {
-    const { firstname, lastname, email, phone } = formData
-
-    if (!firstname || !lastname || !email || !phone) {
-      return 'All fields are required.'
-    }
-    // Basic email check
-    if (!/\S+@\S+\.\S+/.test(email)) {
-      return 'Invalid email format.'
-    }
-    // Exactly 10 digits for phone
-    if (!/^\d{10}$/.test(phone)) {
-      return 'Phone must be exactly 10 digits.'
-    }
-    return ''
-  }
-
-  // Save users to localStorage whenever the users list changes
-  useEffect(() => {
-    localStorage.setItem('users', JSON.stringify(users))
-  }, [users])
-
-  // ----------------------------------------
-  // Generic input change
+  // ----------------------------------------------------------------
+  // Handle form changes
+  // We cast the event to the correct type to avoid TS error with Form.Control
   const handleInputChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
   ) => {
     setFormData({ ...formData, [e.target.name]: e.target.value })
   }
 
-  // ----------------------------------------
-  // Email on new user creation only
-  const sendEmail = async () => {
+  const toggleShowPassword = () => setShowPassword((prev) => !prev)
+  const toggleShowConfirmPassword = () =>
+    setShowConfirmPassword((prev) => !prev)
+
+  // ----------------------------------------------------------------
+  // Validate password complexity
+  // Example: min 8 chars, at least 1 uppercase, 1 digit, 1 special char
+  const passwordIsValid = (pwd: string) => {
+    // You can adjust these rules as needed
+    return (
+      pwd.length >= 8 &&
+      /[A-Z]/.test(pwd) &&
+      /\d/.test(pwd) &&
+      /[^A-Za-z0-9]/.test(pwd)
+    )
+  }
+
+  // ----------------------------------------------------------------
+  // Validate entire form
+  const validateForm = (): string | null => {
+    const { firstname, lastname, email, phone, password } = formData
+
+    if (!firstname || !lastname || !email || !phone || !password || !confirmPassword)  {
+      return 'All fields are required.'
+    }
+    if (!/\S+@\S+\.\S+/.test(email)) {
+      return 'Invalid email format.'
+    }
+    if (!/^\d{10}$/.test(phone)) {
+      return 'Phone must be exactly 10 digits.'
+    }
+
+    // If this is a new staff or if user typed a new password
+    if (!formData.id || password) {
+      if (!passwordIsValid(password)) {
+        return 'Password must be at least 8 characters, include uppercase letters, numbers, and special characters.'
+      }
+      if (password !== confirmPassword) {
+        return 'Passwords do not match.'
+      }
+    }
+
+    return null
+  }
+
+  // ----------------------------------------------------------------
+  // Send email
+  const sendRegistrationEmail = async () => {
     try {
       await axios.post('/api/send-email', {
         email: formData.email,
-        subject: 'Registration Confirmation',
-        message: `Dear ${formData.firstname} ${formData.lastname},\n\nYou are now  registered as a ${formData.role} Member for your organisation’s FieldSafe App use.\n we welcome your feedback on its use.\n\nBest regards,\nYour Team`,
+        subject: 'Welcome to FieldSafe!',
+        message: `Dear ${formData.firstname} ${formData.lastname},\n\nYou have been registered as a ${formData.role} in FieldSafe. Your login email is: ${formData.email}.\n\nBest regards,\nFieldSafe Team`,
       })
     } catch (error) {
       console.error('Error sending email:', error)
-      // Not critical. We won't setNotification for email errors here
     }
   }
 
-  // ----------------------------------------
-  // Save (Add or Edit user)
-  const handleSubmit = async () => {
-    // Validate first
-    const validationError = validateForm()
-    if (validationError) {
-      setNotification(validationError)
+  // ----------------------------------------------------------------
+  // Submit the form
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    const errorMsg = validateForm()
+    if (errorMsg) {
+      setNotification(errorMsg)
       return
     }
 
@@ -119,12 +162,14 @@ const RegisterRoles: React.FC<RegisterroleProps> = ({ isSidebarOpen }) => {
       (u) => u.email === formData.email && u.id !== formData.id
     )
     if (isEmailTaken) {
-      setNotification('The email address is already in use.')
+      setNotification('That email is already in use.')
       return
     }
 
     try {
-      // If editing (formData.id), do PUT; else do POST
+      setIsSendingEmail(true)
+
+      // If editing => PUT
       if (formData.id) {
         // Optional check if "no changes" were made
         const originalUser = users.find((u) => u.id === formData.id)
@@ -134,134 +179,257 @@ const RegisterRoles: React.FC<RegisterroleProps> = ({ isSidebarOpen }) => {
           originalUser.lastname === formData.lastname &&
           originalUser.email === formData.email &&
           originalUser.phone === formData.phone &&
-          originalUser.role === formData.role
+          originalUser.role === formData.role &&
+          // If password is blank, they didn't update it
+          !formData.password // or formData.password.length===0
         ) {
           const confirmNoChanges = window.confirm(
             'No changes detected. Save anyway?'
           )
-          if (!confirmNoChanges) return
+          if (!confirmNoChanges) {
+            setIsSendingEmail(false)
+            return
+          }
         }
 
+        // Perform the update
         await axios.put(`/api/staff/${formData.id}`, formData)
         setNotification(`Successfully updated ${formData.firstname}!`)
       } else {
-        // It's a new user => POST
+        // Creating new staff => POST
         await axios.post('/api/staff', formData)
-        await sendEmail() // For newly added users only
-        setNotification(`${formData.firstname} added successfully!`)
+        // Send registration email
+        await sendRegistrationEmail()
+        setNotification(`${formData.firstname} registered successfully!`)
       }
 
-      // Navigate to the correct page based on the final role
-      //    (Wait a little so user sees the success message)
+      // Let user see success notification
       setTimeout(() => {
+        setIsSendingEmail(false)
+
+        // Navigate to correct staff page
         if (formData.role === 'Group Admin') {
           navigate('/groupadmin')
         } else if (formData.role === 'Field Staff') {
           navigate('/fieldstaff')
         } else {
-          // Team Leader
           navigate('/teamlead')
         }
-      }, 1000)
-    } catch (error) {
-      console.error('Error saving user:', error)
-      setNotification('Failed to save user.')
+      }, 1500)
+    } catch (err) {
+      console.error('Error saving staff:', err)
+      setNotification('Failed to save staff.')
+      setIsSendingEmail(false)
     }
   }
 
-  // ----------------------------------------
-  // Render
+  // ----------------------------------------------------------------
   return (
     <div
-      className={`container-fluid d-flex align-items-center justify-content-center mt-5 ${
+      className={`container-fluid ${
         isSidebarOpen ? 'content-expanded' : 'content-collapsed'
       }`}
       style={{
         marginLeft: isSidebarOpen ? '220px' : '20px',
-        paddingTop: '20px',
-        marginTop: '2.5rem',
         transition: 'margin 0.3s ease',
+        paddingTop: '4rem',
       }}
     >
-      <div
-        className="form-container bg-white p-4 rounded shadow"
-        style={{ maxWidth: '500px', width: '100%' }}
-      >
-        <h2 className="text-center">
-          {formData.id ? 'Edit Staff' : 'Add Staff'}
-        </h2>
+      <Row className="form-container justify-content-center pt-4 ">
+        <Col md={8} lg={6}>
+          <Card className="shadow">
+            <h2 className="text-center pt-3">
+              {formData.id ? 'Edit User' : 'Add User'}
+            </h2>
 
-        {/* Notification banner */}
-        {notification && (
-          <div className="alert alert-primary text-center">{notification}</div>
-        )}
+            <Card.Body>
+              {notification && (
+                <div className="alert alert-danger text-center">
+                  {notification}
+                </div>
+              )}
 
-        {/* Fields */}
-        <form className="form-container bg-white p-4 rounded shadow">
-          <div className="mb-3">
-            <label>First Name</label>
-            <input
-              type="text"
-              name="firstname"
-              value={formData.firstname}
-              onChange={handleInputChange}
-              className="form-control"
-            />
-          </div>
-          <div className="mb-3">
-            <label>Last Name</label>
-            <input
-              type="text"
-              name="lastname"
-              value={formData.lastname}
-              onChange={handleInputChange}
-              className="form-control"
-            />
-          </div>
-          <div className="mb-3">
-            <label>Email</label>
-            <input
-              type="email"
-              name="email"
-              value={formData.email}
-              onChange={handleInputChange}
-              className="form-control"
-            />
-          </div>
-          <div className="mb-3">
-            <label>Phone</label>
-            <input
-              type="text"
-              name="phone"
-              value={formData.phone}
-              onChange={handleInputChange}
-              className="form-control"
-            />
-          </div>
-          <div className="mb-3">
-            <label>Role</label>
-            <select
-              name="role"
-              value={formData.role}
-              onChange={handleInputChange}
-              className="form-select"
-            >
-              <option value="Group Admin">Group Admin</option>
-              <option value="Field Staff">Field Staff</option>
-              <option value="Team Leader">Team Leader</option>
-            </select>
-          </div>
+              <Form
+                className="form-container bg-white p-3 rounded shadow"
+                onSubmit={handleSubmit}
+              >
+                <Row>
+                  <Col md={6}>
+                    <Form.Group className="mb-3">
+                      <Form.Label>
+                        <FaUser className="me-1" />
+                        First Name
+                      </Form.Label>
+                      {/* Cast the event in onChange to avoid TS error */}
+                      <Form.Control
+                        type="text"
+                        name="firstname"
+                        value={formData.firstname}
+                        onChange={(e) =>
+                          handleInputChange(
+                            e as React.ChangeEvent<HTMLInputElement>
+                          )
+                        }
+                        placeholder="Enter first name"
+                        required
+                      />
+                    </Form.Group>
+                  </Col>
+                  <Col md={6}>
+                    <Form.Group className="mb-3">
+                      <Form.Label>
+                        <FaUser className="me-1" />
+                        Last Name
+                      </Form.Label>
+                      <Form.Control
+                        type="text"
+                        name="lastname"
+                        value={formData.lastname}
+                        onChange={(e) =>
+                          handleInputChange(
+                            e as React.ChangeEvent<HTMLInputElement>
+                          )
+                        }
+                        placeholder="Enter last name"
+                        required
+                      />
+                    </Form.Group>
+                  </Col>
+                </Row>
 
-          {/* Button */}
-          <button
-            type="button"
-            className="btn btn-primary w-100 mt-4"
-            onClick={handleSubmit}
-          >
-            {formData.id ? 'Save Changes' : 'Register and Send Email'}
-          </button>
-        </form>
-      </div>
+                <Form.Group className="mb-3">
+                  <Form.Label>
+                    <FaEnvelope className="me-1" />
+                    Email (Username)
+                  </Form.Label>
+                  <Form.Control
+                    type="email"
+                    name="email"
+                    value={formData.email}
+                    onChange={(e) =>
+                      handleInputChange(
+                        e as React.ChangeEvent<HTMLInputElement>
+                      )
+                    }
+                    placeholder="user@example.com"
+                    required
+                  />
+                </Form.Group>
+
+                <Form.Group className="mb-3">
+                  <Form.Label>
+                    <FaPhone className="me-1" />
+                    Phone
+                  </Form.Label>
+                  <Form.Control
+                    type="text"
+                    name="phone"
+                    value={formData.phone}
+                    onChange={(e) =>
+                      handleInputChange(
+                        e as React.ChangeEvent<HTMLInputElement>
+                      )
+                    }
+                    placeholder="10-digit phone"
+                    required
+                  />
+                </Form.Group>
+
+                <Form.Group className="mb-3">
+                  <Form.Label>
+                    <FaUser className="me-1" />
+                    Role
+                  </Form.Label>
+                  <Form.Select
+                    name="role"
+                    value={formData.role}
+                    onChange={(e) =>
+                      handleInputChange(
+                        e as React.ChangeEvent<HTMLSelectElement>
+                      )
+                    }
+                  >
+                    <option value="Group Admin">Group Admin</option>
+                    <option value="Field Staff">Field Staff</option>
+                    <option value="Team Leader">Team Leader</option>
+                  </Form.Select>
+                </Form.Group>
+
+                <Row>
+                  <Col md={6}>
+                    <Form.Group className="mb-3 position-relative">
+                      <Form.Label>
+                        <FaLock className="me-1" />
+                        Password
+                      </Form.Label>
+                      <InputGroup>
+                        <Form.Control
+                          type={showPassword ? 'text' : 'password'}
+                          name="password"
+                          value={formData.password}
+                          onChange={(e) =>
+                            handleInputChange(
+                              e as React.ChangeEvent<HTMLInputElement>
+                            )
+                          }
+                          placeholder={
+                            formData.id
+                              ? '(Leave blank to keep current)'
+                              : 'e.g. Pass@2023'
+                          }
+                        />
+                        <Button
+                          variant="outline-secondary"
+                          onClick={toggleShowPassword}
+                        >
+                          {showPassword ? <FaEyeSlash /> : <FaEye />}
+                        </Button>
+                      </InputGroup>
+                    </Form.Group>
+                  </Col>
+
+                  <Col md={6}>
+                    <Form.Group className="mb-3 position-relative">
+                      <Form.Label>
+                        <MdPassword className="me-1" />
+                        Confirm Password
+                      </Form.Label>
+                      <InputGroup>
+                        <Form.Control
+                          type={showConfirmPassword ? 'text' : 'password'}
+                          value={confirmPassword}
+                          onChange={(e) => setConfirmPassword(e.target.value)}
+                          placeholder={
+                            formData.id
+                              ? '(Leave blank if no change)'
+                              : 'Repeat password'
+                          }
+                        />
+                        <Button
+                          variant="outline-secondary"
+                          onClick={toggleShowConfirmPassword}
+                        >
+                          {showConfirmPassword ? <FaEyeSlash /> : <FaEye />}
+                        </Button>
+                      </InputGroup>
+                    </Form.Group>
+                  </Col>
+                </Row>
+
+                <div className="d-grid mt-2" style={{backgroundColor:'#76D6E2'}}>
+                  <button
+                    type="button"
+                    className="btn  w-100 p-2"
+                    onClick={handleSubmit}
+                  >
+                    {formData.id ? 'Save Changes' : 'Register and Send Email'}
+                  </button>
+                </div>
+              </Form>
+            </Card.Body>
+          </Card>
+        </Col>
+      </Row>
     </div>
   )
 }

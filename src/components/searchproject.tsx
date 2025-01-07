@@ -96,8 +96,9 @@ const SearchProject: React.FC<SearchProjectProps> = ({ isSidebarOpen }) => {
 
   // Helper function to format date
   const formatDate = (dateString: string): string => {
-    const date = new Date(dateString)
-    return date.toLocaleDateString(undefined, {
+    const [year, month, day] = dateString.split('-')
+
+    return [year, month, day].toLocaleDateString(undefined, {
       year: 'numeric',
       month: 'long',
       day: 'numeric',

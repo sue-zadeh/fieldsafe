@@ -16,7 +16,6 @@ import {
 // import Logo from '../assets/logo3.png'
 import Logo from '../assets/logo1.png'
 
-
 interface NavbarProps {
   onLogout: () => void
   isLoggedIn: boolean
@@ -74,136 +73,6 @@ const Navbar: React.FC<NavbarProps> = ({
         {/* Collapsible area */}
         <div className="collapse navbar-collapse" id="navbarNavDropdown">
           <ul className="navbar-nav ms-auto fs-6">
-            {/* Organization Profile */}
-            <li className="nav-item dropdown px-3">
-              <a
-                className="nav-link dropdown-toggle w-100"
-                href="#"
-                id="organizationDropdown"
-                role="button"
-                data-bs-toggle="dropdown"
-                aria-expanded="false"
-                style={{
-                  color: '#1A1A1A',
-                  fontWeight:
-                    isActive('/registerroles') ||
-                    isActive('/groupadmin') ||
-                    isActive('/teamlead') ||
-                    isActive('/fieldstaff')
-                      ? 'bold'
-                      : 'normal',
-                }}
-              >
-                <MdGroups style={{ marginRight: '5px' }} />
-                Organization Profile
-              </a>
-              <ul
-                className="dropdown-menu"
-                aria-labelledby="organizationDropdown"
-              >
-                <li>
-                  <Link
-                    to="/registerroles"
-                    className="dropdown-item"
-                    style={{
-                      fontWeight: isActive('/registerroles')
-                        ? 'bold'
-                        : 'normal',
-                    }}
-                  >
-                    <FaUserPlus style={{ marginRight: '5px' }} />
-                    Add Staff
-                  </Link>
-                </li>
-                <li>
-                  <Link
-                    to="/groupadmin"
-                    className="dropdown-item"
-                    style={{
-                      fontWeight: isActive('/groupadmin') ? 'bold' : 'normal',
-                    }}
-                  >
-                    <MdGroups style={{ marginRight: '5px' }} />
-                    Group Admin
-                  </Link>
-                </li>
-                <li>
-                  <Link
-                    to="/teamlead"
-                    className="dropdown-item"
-                    style={{
-                      fontWeight: isActive('/teamlead') ? 'bold' : 'normal',
-                    }}
-                  >
-                    <FaUsers style={{ marginRight: '5px' }} />
-                    Team Leader
-                  </Link>
-                </li>
-                <li>
-                  <Link
-                    to="/fieldstaff"
-                    className="dropdown-item"
-                    style={{
-                      fontWeight: isActive('/fieldstaff') ? 'bold' : 'normal',
-                    }}
-                  >
-                    <FaUserCog style={{ marginRight: '5px' }} />
-                    Field Staff
-                  </Link>
-                </li>
-              </ul>
-            </li>
-
-            {/* Volunteer */}
-            <li className="nav-item dropdown px-3">
-              <a
-                className="nav-link dropdown-toggle"
-                href="#"
-                id="volunteerDropdown"
-                role="button"
-                data-bs-toggle="dropdown"
-                aria-expanded="false"
-                style={{
-                  color: '#1A1A1A',
-                  fontWeight:
-                    isActive('/registervolunteer') || isActive('/volunteer')
-                      ? 'bold'
-                      : 'normal',
-                }}
-              >
-                <MdVolunteerActivism style={{ marginRight: '5px' }} />
-                Volunteer
-              </a>
-              <ul className="dropdown-menu" aria-labelledby="volunteerDropdown">
-                <li>
-                  <Link
-                    to="/registervolunteer"
-                    className="dropdown-item"
-                    style={{
-                      fontWeight: isActive('/registervolunteer')
-                        ? 'bold'
-                        : 'normal',
-                    }}
-                  >
-                    <BsPersonFillAdd style={{ marginRight: '5px' }} />
-                    Add Volunteer
-                  </Link>
-                </li>
-                <li>
-                  <Link
-                    to="/volunteer"
-                    className="dropdown-item"
-                    style={{
-                      fontWeight: isActive('/volunteer') ? 'bold' : 'normal',
-                    }}
-                  >
-                    <MdVolunteerActivism style={{ marginRight: '5px' }} />
-                    Volunteer
-                  </Link>
-                </li>
-              </ul>
-            </li>
-
             {/* Projects */}
             <li className="nav-item dropdown px-3">
               <a
@@ -234,8 +103,8 @@ const Navbar: React.FC<NavbarProps> = ({
                     }}
                   >
                     <BsCalendar2Plus style={{ marginRight: '5px' }} />
-                    Add Project
-                  </Link>
+                    {location.pathname === '/editproject' ? 'Edit Project' : 'Add Project'}
+                    </Link>
                 </li>
                 <li>
                   <Link
@@ -304,8 +173,152 @@ const Navbar: React.FC<NavbarProps> = ({
               </ul>
             </li>
 
-            {/*===== Objectives ======= */}
+            {/* Organization Profile */}
             <li className="nav-item dropdown px-3">
+              <a
+                className="nav-link dropdown-toggle w-100"
+                href="#"
+                id="organizationDropdown"
+                role="button"
+                data-bs-toggle="dropdown"
+                aria-expanded="false"
+                style={{
+                  color: '#1A1A1A',
+                  fontWeight:
+                    isActive('/registerroles') ||
+                    isActive('/groupadmin') ||
+                    isActive('/teamlead') ||
+                    isActive('/fieldstaff') ||
+                    isActive('/objectives')
+                      ? 'bold'
+                      : 'normal',
+                }}
+              >
+                <MdGroups style={{ marginRight: '5px' }} />
+                Organization Profile
+              </a>
+              <ul
+                className="dropdown-menu"
+                aria-labelledby="organizationDropdown"
+              >
+                <li>
+                  <Link
+                    to="/registerroles"
+                    className="dropdown-item"
+                    style={{
+                      fontWeight: isActive('/registerroles')
+                        ? 'bold'
+                        : 'normal',
+                    }}
+                  >
+                    <FaUserPlus style={{ marginRight: '5px' }} />
+                    Add User
+                  </Link>
+                </li>
+                <li>
+                  <Link
+                    to="/groupadmin"
+                    className="dropdown-item"
+                    style={{
+                      fontWeight: isActive('/groupadmin') ? 'bold' : 'normal',
+                    }}
+                  >
+                    <MdGroups style={{ marginRight: '5px' }} />
+                    Group Admin
+                  </Link>
+                </li>
+                <li>
+                  <Link
+                    to="/teamlead"
+                    className="dropdown-item"
+                    style={{
+                      fontWeight: isActive('/teamlead') ? 'bold' : 'normal',
+                    }}
+                  >
+                    <FaUsers style={{ marginRight: '5px' }} />
+                    Team Leader
+                  </Link>
+                </li>
+                <li>
+                  <Link
+                    to="/fieldstaff"
+                    className="dropdown-item"
+                    style={{
+                      fontWeight: isActive('/fieldstaff') ? 'bold' : 'normal',
+                    }}
+                  >
+                    <FaUserCog style={{ marginRight: '5px' }} />
+                    Field Staff
+                  </Link>
+                </li>
+
+                <li>
+                  <Link
+                    to="/objectives"
+                    className="dropdown-item"
+                    style={{
+                      fontWeight: isActive('/objectives') ? 'bold' : 'normal',
+                    }}
+                  >
+                    <FaBullseye style={{ marginRight: '5px' }} />
+                    Add Objective
+                  </Link>
+                </li>
+              </ul>
+            </li>
+
+            {/* Volunteer */}
+            <li className="nav-item dropdown px-3">
+              <a
+                className="nav-link dropdown-toggle"
+                href="#"
+                id="volunteerDropdown"
+                role="button"
+                data-bs-toggle="dropdown"
+                aria-expanded="false"
+                style={{
+                  color: '#1A1A1A',
+                  fontWeight:
+                    isActive('/registervolunteer') || isActive('/volunteer')
+                      ? 'bold'
+                      : 'normal',
+                }}
+              >
+                <MdVolunteerActivism style={{ marginRight: '5px' }} />
+                Volunteer
+              </a>
+              <ul className="dropdown-menu" aria-labelledby="volunteerDropdown">
+                <li>
+                  <Link
+                    to="/registervolunteer"
+                    className="dropdown-item"
+                    style={{
+                      fontWeight: isActive('/registervolunteer')
+                        ? 'bold'
+                        : 'normal',
+                    }}
+                  >
+                    <BsPersonFillAdd style={{ marginRight: '5px' }} />
+                    Add Volunteer
+                  </Link>
+                </li>
+                <li>
+                  <Link
+                    to="/volunteer"
+                    className="dropdown-item"
+                    style={{
+                      fontWeight: isActive('/volunteer') ? 'bold' : 'normal',
+                    }}
+                  >
+                    <MdVolunteerActivism style={{ marginRight: '5px' }} />
+                    Volunteer
+                  </Link>
+                </li>
+              </ul>
+            </li>
+
+            {/*===== Objectives ======= */}
+            {/* <li className="nav-item dropdown px-3">
               <a
                 className="nav-link dropdown-toggle"
                 href="#"
@@ -324,21 +337,11 @@ const Navbar: React.FC<NavbarProps> = ({
                 <FaBullseye style={{ marginRight: '5px' }} />
                 Objectives
               </a>
-              <ul className="dropdown-menu" aria-labelledby="objectiveDropdown">
-                <li>
-                  <Link
-                    to="/objectives"
-                    className="dropdown-item"
-                    style={{
-                      fontWeight: isActive('/objectives') ? 'bold' : 'normal',
-                    }}
-                  >
-                    <FaBullseye style={{ marginRight: '5px' }} />
-                    Add Objective
-                  </Link>
-                </li>
-        </ul>
-        </li>
+              <ul
+                className="dropdown-menu"
+                aria-labelledby="objectiveDropdown"
+              ></ul>
+            </li> */}
             {/* Logout */}
             {isLoggedIn && (
               <li className="nav-item">
