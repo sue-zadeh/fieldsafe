@@ -17,17 +17,17 @@ interface Risk {
   additionalControls: string
 }
 
-interface HazardsAndRisksProps {
+interface RisksProps {
   isSidebarOpen: boolean
 }
 
-const AddHazardsAndRisks: React.FC<HazardsAndRisksProps> = ({
+const AddHazardsAndRisks: React.FC<RisksProps> = ({
   isSidebarOpen,
 }) => {
-  const [hazards, setHazards] = useState<Hazard[]>([])
+  // const [hazards, setHazards] = useState<Hazard[]>([])
+  // const [siteHazard, setSiteHazard] = useState('')
+  // const [activityPeopleHazard, setActivityPeopleHazard] = useState('')
   const [risks, setRisks] = useState<Risk[]>([])
-  const [siteHazard, setSiteHazard] = useState('')
-  const [activityPeopleHazard, setActivityPeopleHazard] = useState('')
   const [riskTitle, setRiskTitle] = useState('')
   const [likelihood, setLikelihood] = useState('')
   const [consequences, setConsequences] = useState('')
@@ -35,19 +35,19 @@ const AddHazardsAndRisks: React.FC<HazardsAndRisksProps> = ({
   const [notification, setNotification] = useState<string | null>(null)
 
   useEffect(() => {
-    fetchHazards()
+    // fetchHazards()
     fetchRisks()
   }, [])
 
-  const fetchHazards = async () => {
-    try {
-      const res = await axios.get('/api/hazards')
-      setHazards(res.data)
-    } catch (err) {
-      console.error('Error fetching hazards:', err)
-      setNotification('Failed to load hazards.')
-    }
-  }
+  // const fetchHazards = async () => {
+  //   try {
+  //     const res = await axios.get('/api/hazards')
+  //     setHazards(res.data)
+  //   } catch (err) {
+  //     console.error('Error fetching hazards:', err)
+  //     setNotification('Failed to load hazards.')
+  //   }
+  // }
 
   const fetchRisks = async () => {
     try {
@@ -59,35 +59,35 @@ const AddHazardsAndRisks: React.FC<HazardsAndRisksProps> = ({
     }
   }
 
-  // Auto-clear notification
-  useEffect(() => {
-    if (notification) {
-      const timer = setTimeout(() => setNotification(null), 4000)
-      return () => clearTimeout(timer)
-    }
-  }, [notification])
+  // // Auto-clear notification
+  // useEffect(() => {
+  //   if (notification) {
+  //     const timer = setTimeout(() => setNotification(null), 4000)
+  //     return () => clearTimeout(timer)
+  //   }
+  // }, [notification])
 
-  const handleHazardSubmit = async (e: FormEvent) => {
-    e.preventDefault()
-    if (!siteHazard.trim() || !activityPeopleHazard.trim()) {
-      setNotification('Please fill in both hazard fields.')
-      return
-    }
+  // const handleHazardSubmit = async (e: FormEvent) => {
+  //   e.preventDefault()
+  //   if (!siteHazard.trim() || !activityPeopleHazard.trim()) {
+  //     setNotification('Please fill in both hazard fields.')
+  //     return
+  //   }
 
-    try {
-      await axios.post('/api/hazards', {
-        siteHazard: siteHazard.trim(),
-        activityPeopleHazard: activityPeopleHazard.trim(),
-      })
-      setNotification('Hazard added successfully!')
-      setSiteHazard('')
-      setActivityPeopleHazard('')
-      fetchHazards()
-    } catch (err) {
-      console.error('Error adding hazard:', err)
-      setNotification('Failed to add hazard.')
-    }
-  }
+  //   try {
+  //     await axios.post('/api/hazards', {
+  //       siteHazard: siteHazard.trim(),
+  //       activityPeopleHazard: activityPeopleHazard.trim(),
+  //     })
+  //     setNotification('Hazard added successfully!')
+  //     setSiteHazard('')
+  //     setActivityPeopleHazard('')
+  //     fetchHazards()
+  //   } catch (err) {
+  //     console.error('Error adding hazard:', err)
+  //     setNotification('Failed to add hazard.')
+  //   }
+  // }
 
   const handleRiskSubmit = async (e: FormEvent) => {
     e.preventDefault()
@@ -142,7 +142,7 @@ const AddHazardsAndRisks: React.FC<HazardsAndRisksProps> = ({
       className="container-fluid"
       style={{
         transition: 'margin 0.3s ease',
-        paddingTop: '5px',
+        paddingTop: '0px',
       }}
     >
       <h2
@@ -157,52 +157,7 @@ const AddHazardsAndRisks: React.FC<HazardsAndRisksProps> = ({
         </Alert>
       )}
 
-      <div className="row">
-        {/* Hazards Section */}
-        <div className="col-md-6">
-          <h4>Hazards</h4>
-          <Form onSubmit={handleHazardSubmit}>
-            <Form.Group className="mb-3">
-              <Form.Label>Site Hazard</Form.Label>
-              <Form.Control
-                type="text"
-                placeholder="E.g., Bad Weather"
-                value={siteHazard}
-                onChange={(e) => setSiteHazard(e.target.value)}
-              />
-            </Form.Group>
-            <Form.Group className="mb-3">
-              <Form.Label>Activity/People Hazard</Form.Label>
-              <Form.Control
-                type="text"
-                placeholder="E.g., Slippery Surface"
-                value={activityPeopleHazard}
-                onChange={(e) => setActivityPeopleHazard(e.target.value)}
-              />
-            </Form.Group>
-            <Button type="submit">Add Hazard</Button>
-          </Form>
-
-          <Table bordered hover className="mt-3">
-            <thead>
-              <tr>
-                <th>#</th>
-                <th>Site Hazard</th>
-                <th>Activity/People Hazard</th>
-              </tr>
-            </thead>
-            <tbody>
-              {hazards.map((hazard, index) => (
-                <tr key={hazard.id}>
-                  <td>{index + 1}</td>
-                  <td>{hazard.siteHazard}</td>
-                  <td>{hazard.activityPeopleHazard}</td>
-                </tr>
-              ))}
-            </tbody>
-          </Table>
-        </div>
-
+      
         {/* Risks Section */}
         <div className="col-md-6">
           <h4>Risks</h4>
@@ -277,7 +232,7 @@ const AddHazardsAndRisks: React.FC<HazardsAndRisksProps> = ({
           </Table>
         </div>
       </div>
-    </div>
+    
   )
 }
 

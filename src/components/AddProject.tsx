@@ -4,7 +4,8 @@ import { useLocation, useNavigate } from 'react-router-dom'
 import axios, { AxiosError } from 'axios'
 import { GoogleMap, Marker, Autocomplete } from '@react-google-maps/api'
 import AddObjectives from './addobjective' // Adjust path for objectives nav item
-import AddHazardRisk from './addhazardrisk'
+import AddRisk from './addrisk'
+import AddHazard from './addhazard'
 import {
   Navbar,
   Nav,
@@ -455,8 +456,7 @@ const AddProject: React.FC<AddProjectProps> = ({ isSidebarOpen }) => {
       style={{
         marginLeft: isSidebarOpen ? '220px' : '20px',
         transition: 'margin 0.3s ease',
-        paddingTop: '5px',
-        minHeight: '100vh',
+        paddingTop: '2px',
       }}
     >
       {/* Nav bar for projects page */}
@@ -496,18 +496,19 @@ const AddProject: React.FC<AddProjectProps> = ({ isSidebarOpen }) => {
             >
               add Objectives
             </Nav.Link>
-            {/* <Nav.Link
-              onClick={() => handleNavClick('hazard')}
+            {/* Hazards */}
+            <Nav.Link
+              onClick={() => handleNavClick('hazards')}
               style={{
                 fontWeight: activeTab === 'hazard' ? 'bold' : 'normal',
                 color: '#1A1A1A',
                 marginRight: '1rem',
               }}
             >
-              Hazards
-            </Nav.Link> */}
+              Add Hazards
+            </Nav.Link>
 
-            {/* Hazards & Risks */}
+            {/* Risks */}
             <Nav.Link
               onClick={() => handleNavClick('risks')}
               style={{
@@ -515,7 +516,7 @@ const AddProject: React.FC<AddProjectProps> = ({ isSidebarOpen }) => {
                 color: '#1A1A1A',
               }}
             >
-             Add Hazards & Risks
+              Add Risks
             </Nav.Link>
           </Nav>
         </Navbar.Collapse>
@@ -539,7 +540,7 @@ const AddProject: React.FC<AddProjectProps> = ({ isSidebarOpen }) => {
         </h3>
       </div>
 
-      {/* Notification (displays for 6s) */}
+      {/* Notification (displays for 8s) */}
       {notification && (
         <div className="alert alert-info text-center fs-6 fw-bold">
           {notification}
@@ -549,6 +550,7 @@ const AddProject: React.FC<AddProjectProps> = ({ isSidebarOpen }) => {
       <div style={{ marginTop: '2rem' }}>
         {activeTab === 'details' && (
           <div className="row">
+
             {/* LEFT COLUMN */}
             <div className="col-md-5 p-0 rounded p-3 ">
               <h4 style={{ color: OCEAN_BLUE }}>{name || '[Project Name]'}</h4>
@@ -901,16 +903,22 @@ const AddProject: React.FC<AddProjectProps> = ({ isSidebarOpen }) => {
 
         {/* Additional tabs: Objectives, Risks, etc. */}
         {activeTab === 'objectives' && (
-          <div className="py-4">
+          <div className="py-2">
             {/* <h3 ><b>Project Objectives</b></h3> */}
             <AddObjectives isSidebarOpen={isSidebarOpen} />
           </div>
         )}
-        {activeTab === 'risks' && (
-          <div className="d-f column p-4">
-            <AddHazardRisk isSidebarOpen={isSidebarOpen} />
+        {activeTab === 'hazards' && (
+          <div className="d-f column pt-2">
+            <AddHazard isSidebarOpen={isSidebarOpen} />
           </div>
         )}
+        {activeTab === 'risks' && (
+          <div className="d-f column pt-2">
+            <AddRisk isSidebarOpen={isSidebarOpen} />
+          </div>
+        )}
+
       </div>
 
       {/* MODAL for objectives */}

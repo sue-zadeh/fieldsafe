@@ -90,6 +90,7 @@ CREATE TABLE IF NOT EXISTS project_objectives (
   FOREIGN KEY (objective_id) REFERENCES objectives(id)
 );
 
+--the hazards table
 CREATE TABLE hazards (
     id INT AUTO_INCREMENT PRIMARY KEY,
     site_hazard VARCHAR(255) NOT NULL,

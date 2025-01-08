@@ -16,7 +16,8 @@ import AddProject from './components/AddProject'
 import SearchProject from './components/searchproject'
 import AddObjective from './components/addobjective'
 import Objective from './components/objectives'
-import AddHazardRisk from './components/addhazardrisk'
+import AddRisk from './components/addrisk'
+import AddHazard from './components/addhazard'
 // import ArchiveProj from './components/archiveprojects'
 // import Layout from './components/layout'
 
@@ -277,8 +278,12 @@ const App: React.FC = () => {
                     element={<SearchProject isSidebarOpen={isSidebarOpen} />}
                   />
                   <Route
-                    path="/addhazardsrisk"
-                    element={<AddHazardRisk isSidebarOpen={isSidebarOpen} />}
+                    path="/addrisk"
+                    element={<AddRisk isSidebarOpen={isSidebarOpen} />}
+                  />
+                  <Route
+                    path="/addhazard"
+                    element={<AddHazard isSidebarOpen={isSidebarOpen} />}
                   />
 
                   {/* etc. */}
