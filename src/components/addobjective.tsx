@@ -125,7 +125,6 @@ const AddObjectives: React.FC<AddObjectivesProps> = ({ isSidebarOpen }) => {
       style={{
         transition: 'margin 0.3s ease',
         paddingTop: '5px',
-        minHeight: '100vh',
       }}
     >
       <h2

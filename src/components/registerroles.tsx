@@ -51,6 +51,9 @@ const RegisterRoles: React.FC<RegisterroleProps> = ({ isSidebarOpen }) => {
 
   const [notification, setNotification] = useState<string | null>(null)
   const [isSendingEmail, setIsSendingEmail] = useState(false) // for button spinner/feedback
+  const [isLoading, setIsLoading] = useState<boolean>(false)
+  const [isEdit, setIsEdit] = useState<boolean>(false)
+  const [error, setError] = useState<string>('')
 
   const location = useLocation()
   const navigate = useNavigate()
@@ -110,7 +113,14 @@ const RegisterRoles: React.FC<RegisterroleProps> = ({ isSidebarOpen }) => {
   const validateForm = (): string | null => {
     const { firstname, lastname, email, phone, password } = formData
 
-    if (!firstname || !lastname || !email || !phone || !password || !confirmPassword)  {
+    if (
+      !firstname ||
+      !lastname ||
+      !email ||
+      !phone ||
+      !password ||
+      !confirmPassword
+    ) {
       return 'All fields are required.'
     }
     if (!/\S+@\S+\.\S+/.test(email)) {
@@ -156,6 +166,9 @@ const RegisterRoles: React.FC<RegisterroleProps> = ({ isSidebarOpen }) => {
       setNotification(errorMsg)
       return
     }
+
+    setIsLoading(true)
+    setError('')
 
     // Check email uniqueness
     const isEmailTaken = users.some(
@@ -416,13 +429,22 @@ const RegisterRoles: React.FC<RegisterroleProps> = ({ isSidebarOpen }) => {
                   </Col>
                 </Row>
 
-                <div className="d-grid mt-2" style={{backgroundColor:'#76D6E2'}}>
+                <div
+                  className="d-grid mt-2"
+                  style={{ backgroundColor: '#76D6E2' }}
+                >
                   <button
-                    type="button"
+                    type="submit"
                     className="btn  w-100 p-2"
                     onClick={handleSubmit}
+                    disabled={isLoading}
                   >
-                    {formData.id ? 'Save Changes' : 'Register and Send Email'}
+                    {isLoading
+                      ? 'Sending Email...'
+                      : isEdit
+                      ? 'Save changes'
+                      : 'Register &Send Email'}
+                    {/* {formData.id ? 'Save Changes' : 'Register and Send Email'} */}
                   </button>
                 </div>
               </Form>

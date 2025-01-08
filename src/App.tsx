@@ -16,6 +16,7 @@ import AddProject from './components/AddProject'
 import SearchProject from './components/searchproject'
 import AddObjective from './components/addobjective'
 import Objective from './components/objectives'
+import AddHazardRisk from './components/addhazardrisk'
 // import ArchiveProj from './components/archiveprojects'
 // import Layout from './components/layout'
 
@@ -211,7 +212,7 @@ const App: React.FC = () => {
           Your session has expired due to inactivity. Please log in again.
         </div>
       )}
-      {/* If we just logged out, show a success message */}
+      {/* If just logged out, show a success message */}
       {logoutMessage && (
         <div className="alert alert-success text-center">{logoutMessage}</div>
       )}
@@ -275,6 +276,11 @@ const App: React.FC = () => {
                     path="/SearchProject"
                     element={<SearchProject isSidebarOpen={isSidebarOpen} />}
                   />
+                  <Route
+                    path="/addhazardsrisk"
+                    element={<AddHazardRisk isSidebarOpen={isSidebarOpen} />}
+                  />
+
                   {/* etc. */}
                 </Routes>
               </LoadScript>

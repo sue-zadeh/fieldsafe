@@ -4,7 +4,7 @@ import { useLocation, useNavigate } from 'react-router-dom'
 import axios, { AxiosError } from 'axios'
 import { GoogleMap, Marker, Autocomplete } from '@react-google-maps/api'
 import AddObjectives from './addobjective' // Adjust path for objectives nav item
-
+import AddHazardRisk from './addhazardrisk'
 import {
   Navbar,
   Nav,
@@ -468,10 +468,6 @@ const AddProject: React.FC<AddProjectProps> = ({ isSidebarOpen }) => {
         }}
         className="py-2"
       >
-        {/* <Navbar.Brand */}
-
-        {/* </Navbar.Brand> */}
-
         {/* Hamburger menue-Toggle for small screens */}
         <Navbar.Toggle
           aria-controls="basic-navbar-nav"
@@ -479,6 +475,7 @@ const AddProject: React.FC<AddProjectProps> = ({ isSidebarOpen }) => {
         />
         <Navbar.Collapse id="basic-navbar-nav">
           <Nav className="mx-auto justify-content-center">
+            {/*First Tab = Details */}
             <Nav.Link
               onClick={() => handleNavClick('details')}
               style={{
@@ -497,9 +494,9 @@ const AddProject: React.FC<AddProjectProps> = ({ isSidebarOpen }) => {
                 marginRight: '1rem',
               }}
             >
-              Objectives
+              add Objectives
             </Nav.Link>
-            <Nav.Link
+            {/* <Nav.Link
               onClick={() => handleNavClick('hazard')}
               style={{
                 fontWeight: activeTab === 'hazard' ? 'bold' : 'normal',
@@ -508,7 +505,9 @@ const AddProject: React.FC<AddProjectProps> = ({ isSidebarOpen }) => {
               }}
             >
               Hazards
-            </Nav.Link>
+            </Nav.Link> */}
+
+            {/* Hazards & Risks */}
             <Nav.Link
               onClick={() => handleNavClick('risks')}
               style={{
@@ -516,7 +515,7 @@ const AddProject: React.FC<AddProjectProps> = ({ isSidebarOpen }) => {
                 color: '#1A1A1A',
               }}
             >
-              Risks
+             Add Hazards & Risks
             </Nav.Link>
           </Nav>
         </Navbar.Collapse>
@@ -909,8 +908,7 @@ const AddProject: React.FC<AddProjectProps> = ({ isSidebarOpen }) => {
         )}
         {activeTab === 'risks' && (
           <div className="d-f column p-4">
-            <h3>Project Risks</h3>
-            <p>Placeholder for risks tab.</p>
+            <AddHazardRisk isSidebarOpen={isSidebarOpen} />
           </div>
         )}
       </div>

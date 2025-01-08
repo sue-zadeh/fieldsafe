@@ -29,9 +29,9 @@ CREATE TABLE IF NOT EXISTS staffs (
     lastname VARCHAR(50) NOT NULL,
     email VARCHAR(100) UNIQUE NOT NULL,
     phone VARCHAR(15),
+    password VARCHAR(255) NOT NULL
     role ENUM('Field Staff', 'Team Leader', 'Group Admin') NOT NULL
-    login_id INT,
-    FOREIGN KEY (login_id) REFERENCES login(id) ON DELETE CASCADE
+    -- FOREIGN KEY (login_id) REFERENCES login(id) ON DELETE CASCADE
     
 );
 
@@ -88,6 +88,12 @@ CREATE TABLE IF NOT EXISTS project_objectives (
   amount INT NOT NULL DEFAULT 1
   FOREIGN KEY (project_id) REFERENCES projects(id),
   FOREIGN KEY (objective_id) REFERENCES objectives(id)
+);
+
+CREATE TABLE hazards (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    site_hazard VARCHAR(255) NOT NULL,
+    activity_people_hazard VARCHAR(255) NOT NULL
 );
 
 

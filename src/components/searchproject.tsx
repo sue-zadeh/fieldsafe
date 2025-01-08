@@ -95,14 +95,32 @@ const SearchProject: React.FC<SearchProjectProps> = ({ isSidebarOpen }) => {
   }
 
   // Helper function to format date
-  const formatDate = (dateString: string): string => {
+  function formatDateNoShift(dateString: string): string {
+    // Suppose dateString is "2024-12-31"
+    // Manually split
     const [year, month, day] = dateString.split('-')
-
-    return [year, month, day].toLocaleDateString(undefined, {
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric',
-    })
+    // Convert month from "01".."12" to name (or keep numeric if you want)
+    const monthNames = [
+      'January',
+      'February',
+      'March',
+      'April',
+      'May',
+      'June',
+      'July',
+      'August',
+      'September',
+      'October',
+      'November',
+      'December',
+    ]
+    const monthIndex = parseInt(month, 10) - 1
+    // Return string "December 31, 2024"
+    return `${monthNames[monthIndex]} ${parseInt(day, 10)}, ${year}`
+  }
+//To see in the start date in the search project page
+  const formatDate = (dateString: string): string => {
+    return formatDateNoShift(dateString)
   }
 
   return (
