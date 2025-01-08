@@ -95,13 +95,59 @@ CREATE TABLE hazards (
     id INT AUTO_INCREMENT PRIMARY KEY,
     site_hazard VARCHAR(255) NOT NULL,
     activity_people_hazard VARCHAR(255) NOT NULL
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+
+);
+
+--the project_hazards table
+CREATE TABLE IF NOT EXISTS project_hazards (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  project_id INT NOT NULL,
+  hazard_id INT NOT NULL,
+  FOREIGN KEY (project_id) REFERENCES projects(id) ON DELETE CASCADE,
+  FOREIGN KEY (hazard_id) REFERENCES hazards(id) ON DELETE CASCADE,
+  created_at DATETIME DEFAULT CURRENT_TIMESTAMP
 );
 
 
 
+CREATE TABLE IF NOT EXISTS project_risks (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  project_id INT NOT NULL,
+  risk_id INT NOT NULL,
+  FOREIGN KEY (project_id) REFERENCES projects(id) ON DELETE CASCADE,
+  FOREIGN KEY (risk_id) REFERENCES risks(id) ON DELETE CASCADE,
+  created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+);
 
-
-
+CREATE TABLE IF NOT EXISTS risks (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  title VARCHAR(255) NOT NULL,
+  likelihood ENUM('highly unlikely', 'unlikely', 'quite possible', 'likely', 'almost certain') NOT NULL,
+  consequences ENUM('insignificant', 'minor', 'moderate', 'major', 'catastrophic') NOT NULL,
+  risk_rating VARCHAR(30) AS (
+    CASE 
+WHEN likelihood = 'highly unlikely' AND consequences IN ('insignificant', 'minor', 'moderate') THEN 'Low risk'  
+      WHEN likelihood = 'highly unlikely' AND consequences IN ('major') THEN 'moderate risk'
+      WHEN likelihood = 'highly unlikely' AND consequences IN (  'catastrophic')THEN 'High risk'
+      WHEN likelihood = 'unlikely' AND consequences IN 'insignificant' THEN 'Low risk'
+      WHEN likelihood = 'unlikely' AND consequences IN ('moderate', 'minor') THEN 'moderate risk'
+      WHEN likelihood = 'unlikely' AND consequences = ('catastrophic', 'major') THEN 'High risk'
+      WHEN likelihood = 'quite possible' AND consequences IN 'insignificant' THEN 'Low risk'
+      WHEN likelihood = 'quite possible' AND consequences IN 'minor' THEN 'moderate risk'
+      WHEN likelihood = 'quite possible' AND consequences IN ('moderate', 'major') THEN 'High risk'
+      WHEN likelihood = 'quite possible' AND consequences IN 'catastrophic' THEN 'Extreme risk'
+      WHEN likelihood = 'likely' AND consequences IN ('minor', 'moderate') THEN 'High risk'
+      WHEN likelihood IN ('likely', 'almost certain') AND consequences IN 'insignificant' THEN 'moderate risk'
+      WHEN likelihood IN ('likely', 'almost certain') AND consequences IN ('major', 'catastrophic') THEN 'Extreme risk'
+      WHEN likelihood = 'almost certain' AND consequences IN 'moderate' THEN 'Extreme risk'
+      
+    ELSE 'Unknown'
+    END
+  ) STORED,
+  additional_controls TEXT,
+  created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+);
 
 
 

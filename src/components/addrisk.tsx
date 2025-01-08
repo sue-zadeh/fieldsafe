@@ -2,12 +2,6 @@ import React, { useState, useEffect, FormEvent } from 'react'
 import axios from 'axios'
 import { Table, Form, Button, Alert, Dropdown } from 'react-bootstrap'
 
-interface Hazard {
-  id: number
-  siteHazard: string
-  activityPeopleHazard: string
-}
-
 interface Risk {
   id: number
   title: string
@@ -21,9 +15,7 @@ interface RisksProps {
   isSidebarOpen: boolean
 }
 
-const AddHazardsAndRisks: React.FC<RisksProps> = ({
-  isSidebarOpen,
-}) => {
+const AddHazardsAndRisks: React.FC<RisksProps> = ({ isSidebarOpen }) => {
   // const [hazards, setHazards] = useState<Hazard[]>([])
   // const [siteHazard, setSiteHazard] = useState('')
   // const [activityPeopleHazard, setActivityPeopleHazard] = useState('')
@@ -148,7 +140,7 @@ const AddHazardsAndRisks: React.FC<RisksProps> = ({
       <h2
         style={{ color: '#0094B6', fontWeight: 'bold', paddingBottom: '4rem' }}
       >
-        Add Hazards & Risks
+        Add Risks
       </h2>
 
       {notification && (
@@ -157,82 +149,80 @@ const AddHazardsAndRisks: React.FC<RisksProps> = ({
         </Alert>
       )}
 
-      
-        {/* Risks Section */}
-        <div className="col-md-6">
-          <h4>Risks</h4>
-          <Form onSubmit={handleRiskSubmit}>
-            <Form.Group className="mb-3">
-              <Form.Label>Risk Title</Form.Label>
-              <Form.Control
-                type="text"
-                placeholder="E.g., Working near water"
-                value={riskTitle}
-                onChange={(e) => setRiskTitle(e.target.value)}
-              />
-            </Form.Group>
-            <Form.Group className="mb-3">
-              <Form.Label>Likelihood</Form.Label>
-              <Form.Control
-                as="select"
-                value={likelihood}
-                onChange={(e) => setLikelihood(e.target.value)}
-              >
-                <option value="">Select Likelihood</option>
-                <option>Highly Unlikely</option>
-                <option>Unlikely</option>
-                <option>Quite Possible</option>
-                <option>Likely</option>
-                <option>Almost Certain</option>
-              </Form.Control>
-            </Form.Group>
-            <Form.Group className="mb-3">
-              <Form.Label>Consequences</Form.Label>
-              <Form.Control
-                as="select"
-                value={consequences}
-                onChange={(e) => setConsequences(e.target.value)}
-              >
-                <option value="">Select Consequences</option>
-                <option>Insignificant</option>
-                <option>Minor</option>
-                <option>Moderate</option>
-                <option>Major</option>
-                <option>Catastrophic</option>
-              </Form.Control>
-            </Form.Group>
-            <Form.Group className="mb-3">
-              <Form.Label>Additional Controls</Form.Label>
-              <Form.Control
-                as="textarea"
-                rows={3}
-                placeholder="E.g., Wear gloves, carry sanitizer"
-                value={additionalControls}
-                onChange={(e) => setAdditionalControls(e.target.value)}
-              />
-            </Form.Group>
-            <Button type="submit">Add Risk</Button>
-          </Form>
+      {/* Risks Section */}
+      <div className="col-md-6">
+        <h4>Risks</h4>
+        <Form onSubmit={handleRiskSubmit}>
+          <Form.Group className="mb-3">
+            <Form.Label>Risk Title</Form.Label>
+            <Form.Control
+              type="text"
+              placeholder="E.g., Working near water"
+              value={riskTitle}
+              onChange={(e) => setRiskTitle(e.target.value)}
+            />
+          </Form.Group>
+          <Form.Group className="mb-3">
+            <Form.Label>Likelihood</Form.Label>
+            <Form.Control
+              as="select"
+              value={likelihood}
+              onChange={(e) => setLikelihood(e.target.value)}
+            >
+              <option value="">Select Likelihood</option>
+              <option>Highly Unlikely</option>
+              <option>Unlikely</option>
+              <option>Quite Possible</option>
+              <option>Likely</option>
+              <option>Almost Certain</option>
+            </Form.Control>
+          </Form.Group>
+          <Form.Group className="mb-3">
+            <Form.Label>Consequences</Form.Label>
+            <Form.Control
+              as="select"
+              value={consequences}
+              onChange={(e) => setConsequences(e.target.value)}
+            >
+              <option value="">Select Consequences</option>
+              <option>Insignificant</option>
+              <option>Minor</option>
+              <option>Moderate</option>
+              <option>Major</option>
+              <option>Catastrophic</option>
+            </Form.Control>
+          </Form.Group>
+          <Form.Group className="mb-3">
+            <Form.Label>Additional Controls</Form.Label>
+            <Form.Control
+              as="textarea"
+              rows={3}
+              placeholder="E.g., Wear gloves, carry sanitizer"
+              value={additionalControls}
+              onChange={(e) => setAdditionalControls(e.target.value)}
+            />
+          </Form.Group>
+          <Button type="submit">Add Risk</Button>
+        </Form>
 
-          <Table bordered hover className="mt-3">
-            <thead>
-              <tr>
-                <th>#</th>
-                <th>Title</th>
+        <Table bordered hover className="mt-3">
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>Title</th>
+            </tr>
+          </thead>
+          <tbody>
+            {risks.map((risk, index) => (
+              <tr key={risk.id}>
+                <td>{index + 1}</td>
+                <td>{risk.title}</td>
               </tr>
-            </thead>
-            <tbody>
-              {risks.map((risk, index) => (
-                <tr key={risk.id}>
-                  <td>{index + 1}</td>
-                  <td>{risk.title}</td>
-                </tr>
-              ))}
-            </tbody>
-          </Table>
-        </div>
+            ))}
+          </tbody>
+        </Table>
       </div>
-    
+    </div>
   )
 }
 

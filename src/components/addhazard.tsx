@@ -1,6 +1,6 @@
 import React, { useState, useEffect, FormEvent } from 'react'
 import axios from 'axios'
-import { Table, Form, Button, Alert, Dropdown } from 'react-bootstrap'
+import { Table, Form, Button, Alert } from 'react-bootstrap'
 
 interface Hazard {
   id: number
@@ -11,7 +11,7 @@ interface HazardsProps {
   isSidebarOpen: boolean
 }
 
-const AddHazards: React.FC<HazardsProps> = ({ isSidebarOpen }) => {
+const AddHazards: React.FC<HazardsProps> = () => {
   const [hazards, setHazards] = useState<Hazard[]>([])
   const [siteHazard, setSiteHazard] = useState('')
   const [activityPeopleHazard, setActivityPeopleHazard] = useState('')
@@ -30,6 +30,7 @@ const AddHazards: React.FC<HazardsProps> = ({ isSidebarOpen }) => {
       setNotification('Failed to load hazards.')
     }
   }
+  
 
   // Auto-clear notification
   useEffect(() => {
