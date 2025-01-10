@@ -1,153 +1,269 @@
 import React, { useState, useEffect, FormEvent } from 'react'
 import axios from 'axios'
-import { Table, Form, Button, Alert } from 'react-bootstrap'
+import { Table, Form, Button, Alert, ButtonGroup } from 'react-bootstrap'
 
 interface Hazard {
   id: number
-  siteHazard: string
-  activityPeopleHazard: string
-}
-interface HazardsProps {
-  isSidebarOpen: boolean
+  hazard_description: string
 }
 
-const AddHazards: React.FC<HazardsProps> = () => {
-  const [hazards, setHazards] = useState<Hazard[]>([])
-  const [siteHazard, setSiteHazard] = useState('')
-  const [activityPeopleHazard, setActivityPeopleHazard] = useState('')
+const AddHazard: React.FC = () => {
+  const [siteHazards, setSiteHazards] = useState<Hazard[]>([])
+  const [activityHazards, setActivityHazards] = useState<Hazard[]>([])
+  const [siteHazardDesc, setSiteHazardDesc] = useState('')
+  const [activityHazardDesc, setActivityHazardDesc] = useState('')
   const [notification, setNotification] = useState<string | null>(null)
 
+  // For editing
+  const [editSiteHazard, setEditSiteHazard] = useState<Hazard | null>(null)
+  const [editActivityHazard, setEditActivityHazard] = useState<Hazard | null>(
+    null
+  )
+
+  // Fetch hazards on load
   useEffect(() => {
-    fetchHazards()
+    fetchSiteHazards()
+    fetchActivityHazards()
   }, [])
 
-  const fetchHazards = async () => {
+  const fetchSiteHazards = async () => {
     try {
-      const res = await axios.get('/api/hazards')
-      setHazards(res.data)
+      const res = await axios.get('/api/site_hazards')
+      setSiteHazards(res.data)
     } catch (err) {
-      console.error('Error fetching hazards:', err)
-      setNotification('Failed to load hazards.')
+      setNotification('Failed to load site hazards.')
     }
   }
-  
+
+  const fetchActivityHazards = async () => {
+    try {
+      const res = await axios.get('/api/activity_people_hazards')
+      setActivityHazards(res.data)
+    } catch (err) {
+      setNotification('Failed to load activity hazards.')
+    }
+  }
 
   // Auto-clear notification
   useEffect(() => {
     if (notification) {
-      const timer = setTimeout(() => setNotification(null), 6000)
+      const timer = setTimeout(() => setNotification(null), 5000)
       return () => clearTimeout(timer)
     }
   }, [notification])
 
-  const handleHazardSubmit = async (e: FormEvent) => {
+  // Add site hazard
+  const handleAddSiteHazard = async (e: FormEvent) => {
     e.preventDefault()
-    if (!siteHazard.trim() || !activityPeopleHazard.trim()) {
-      setNotification('Please fill in both hazard fields.')
+    if (!siteHazardDesc.trim()) {
+      setNotification('Please provide a site hazard description.')
+      return
+    }
+    if (editSiteHazard || editActivityHazard) {
+      setNotification('Finish or cancel editing before adding a new hazard.')
       return
     }
 
     try {
-      await axios.post('/api/hazards', {
-        siteHazard: siteHazard.trim(),
-        activityPeopleHazard: activityPeopleHazard.trim(),
+      await axios.post('/api/site_hazards', {
+        hazard_description: siteHazardDesc.trim(),
       })
-      setNotification('Hazard added successfully!')
-      setSiteHazard('')
-      setActivityPeopleHazard('')
-      fetchHazards()
+      setNotification('Site hazard added successfully!')
+      setSiteHazardDesc('')
+      fetchSiteHazards()
     } catch (err) {
-      console.error('Error adding hazard:', err)
-      setNotification('Failed to add hazard.')
+      setNotification('Failed to add site hazard.')
     }
   }
-  return (
-    <div
-      className="container-fluid"
-      style={{
-        transition: 'margin 0.3s ease',
-        paddingTop: '0px',
-      }}
-    >
-      <h2
-        style={{ color: '#0094B6', fontWeight: 'bold', paddingBottom: '4rem' }}
-      >
-        Add Hazards
-      </h2>
 
-      {notification && (
-        <Alert variant="info" className="text-center">
-          {notification}
-        </Alert>
-      )}
-      <div className="row">
-        {/* Hazards Section */}
-        <div className="col-md-6">
-        <div className="d-flex row form-container justify-content-center shadow rounded g-1 p-4 ">
-          <h4>Site Hazards</h4>
-          <Form onSubmit={handleHazardSubmit}>
-            <Form.Group className="mb-3">
-              <Form.Label>Site Hazard</Form.Label>
-              <Form.Control
-                type="text"
-                placeholder="E.g., Bad Weather"
-                value={siteHazard}
-                onChange={(e) => setSiteHazard(e.target.value)}
-              />
-            </Form.Group>
-            <Button type="submit">Add Site Hazard</Button>
-          </Form>
-          <Table bordered hover className="mt-3 w-100">
-            <thead>
-              <tr>
-                <th>#</th>
-                <th>Site Hazard</th>
+  // Add activity hazard
+  const handleAddActivityHazard = async (e: FormEvent) => {
+    e.preventDefault()
+    if (!activityHazardDesc.trim()) {
+      setNotification('Please provide an activity/people hazard description.')
+      return
+    }
+    if (editSiteHazard || editActivityHazard) {
+      setNotification('Finish or cancel editing before adding a new hazard.')
+      return
+    }
+
+    try {
+      await axios.post('/api/activity_people_hazards', {
+        hazard_description: activityHazardDesc.trim(),
+      })
+      setNotification('Activity/People hazard added successfully!')
+      setActivityHazardDesc('')
+      fetchActivityHazards()
+    } catch (err) {
+      setNotification('Failed to add activity/people hazard.')
+    }
+  }
+
+  // Edit hazard
+  const handleEditSave = async (hazard: Hazard, type: 'site' | 'activity') => {
+    const url =
+      type === 'site' ? '/api/site_hazards' : '/api/activity_people_hazards'
+    try {
+      await axios.put(`${url}/${hazard.id}`, {
+        hazard_description: hazard.hazard_description.trim(),
+      })
+      setNotification(
+        `${type === 'site' ? 'Site' : 'Activity'} hazard updated successfully!`
+      )
+      type === 'site' ? setEditSiteHazard(null) : setEditActivityHazard(null)
+      type === 'site' ? fetchSiteHazards() : fetchActivityHazards()
+    } catch (err) {
+      setNotification('Failed to update hazard.')
+    }
+  }
+
+  // Delete hazard
+  const handleDelete = async (id: number, type: 'site' | 'activity') => {
+    if (!window.confirm('Are you sure you want to delete this hazard?')) return
+    const url =
+      type === 'site' ? '/api/site_hazards' : '/api/activity_people_hazards'
+    try {
+      await axios.delete(`${url}/${id}`)
+      setNotification(
+        `${type === 'site' ? 'Site' : 'Activity'} hazard deleted successfully!`
+      )
+      type === 'site' ? fetchSiteHazards() : fetchActivityHazards()
+    } catch (err) {
+      setNotification('Failed to delete hazard.')
+    }
+  }
+
+  return (
+    <div>
+      <h2>Add Hazards</h2>
+      {notification && <Alert variant="info">{notification}</Alert>}
+      <div>
+        {/* Site Hazards */}
+        <h3>Add Site Hazard</h3>
+        <Form onSubmit={handleAddSiteHazard}>
+          <Form.Control
+            type="text"
+            placeholder="Write a site hazard"
+            value={siteHazardDesc}
+            onChange={(e) => setSiteHazardDesc(e.target.value)}
+          />
+          <Button type="submit">Save</Button>
+        </Form>
+        <Table>
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>Hazard Description</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            {siteHazards.map((hazard, index) => (
+              <tr key={hazard.id}>
+                <td>{index + 1}</td>
+                <td>
+                  {editSiteHazard?.id === hazard.id ? (
+                    <Form.Control
+                      value={editSiteHazard.hazard_description}
+                      onChange={(e) =>
+                        setEditSiteHazard((prev) =>
+                          prev
+                            ? { ...prev, hazard_description: e.target.value }
+                            : null
+                        )
+                      }
+                    />
+                  ) : (
+                    hazard.hazard_description
+                  )}
+                </td>
+                <td>
+                  {editSiteHazard?.id === hazard.id ? (
+                    <Button
+                      onClick={() => handleEditSave(editSiteHazard, 'site')}
+                    >
+                      Save
+                    </Button>
+                  ) : (
+                    <Button onClick={() => setEditSiteHazard(hazard)}>
+                      Edit
+                    </Button>
+                  )}
+                  <Button onClick={() => handleDelete(hazard.id, 'site')}>
+                    Delete
+                  </Button>
+                </td>
               </tr>
-            </thead>
-          </Table>
-          </div>
-        </div>
-        <div className="col-md-6">
-              <div className="d-flex row form-container justify-content-center shadow rounded g-1 p-4 ">
-          <h4>Activity/People Hazard</h4>
-          <Form onSubmit={handleHazardSubmit}>
-            <Form.Group className="mb-3">
-              <Form.Label>Activity/People Hazard</Form.Label>
-              <Form.Control
-                type="text"
-                placeholder="E.g., Slippery Surface"
-                value={activityPeopleHazard}
-                onChange={(e) => setActivityPeopleHazard(e.target.value)}
-              />
-            </Form.Group>
-            <Button type="submit">Add Activity/People Hazard</Button>
-          </Form>
-          <div className="d-flex row form-container justify-content-center p-4 ">
-          <Table bordered hover className="mt-3 w-100">
-            <thead>
-              <tr>
-                <th>#</th>
-                <th>Activity/People Hazard</th>
+            ))}
+          </tbody>
+        </Table>
+      </div>
+      {/* Activity Hazards */}
+      <div>
+        <h3>Add Activity/People Hazard</h3>
+        <Form onSubmit={handleAddActivityHazard}>
+          <Form.Control
+            type="text"
+            placeholder="Write an activity hazard"
+            value={activityHazardDesc}
+            onChange={(e) => setActivityHazardDesc(e.target.value)}
+          />
+          <Button type="submit">Save</Button>
+        </Form>
+        <Table>
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>Hazard Description</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            {activityHazards.map((hazard, index) => (
+              <tr key={hazard.id}>
+                <td>{index + 1}</td>
+                <td>
+                  {editActivityHazard?.id === hazard.id ? (
+                    <Form.Control
+                      value={editActivityHazard.hazard_description}
+                      onChange={(e) =>
+                        setEditActivityHazard((prev) =>
+                          prev
+                            ? { ...prev, hazard_description: e.target.value }
+                            : null
+                        )
+                      }
+                    />
+                  ) : (
+                    hazard.hazard_description
+                  )}
+                </td>
+                <td>
+                  {editActivityHazard?.id === hazard.id ? (
+                    <Button
+                      onClick={() =>
+                        handleEditSave(editActivityHazard, 'activity')
+                      }
+                    >
+                      Save
+                    </Button>
+                  ) : (
+                    <Button onClick={() => setEditActivityHazard(hazard)}>
+                      Edit
+                    </Button>
+                  )}
+                  <Button onClick={() => handleDelete(hazard.id, 'activity')}>
+                    Delete
+                  </Button>
+                </td>
               </tr>
-            </thead>
-            <tbody>
-              {hazards.map((hazard, index) => (
-                <tr key={hazard.id}>
-                  <td>{index + 1}</td>
-                  <td>{hazard.siteHazard}</td>
-                  <td>{hazard.activityPeopleHazard}</td>
-                </tr>
-              ))}
-            </tbody>
-          </Table>
-        </div>
-        </div>
-          
-        </div>
-        
+            ))}
+          </tbody>
+        </Table>
       </div>
     </div>
   )
 }
 
-export default AddHazards
+export default AddHazard

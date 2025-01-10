@@ -73,12 +73,16 @@ INSERT INTO project_objectives (project_id, objective_id)
 VALUES
  (1, 1),
  (1, 2);
---Populate the hazards table
-INSERT INTO hazards (site_hazard, activity_people_hazard) VALUES
-('Bad Weather', 'Slippery Surface'),
-('Muddy Track', 'Fatigue'),
-('Steep Hill', 'Trip Hazard'),
-('Low Visibility', 'Disorientation');
+INSERT INTO site_hazards (hazard_description) VALUES 
+('Slippery Surface'), 
+('Bad Weather'), 
+('Uneven Terrain');
+
+INSERT INTO activity_people_hazards (hazard_description) VALUES 
+('Fatigue'), 
+('Lack of Training'), 
+('Heavy Lifting');
+
 
 -- Populate the project_hazards table
 INSERT INTO project_hazards (project_id, hazard_id) VALUES

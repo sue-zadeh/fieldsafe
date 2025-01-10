@@ -10,6 +10,10 @@
 --DROP TABLE IF EXISTS objectives; 
 --DROP TABLE IF EXISTS projects;
 --DROP TABLE IF EXISTS project_objectives;
+--DROP TABLE IF EXISTS site_hazards;
+--DROP TABLE IF EXISTS activity_people_hazards;
+--DROP TABLE IF EXISTS project_site_hazards;
+--DROP TABLE IF EXISTS project_activity_people_hazards;
 
 --the login table
 CREATE TABLE IF NOT EXISTS login (
@@ -90,27 +94,38 @@ CREATE TABLE IF NOT EXISTS project_objectives (
   FOREIGN KEY (objective_id) REFERENCES objectives(id)
 );
 
---the hazards table
-CREATE TABLE hazards (
+-- Site Hazards Table
+CREATE TABLE site_hazards (
     id INT AUTO_INCREMENT PRIMARY KEY,
-    site_hazard VARCHAR(255) NOT NULL,
-    activity_people_hazard VARCHAR(255) NOT NULL
-    created_at DATETIME DEFAULT CURRENT_TIMESTAMP
-
+    hazard_description VARCHAR(255) NOT NULL
 );
 
---the project_hazards table
-CREATE TABLE IF NOT EXISTS project_hazards (
-  id INT AUTO_INCREMENT PRIMARY KEY,
-  project_id INT NOT NULL,
-  hazard_id INT NOT NULL,
-  FOREIGN KEY (project_id) REFERENCES projects(id) ON DELETE CASCADE,
-  FOREIGN KEY (hazard_id) REFERENCES hazards(id) ON DELETE CASCADE,
-  created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+-- Activity/People Hazards Table
+CREATE TABLE activity_people_hazards (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    hazard_description VARCHAR(255) NOT NULL
+);
+
+-- Project-Site Hazards Relationship Table
+CREATE TABLE project_site_hazards (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    project_id INT NOT NULL,
+    site_hazard_id INT NOT NULL,
+    FOREIGN KEY (project_id) REFERENCES projects(id) ON DELETE CASCADE,
+    FOREIGN KEY (site_hazard_id) REFERENCES site_hazards(id) ON DELETE CASCADE
+);
+
+-- Project-Activity/People Hazards Relationship Table
+CREATE TABLE project_activity_people_hazards (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    project_id INT NOT NULL,
+    activity_people_hazard_id INT NOT NULL,
+    FOREIGN KEY (project_id) REFERENCES projects(id) ON DELETE CASCADE,
+    FOREIGN KEY (activity_people_hazard_id) REFERENCES activity_people_hazards(id) ON DELETE CASCADE
 );
 
 
-
+--the project_risks table
 CREATE TABLE IF NOT EXISTS project_risks (
   id INT AUTO_INCREMENT PRIMARY KEY,
   project_id INT NOT NULL,
@@ -120,6 +135,7 @@ CREATE TABLE IF NOT EXISTS project_risks (
   created_at DATETIME DEFAULT CURRENT_TIMESTAMP
 );
 
+--the risks table
 CREATE TABLE IF NOT EXISTS risks (
   id INT AUTO_INCREMENT PRIMARY KEY,
   title VARCHAR(255) NOT NULL,

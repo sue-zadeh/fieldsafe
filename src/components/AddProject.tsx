@@ -550,7 +550,6 @@ const AddProject: React.FC<AddProjectProps> = ({ isSidebarOpen }) => {
       <div style={{ marginTop: '2rem' }}>
         {activeTab === 'details' && (
           <div className="row">
-
             {/* LEFT COLUMN */}
             <div className="col-md-5 p-0 rounded p-3 ">
               <h4 style={{ color: OCEAN_BLUE }}>{name || '[Project Name]'}</h4>
@@ -918,7 +917,6 @@ const AddProject: React.FC<AddProjectProps> = ({ isSidebarOpen }) => {
             <AddRisk isSidebarOpen={isSidebarOpen} />
           </div>
         )}
-
       </div>
 
       {/* MODAL for objectives */}

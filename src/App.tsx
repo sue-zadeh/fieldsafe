@@ -233,6 +233,7 @@ const App: React.FC = () => {
               <LoadScript
                 googleMapsApiKey={GOOGLE_MAPS_API_KEY}
                 libraries={['places']}
+                version="beta"
               >
                 <Routes>
                   <Route

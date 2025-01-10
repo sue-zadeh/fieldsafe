@@ -7,13 +7,13 @@ import bcrypt from 'bcrypt'
 import dotenv from 'dotenv'
 import jwt from 'jsonwebtoken'
 
-// Import  routes
+// Import  routes - ES Module
 import staffRoutes from './register.js'
 import volunteerRoutes from './volunteer.js'
 import { sendEmail } from './email.js'
 import projectsRouter from './projects.js'
 import objectivesRouter from './objectives.js'
-
+import hazardRiskRoutes from './hazardrisk.js'
 
 dotenv.config()
 // For find __dirname in ES Modules---------------
@@ -31,6 +31,8 @@ app.use('/api/objectives', objectivesRouter)
 
 app.use('/api', staffRoutes)
 app.use('/api', volunteerRoutes)
+
+app.use('/api', hazardRiskRoutes)
 
 // test route
 app.get('/api/ping', (req, res) => {

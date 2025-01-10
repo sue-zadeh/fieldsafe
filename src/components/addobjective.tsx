@@ -40,7 +40,7 @@ const AddObjectives: React.FC<AddObjectivesProps> = ({ isSidebarOpen }) => {
   // auto-clear notification
   useEffect(() => {
     if (notification) {
-      const timer = setTimeout(() => setNotification(null), 4000)
+      const timer = setTimeout(() => setNotification(null), 5000)
       return () => clearTimeout(timer)
     }
   }, [notification])
