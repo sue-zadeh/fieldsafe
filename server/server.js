@@ -13,7 +13,8 @@ import volunteerRoutes from './volunteer.js'
 import { sendEmail } from './email.js'
 import projectsRouter from './projects.js'
 import objectivesRouter from './objectives.js'
-import hazardRiskRoutes from './hazardrisk.js'
+import hazardRiskRoutes from './hazard.js'
+import riskRouter from './risk.js' // or './riskhazard.js'
 
 dotenv.config()
 // For find __dirname in ES Modules---------------
@@ -33,7 +34,7 @@ app.use('/api', staffRoutes)
 app.use('/api', volunteerRoutes)
 
 app.use('/api', hazardRiskRoutes)
-
+app.use('/api', riskRouter)
 // test route
 app.get('/api/ping', (req, res) => {
   res.json({ message: 'pong' })
@@ -68,25 +69,30 @@ app.post('/api/login', async (req, res) => {
   }
 
   try {
-    const [rows] = await pool.query('SELECT * FROM login WHERE username = ?', [
+    //Check the staffs table by email
+    const [rows] = await pool.query('SELECT * FROM staffs WHERE email = ?', [
       email,
     ])
+    console.log('Database query result:', rows)
+
     if (rows.length === 0) {
+      console.log('No user found with the provided email.')
       return res.status(401).json({ message: 'Invalid email or password' })
     }
-
+    //Compare hashed password
     const user = rows[0]
+    // Compare plaintext password with hashed password
     const isMatch = await bcrypt.compare(password, user.password)
     if (!isMatch) {
       return res.status(401).json({ message: 'Invalid email or password' })
     }
-
+    //Create JWT
     const token = jwt.sign(
       { userId: user.id, role: user.role },
       process.env.JWT_SECRET,
       { expiresIn: '1h' }
     )
-
+    //Return success notification
     return res.json({
       message: 'Login successful',
       token,

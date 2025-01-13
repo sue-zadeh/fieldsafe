@@ -48,6 +48,11 @@ const AddObjectives: React.FC<AddObjectivesProps> = ({ isSidebarOpen }) => {
   // ADD NEW OBJECTIVE
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault()
+    // If the user is currently editing an objective, block creating a new one
+    if (editObj) {
+      setNotification('Finish or cancel editing before adding a new objective.')
+      return
+    }
     if (!title.trim() || !measurement.trim()) {
       setNotification('Please fill in both Title and Measurement.')
       return

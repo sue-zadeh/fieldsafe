@@ -33,7 +33,7 @@ const App: React.FC = () => {
 
   // For inactivity:
   const [inactivityTimeout, setInactivityTimeout] = useState<number>(
-    10 * 60_000
+    15 * 60_000
   )
   // ^ e.g. 10 minutes, in ms
   const [showSessionModal, setShowSessionModal] = useState(false)
@@ -58,12 +58,12 @@ const App: React.FC = () => {
   // Inactivity watchers
   useEffect(() => {
     const startInactivityTimer = () => {
-      // 1) Show modal 30 secs before logout
+      //  Show modal 40 secs before logout
       const sessionTimer = setTimeout(() => {
         setShowSessionModal(true)
-      }, inactivityTimeout - 30_000) // e.g. 9.5 minutes if inactivityTimeout=10 min
+      }, inactivityTimeout - 40_000) //  If 15 minutes- inactivityTimeout=15 min
 
-      // 2) Then auto-logout at inactivityTimeout
+      // Then auto-logout at inactivityTimeout
       const logoutTimer = setTimeout(() => {
         // If we reached here, user never clicked "Stay Logged In"
         handleAutoLogout()
@@ -82,7 +82,7 @@ const App: React.FC = () => {
         clearTimeout(logoutTimeoutRef.current)
       }
       setShowSessionModal(false)
-      setCountdown(30)
+      setCountdown(40)
       startInactivityTimer()
     }
 
@@ -126,13 +126,13 @@ const App: React.FC = () => {
 
   const handleStayLoggedIn = () => {
     setShowSessionModal(false)
-    setCountdown(30)
+    setCountdown(40)
     // The timers themselves get reset by the user’s mouse or key press
   }
 
   const handleAutoLogout = () => {
     setShowSessionModal(false)
-    setCountdown(30)
+    setCountdown(40)
     // Actually do the logout
     setShowSessionExpiredAlert(true) // show a one-time alert that session expired
     handleLogout()

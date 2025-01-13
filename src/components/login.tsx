@@ -36,12 +36,13 @@ const Login: React.FC<LoginProps> = ({ onLoginSuccess }) => {
       const response = await axios.post('/api/login', { email, password })
 
       if (response.data.message === 'Login successful' && response.data.token) {
-        // Store the token in localStorage
+        // Store the token and user details in localStorage
         localStorage.setItem('authToken', response.data.token)
 
         // **Store firstname and lastname in localStorage - used for welcome in sidebar
         localStorage.setItem('firstname', response.data.firstname)
         localStorage.setItem('lastname', response.data.lastname)
+        localStorage.setItem('role', response.data.role) // Store role
 
         // Optionally store email if remember me is checked
         if (rememberMe) {

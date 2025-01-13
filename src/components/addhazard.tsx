@@ -7,7 +7,11 @@ interface Hazard {
   hazard_description: string
 }
 
-const AddHazard: React.FC = () => {
+interface AddHazardsProps {
+  isSidebarOpen: boolean
+}
+
+const AddHazard: React.FC<AddHazardsProps> = ({ isSidebarOpen }) => {
   const [siteHazards, setSiteHazards] = useState<Hazard[]>([])
   const [activityHazards, setActivityHazards] = useState<Hazard[]>([])
   const [siteHazardDesc, setSiteHazardDesc] = useState('')
@@ -135,8 +139,18 @@ const AddHazard: React.FC = () => {
   }
 
   return (
-    <div>
-      <h2>Add Hazards</h2>
+    <div
+      className="container-fluid"
+      style={{
+        transition: 'margin 0.3s ease',
+        paddingTop: '5px',
+      }}
+    >
+      <h2
+        style={{ color: '#0094B6', fontWeight: 'bold', paddingBottom: '4rem' }}
+      >
+        Add Hazards
+      </h2>
       {notification && <Alert variant="info">{notification}</Alert>}
       <div>
         {/* Site Hazards */}

@@ -3,7 +3,7 @@ import axios from 'axios'
 import { useNavigate } from 'react-router-dom'
 
 // Types
-type Role = 'Group Admin' | 'Field Staff' | 'Team Leader' 
+type Role = 'Group Admin' | 'Field Staff' | 'Team Leader'
 type User = {
   id: number
   firstname: string
@@ -33,6 +33,13 @@ const GroupAdmin: React.FC<GroupAdminProps> = ({ isSidebarOpen }) => {
 
   // Notification message
   const [notification, setNotification] = useState<string | null>(null)
+
+  const [currentUserRole, setCurrentUserRole] = useState<string>('')
+
+  useEffect(() => {
+    const role = localStorage.getItem('role') || ''
+    setCurrentUserRole(role)
+  }, [])
 
   const navigate = useNavigate()
 
@@ -112,7 +119,7 @@ const GroupAdmin: React.FC<GroupAdminProps> = ({ isSidebarOpen }) => {
         navigate('/fieldstaff')
       } else if (newRole === 'Team Leader') {
         navigate('/teamlead')
-      }  else {
+      } else {
         // If still "Group Admin," re-fetch to be sure
         fetchAllAdmins()
         if (searchQuery.trim()) {
@@ -129,38 +136,38 @@ const GroupAdmin: React.FC<GroupAdminProps> = ({ isSidebarOpen }) => {
   // Deleting a user
   const handleDelete = async (userId: number) => {
     // Find the user being deleted
-    const userToDelete = allAdmins.find((user) => user.id === userId);
+    const userToDelete = allAdmins.find((user) => user.id === userId)
     if (!userToDelete) {
-      setNotification('User not found.');
-      return;
+      setNotification('User not found.')
+      return
     }
-  
+
     if (
       !window.confirm(
         `Are you sure you want to delete ${userToDelete.firstname} ${userToDelete.lastname}?`
       )
     )
-      return;
-  
+      return
+
     try {
-      await axios.delete(`/api/staff/${userId}`);
+      await axios.delete(`/api/staff/${userId}`)
       setNotification(
         `${userToDelete.firstname} ${userToDelete.lastname} deleted successfully!`
-      );
-  
+      )
+
       // Refresh the list
-      fetchAllAdmins();
-  
+      fetchAllAdmins()
+
       // Re-run search if applicable
       if (searchQuery.trim()) {
-        handleSearch();
+        handleSearch()
       }
     } catch (error) {
-      console.error('Error deleting user:', error);
-      setNotification('Failed to delete user.');
+      console.error('Error deleting user:', error)
+      setNotification('Failed to delete user.')
     }
-  };
-  
+  }
+
   //----------------------------------------------------------------
   // Render table (reusable)
   const renderTable = (list: User[]) => {
@@ -187,9 +194,12 @@ const GroupAdmin: React.FC<GroupAdminProps> = ({ isSidebarOpen }) => {
                 <select
                   className="form-select"
                   value={u.role}
-                  onChange={(e) =>
-                    handleRoleChange(u.id, e.target.value as Role)
-                  }
+                  onChange={(e) => {
+                    if (currentUserRole === 'Group Admin') {
+                      handleRoleChange(u.id, e.target.value as Role)
+                    }
+                  }}
+                  disabled={currentUserRole !== 'Group Admin'}
                 >
                   <option value="Group Admin">Group Admin</option>
                   <option value="Field Staff">Field Staff</option>
@@ -201,16 +211,21 @@ const GroupAdmin: React.FC<GroupAdminProps> = ({ isSidebarOpen }) => {
                 <button
                   className="btn btn-warning btn-sm me-2"
                   onClick={() =>
+                    currentUserRole === 'Group Admin' &&
                     navigate('/registerroles', {
                       state: { user: u, isEdit: true },
                     })
                   }
+                  disabled={currentUserRole !== 'Group Admin'}
                 >
                   Edit
                 </button>
                 <button
                   className="btn btn-danger btn-sm"
-                  onClick={() => handleDelete(u.id)}
+                  onClick={() =>
+                    currentUserRole === 'Group Admin' && handleDelete(u.id)
+                  }
+                  disabled={currentUserRole !== 'Group Admin'}
                 >
                   Delete
                 </button>
@@ -253,7 +268,11 @@ const GroupAdmin: React.FC<GroupAdminProps> = ({ isSidebarOpen }) => {
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
         />
-        <button className="btn btn-success w-25 fs-5" style={{backgroundColor:'#738c40'}} onClick={handleSearch}>
+        <button
+          className="btn btn-success w-25 fs-5"
+          style={{ backgroundColor: '#738c40' }}
+          onClick={handleSearch}
+        >
           Search
         </button>
       </div>

@@ -1,229 +1,273 @@
-import React, { useState, useEffect, FormEvent } from 'react'
+// src/components/AddRisk.tsx
+import React, { useState, useEffect } from 'react'
 import axios from 'axios'
-import { Table, Form, Button, Alert, Dropdown } from 'react-bootstrap'
+import { Button, Form, Row, Col, Alert, ListGroup } from 'react-bootstrap'
 
 interface Risk {
   id: number
   title: string
-  likelihood: string
-  consequences: string
-  riskRating: string
-  additionalControls: string
+  isReadOnly: boolean
 }
 
-interface RisksProps {
+interface RiskControl {
+  id: number
+  risk_id: number
+  control_text: string
+  isReadOnly: boolean
+}
+
+interface AddRiskProps {
   isSidebarOpen: boolean
 }
 
-const AddHazardsAndRisks: React.FC<RisksProps> = ({ isSidebarOpen }) => {
-  // const [hazards, setHazards] = useState<Hazard[]>([])
-  // const [siteHazard, setSiteHazard] = useState('')
-  // const [activityPeopleHazard, setActivityPeopleHazard] = useState('')
-  const [risks, setRisks] = useState<Risk[]>([])
-  const [riskTitle, setRiskTitle] = useState('')
-  const [likelihood, setLikelihood] = useState('')
-  const [consequences, setConsequences] = useState('')
-  const [additionalControls, setAdditionalControls] = useState('')
+const AddRisk: React.FC<AddRiskProps> = ({ isSidebarOpen }) => {
+  const [allRisks, setAllRisks] = useState<Risk[]>([])
+  const [selectedRisk, setSelectedRisk] = useState<Risk | null>(null)
+  const [riskControls, setRiskControls] = useState<RiskControl[]>([])
+  const [newRiskTitle, setNewRiskTitle] = useState('')
+  const [newRiskControls, setNewRiskControls] = useState<string[]>([])
   const [notification, setNotification] = useState<string | null>(null)
+  const [loading, setLoading] = useState(false)
+  const [editingControlId, setEditingControlId] = useState<number | null>(null)
+  const [editingControlText, setEditingControlText] = useState('')
 
   useEffect(() => {
-    // fetchHazards()
-    fetchRisks()
+    fetchAllRisks()
   }, [])
 
-  // const fetchHazards = async () => {
-  //   try {
-  //     const res = await axios.get('/api/hazards')
-  //     setHazards(res.data)
-  //   } catch (err) {
-  //     console.error('Error fetching hazards:', err)
-  //     setNotification('Failed to load hazards.')
-  //   }
-  // }
-
-  const fetchRisks = async () => {
+  const fetchAllRisks = async () => {
+    setLoading(true)
     try {
       const res = await axios.get('/api/risks')
-      setRisks(res.data)
-    } catch (err) {
-      console.error('Error fetching risks:', err)
+      setAllRisks(res.data)
+    } catch (err: any) {
+      console.error('Error fetching risks:', err.message)
       setNotification('Failed to load risks.')
+    } finally {
+      setLoading(false)
     }
   }
 
-  // // Auto-clear notification
-  // useEffect(() => {
-  //   if (notification) {
-  //     const timer = setTimeout(() => setNotification(null), 4000)
-  //     return () => clearTimeout(timer)
-  //   }
-  // }, [notification])
+  const handleSelectRisk = async (riskId: number) => {
+    const foundRisk = allRisks.find((r) => r.id === riskId) || null
+    setSelectedRisk(foundRisk)
+    setRiskControls([])
+    if (!foundRisk) return
 
-  // const handleHazardSubmit = async (e: FormEvent) => {
-  //   e.preventDefault()
-  //   if (!siteHazard.trim() || !activityPeopleHazard.trim()) {
-  //     setNotification('Please fill in both hazard fields.')
-  //     return
-  //   }
+    try {
+      const res = await axios.get(`/api/risks/${foundRisk.id}/controls`)
+      setRiskControls(res.data)
+    } catch (err) {
+      console.error('Error fetching risk controls:', err)
+      setNotification('Failed to load risk controls.')
+    }
+  }
 
-  //   try {
-  //     await axios.post('/api/hazards', {
-  //       siteHazard: siteHazard.trim(),
-  //       activityPeopleHazard: activityPeopleHazard.trim(),
-  //     })
-  //     setNotification('Hazard added successfully!')
-  //     setSiteHazard('')
-  //     setActivityPeopleHazard('')
-  //     fetchHazards()
-  //   } catch (err) {
-  //     console.error('Error adding hazard:', err)
-  //     setNotification('Failed to add hazard.')
-  //   }
-  // }
-
-  const handleRiskSubmit = async (e: FormEvent) => {
-    e.preventDefault()
-    if (!riskTitle.trim() || !likelihood || !consequences) {
-      setNotification('Please fill in all risk fields.')
+  const handleCreateRisk = async () => {
+    if (!newRiskTitle.trim()) {
+      setNotification('Please provide a risk title.')
+      return
+    }
+    if (newRiskControls.every((c) => !c.trim())) {
+      setNotification('Please provide at least one control.')
       return
     }
 
-    // Calculate risk rating
-    const riskMatrix: { [key: string]: number } = {
-      insignificant: 1,
-      minor: 2,
-      moderate: 3,
-      major: 4,
-      catastrophic: 5,
-    }
+    try {
+      const riskRes = await axios.post('/api/risks', {
+        title: newRiskTitle,
+        isReadOnly: 0,
+      })
+      const newRiskId = riskRes.data.id
 
-    const likelihoodWeight: { [key: string]: number } = {
-      'highly unlikely': 1,
-      unlikely: 2,
-      'quite possible': 3,
-      likely: 4,
-      'almost certain': 5,
-    }
+      for (const ctrl of newRiskControls) {
+        if (ctrl.trim()) {
+          await axios.post(`/api/risks/${newRiskId}/controls`, {
+            control_text: ctrl.trim(),
+            isReadOnly: 0,
+          })
+        }
+      }
 
-    const riskRating =
-      likelihoodWeight[likelihood.toLowerCase()] *
-      riskMatrix[consequences.toLowerCase()]
+      setNotification('New risk & controls created successfully!')
+      setNewRiskTitle('')
+      setNewRiskControls([])
+      fetchAllRisks()
+    } catch (err) {
+      console.error('Error creating risk:', err)
+      setNotification('Failed to create risk.')
+    }
+  }
+
+  const handleDeleteRisk = async (risk: Risk) => {
+    if (risk.isReadOnly) {
+      setNotification('Cannot delete a read-only risk.')
+      return
+    }
+    if (!window.confirm(`Delete risk "${risk.title}"?`)) return
 
     try {
-      await axios.post('/api/risks', {
-        title: riskTitle.trim(),
-        likelihood,
-        consequences,
-        riskRating,
-        additionalControls: additionalControls.trim(),
-      })
-      setNotification('Risk added successfully!')
-      setRiskTitle('')
-      setLikelihood('')
-      setConsequences('')
-      setAdditionalControls('')
-      fetchRisks()
+      await axios.delete(`/api/risks/${risk.id}`)
+      setNotification(`Risk "${risk.title}" deleted.`)
+      setSelectedRisk(null)
+      setRiskControls([])
+      fetchAllRisks()
     } catch (err) {
-      console.error('Error adding risk:', err)
-      setNotification('Failed to add risk.')
+      console.error('Error deleting risk:', err)
+      setNotification('Failed to delete risk.')
+    }
+  }
+
+  const addNewControlInput = () => setNewRiskControls((prev) => [...prev, ''])
+
+  const handleControlChange = (value: string, index: number) => {
+    setNewRiskControls((prev) => {
+      const copy = [...prev]
+      copy[index] = value
+      return copy
+    })
+  }
+
+  const startEditControl = (ctrl: RiskControl) => {
+    if (ctrl.isReadOnly) {
+      setNotification('Cannot edit a read-only control.')
+      return
+    }
+    setEditingControlId(ctrl.id)
+    setEditingControlText(ctrl.control_text)
+  }
+
+  const handleSaveControlEdit = async () => {
+    if (!editingControlId) return
+    try {
+      await axios.put(`/api/risk_controls/${editingControlId}`, {
+        control_text: editingControlText.trim(),
+      })
+      setEditingControlId(null)
+      setEditingControlText('')
+      if (selectedRisk) handleSelectRisk(selectedRisk.id)
+    } catch (err) {
+      console.error('Error saving control:', err)
+      setNotification('Failed to save control.')
+    }
+  }
+
+  const handleDeleteControl = async (ctrl: RiskControl) => {
+    if (ctrl.isReadOnly) {
+      setNotification('Cannot delete a read-only control.')
+      return
+    }
+    if (!window.confirm(`Delete control "${ctrl.control_text}"?`)) return
+
+    try {
+      await axios.delete(`/api/risk_controls/${ctrl.id}`)
+      setNotification('Control deleted.')
+      if (selectedRisk) handleSelectRisk(selectedRisk.id)
+    } catch (err) {
+      console.error('Error deleting control:', err)
+      setNotification('Failed to delete control.')
     }
   }
 
   return (
-    <div
-      className="container-fluid"
-      style={{
-        transition: 'margin 0.3s ease',
-        paddingTop: '0px',
-      }}
-    >
-      <h2
-        style={{ color: '#0094B6', fontWeight: 'bold', paddingBottom: '4rem' }}
-      >
-        Add Risks
-      </h2>
+    <div>
+      <h2>Add / Edit Risks</h2>
+      {notification && <Alert variant="info">{notification}</Alert>}
+      {loading && <div>Loading...</div>}
 
-      {notification && (
-        <Alert variant="info" className="text-center">
-          {notification}
-        </Alert>
-      )}
-
-      {/* Risks Section */}
-      <div className="col-md-6">
-        <h4>Risks</h4>
-        <Form onSubmit={handleRiskSubmit}>
-          <Form.Group className="mb-3">
+      <Row>
+        <Col md={6}>
+          <h5>Create Risk</h5>
+          <Form.Group>
             <Form.Label>Risk Title</Form.Label>
             <Form.Control
               type="text"
-              placeholder="E.g., Working near water"
-              value={riskTitle}
-              onChange={(e) => setRiskTitle(e.target.value)}
+              value={newRiskTitle}
+              onChange={(e) => setNewRiskTitle(e.target.value)}
             />
           </Form.Group>
-          <Form.Group className="mb-3">
-            <Form.Label>Likelihood</Form.Label>
-            <Form.Control
-              as="select"
-              value={likelihood}
-              onChange={(e) => setLikelihood(e.target.value)}
-            >
-              <option value="">Select Likelihood</option>
-              <option>Highly Unlikely</option>
-              <option>Unlikely</option>
-              <option>Quite Possible</option>
-              <option>Likely</option>
-              <option>Almost Certain</option>
-            </Form.Control>
-          </Form.Group>
-          <Form.Group className="mb-3">
-            <Form.Label>Consequences</Form.Label>
-            <Form.Control
-              as="select"
-              value={consequences}
-              onChange={(e) => setConsequences(e.target.value)}
-            >
-              <option value="">Select Consequences</option>
-              <option>Insignificant</option>
-              <option>Minor</option>
-              <option>Moderate</option>
-              <option>Major</option>
-              <option>Catastrophic</option>
-            </Form.Control>
-          </Form.Group>
-          <Form.Group className="mb-3">
-            <Form.Label>Additional Controls</Form.Label>
-            <Form.Control
-              as="textarea"
-              rows={3}
-              placeholder="E.g., Wear gloves, carry sanitizer"
-              value={additionalControls}
-              onChange={(e) => setAdditionalControls(e.target.value)}
-            />
-          </Form.Group>
-          <Button type="submit">Add Risk</Button>
-        </Form>
+          {newRiskControls.map((ctrl, i) => (
+            <Form.Group key={i}>
+              <Form.Label>Control #{i + 1}</Form.Label>
+              <Form.Control
+                type="text"
+                value={ctrl}
+                onChange={(e) => handleControlChange(e.target.value, i)}
+              />
+            </Form.Group>
+          ))}
+          <Button onClick={addNewControlInput}>+ Add Control</Button>{' '}
+          <Button onClick={handleCreateRisk}>Create Risk</Button>
+        </Col>
 
-        <Table bordered hover className="mt-3">
-          <thead>
-            <tr>
-              <th>#</th>
-              <th>Title</th>
-            </tr>
-          </thead>
-          <tbody>
-            {risks.map((risk, index) => (
-              <tr key={risk.id}>
-                <td>{index + 1}</td>
-                <td>{risk.title}</td>
-              </tr>
+        <Col md={6}>
+          <h5>Existing Risks</h5>
+          <Form.Select
+            onChange={(e) => handleSelectRisk(Number(e.target.value))}
+            value={selectedRisk?.id || ''}
+          >
+            <option value="">-- Select Risk --</option>
+            {allRisks.map((risk) => (
+              <option key={risk.id} value={risk.id}>
+                {risk.title} {risk.isReadOnly ? '(Read-Only)' : ''}
+              </option>
             ))}
-          </tbody>
-        </Table>
-      </div>
+          </Form.Select>
+
+          {selectedRisk && (
+            <div>
+              <h5>Risk Controls</h5>
+              {!selectedRisk.isReadOnly && (
+                <Button
+                  variant="danger"
+                  onClick={() => handleDeleteRisk(selectedRisk)}
+                >
+                  Delete Risk
+                </Button>
+              )}
+              <ListGroup>
+                {riskControls.map((ctrl) => (
+                  <ListGroup.Item key={ctrl.id}>
+                    {editingControlId === ctrl.id ? (
+                      <>
+                        <Form.Control
+                          value={editingControlText}
+                          onChange={(e) =>
+                            setEditingControlText(e.target.value)
+                          }
+                        />
+                        <Button onClick={handleSaveControlEdit}>Save</Button>
+                      </>
+                    ) : (
+                      <>
+                        <span>{ctrl.control_text}</span>
+                        {!ctrl.isReadOnly && (
+                          <>
+                            <Button
+                              onClick={() => startEditControl(ctrl)}
+                              variant="warning"
+                            >
+                              Edit
+                            </Button>
+                            <Button
+                              onClick={() => handleDeleteControl(ctrl)}
+                              variant="danger"
+                            >
+                              Delete
+                            </Button>
+                          </>
+                        )}
+                      </>
+                    )}
+                  </ListGroup.Item>
+                ))}
+              </ListGroup>
+            </div>
+          )}
+        </Col>
+      </Row>
     </div>
   )
 }
 
-export default AddHazardsAndRisks
+export default AddRisk

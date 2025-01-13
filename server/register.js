@@ -1,21 +1,22 @@
 // server/register.js
 import express from 'express'
+import bcrypt from 'bcrypt'
 import { pool } from './db.js'
-import { sendEmail } from './email.js' // <-- Import sendEmail from email.js
+import { sendEmail } from './email.js'
 import dotenv from 'dotenv'
 
 dotenv.config()
 
 const router = express.Router()
 
-// 1) Route that lets the frontend do: axios.post('/api/send-email', {...})
-//    This uses the sendEmail(...) function you imported from email.js.
+// 1) Simple endpoint to send an email
 router.post('/send-email', async (req, res) => {
   const { email, subject, message } = req.body
   try {
     await sendEmail(email, subject, message)
     res.json({ message: 'Email sent successfully' })
   } catch (error) {
+    console.error('Error sending email:', error)
     res.status(500).json({ message: 'Failed to send email' })
   }
 })
@@ -24,7 +25,7 @@ router.post('/send-email', async (req, res) => {
 const sanitizeInput = (value) => (value === undefined ? null : value)
 
 // ========================= STAFF ENDPOINTS =========================
-// Table: "staffs" (for Group Admin, Field Staff, Team Leader)
+// Table: "staffs" (Group Admin, Field Staff, Team Leader)
 
 // ========== (GET) /api/staff?role=&search= (optional filters)
 router.get('/staff', async (req, res) => {
@@ -44,16 +45,18 @@ router.get('/staff', async (req, res) => {
     }
 
     const [rows] = await pool.query(sql, params)
-    res.json(rows)
+    return res.json(rows)
   } catch (error) {
     console.error('Error fetching staff:', error)
-    res.status(500).json({ message: 'Error fetching staff' })
+    return res.status(500).json({ message: 'Error fetching staff' })
   }
 })
 
 // ========== (POST) /api/staff — Create new staff
 router.post('/staff', async (req, res) => {
-  const { firstname, lastname, email, phone, role } = req.body
+  const { firstname, lastname, email, phone, role, password } = req.body
+
+  // Sanitize
   const sFirst = sanitizeInput(firstname)
   const sLast = sanitizeInput(lastname)
   const sEmail = sanitizeInput(email)
@@ -61,7 +64,7 @@ router.post('/staff', async (req, res) => {
   const sRole = sanitizeInput(role)
 
   try {
-    // Check for email duplicates
+    // 1) Check for email duplicates
     const [exists] = await pool.query(
       'SELECT email FROM staffs WHERE email = ?',
       [sEmail]
@@ -70,10 +73,13 @@ router.post('/staff', async (req, res) => {
       return res.status(400).json({ message: 'Email is already in use.' })
     }
 
-    // Insert row
+    // 2) Hash the password
+    const hashedPassword = await bcrypt.hash(password, 10)
+
+    // 3) Insert staff with hashed password
     const sql = `
-      INSERT INTO staffs (firstname, lastname, email, phone, role)
-      VALUES (?, ?, ?, ?, ?)
+      INSERT INTO staffs (firstname, lastname, email, phone, role, password)
+      VALUES (?, ?, ?, ?, ?, ?)
     `
     const [result] = await pool.execute(sql, [
       sFirst,
@@ -81,9 +87,10 @@ router.post('/staff', async (req, res) => {
       sEmail,
       sPhone,
       sRole,
+      hashedPassword,
     ])
 
-    res.status(201).json({
+    return res.status(201).json({
       id: result.insertId,
       firstname: sFirst,
       lastname: sLast,
@@ -94,14 +101,14 @@ router.post('/staff', async (req, res) => {
     })
   } catch (error) {
     console.error('Error creating staff:', error.message)
-    res.status(500).json({ message: 'Failed to create staff' })
+    return res.status(500).json({ message: 'Failed to create staff' })
   }
 })
 
 // ========== (PUT) /api/staff/:id — Update existing staff
 router.put('/staff/:id', async (req, res) => {
   const { id } = req.params
-  const { firstname, lastname, email, phone, role } = req.body
+  const { firstname, lastname, email, phone, role, password } = req.body
 
   const sFirst = sanitizeInput(firstname)
   const sLast = sanitizeInput(lastname)
@@ -121,11 +128,10 @@ router.put('/staff/:id', async (req, res) => {
 
     // Get existing row
     const [rows] = await pool.query('SELECT * FROM staffs WHERE id = ?', [id])
-    if (!rows.length) {
+    if (rows.length === 0) {
       return res.status(404).json({ message: 'Staff not found' })
     }
 
-    // Partial update logic
     const old = rows[0]
     const updatedFirstname = sFirst ?? old.firstname
     const updatedLastname = sLast ?? old.lastname
@@ -133,10 +139,17 @@ router.put('/staff/:id', async (req, res) => {
     const updatedPhone = sPhone ?? old.phone
     const updatedRole = sRole ?? old.role
 
+    // If password is provided => hash it, otherwise keep old password
+    let hashedPassword = old.password
+    if (password && password.trim()) {
+      hashedPassword = await bcrypt.hash(password, 10)
+    }
+
     // Update row
+    // including password in the columns
     const updateSql = `
       UPDATE staffs
-      SET firstname = ?, lastname = ?, email = ?, phone = ?, role = ?
+      SET firstname = ?, lastname = ?, email = ?, phone = ?, role = ?, password = ?
       WHERE id = ?
     `
     const [result] = await pool.execute(updateSql, [
@@ -145,6 +158,7 @@ router.put('/staff/:id', async (req, res) => {
       updatedEmail,
       updatedPhone,
       updatedRole,
+      hashedPassword,
       id,
     ])
 
@@ -152,10 +166,10 @@ router.put('/staff/:id', async (req, res) => {
       return res.status(404).json({ message: 'Staff not updated' })
     }
 
-    res.json({ message: 'Staff updated successfully' })
+    return res.json({ message: 'Staff updated successfully' })
   } catch (error) {
     console.error('Error updating staff:', error.message)
-    res.status(500).json({ message: 'Error updating staff.' })
+    return res.status(500).json({ message: 'Error updating staff.' })
   }
 })
 
@@ -167,10 +181,10 @@ router.delete('/staff/:id', async (req, res) => {
     if (result.affectedRows === 0) {
       return res.status(404).json({ message: 'Staff not found' })
     }
-    res.json({ message: 'Staff deleted successfully' })
+    return res.json({ message: 'Staff deleted successfully' })
   } catch (error) {
     console.error('Error deleting staff:', error.message)
-    res.status(500).json({ message: 'Error deleting staff.' })
+    return res.status(500).json({ message: 'Error deleting staff.' })
   }
 })
 

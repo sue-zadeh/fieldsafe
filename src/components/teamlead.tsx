@@ -18,17 +18,24 @@ interface TeamLeadProps {
 }
 
 const TeamLead: React.FC<TeamLeadProps> = ({ isSidebarOpen }) => {
-  // 1) Full list of Team Leaders
+  // Full list of Team Leaders
   const [allLeads, setAllLeads] = useState<User[]>([])
 
-  // 2) Search results
+  // Search results
   const [searchResults, setSearchResults] = useState<User[]>([])
 
-  // 3) The user's search text
+  // The user's search text
   const [searchQuery, setSearchQuery] = useState('')
 
-  // 4) Notification (success/fail messages)
+  // Notification (success/fail messages)
   const [notification, setNotification] = useState<string | null>(null)
+  // Only group admin can change, edit, delete
+  const [currentUserRole, setCurrentUserRole] = useState<string>('')
+
+  useEffect(() => {
+    const role = localStorage.getItem('role') || ''
+    setCurrentUserRole(role)
+  }, [])
 
   const navigate = useNavigate()
 
@@ -181,7 +188,12 @@ const TeamLead: React.FC<TeamLeadProps> = ({ isSidebarOpen }) => {
               <select
                 className="form-select"
                 value={u.role}
-                onChange={(e) => handleRoleChange(u.id, e.target.value as Role)}
+                onChange={(e) => {
+                  if (currentUserRole === 'Group Admin') {
+                    handleRoleChange(u.id, e.target.value as Role)
+                  }
+                }}
+                disabled={currentUserRole !== 'Group Admin'}
               >
                 <option value="Team Leader">Team Leader</option>
                 <option value="Group Admin">Group Admin</option>
@@ -192,16 +204,21 @@ const TeamLead: React.FC<TeamLeadProps> = ({ isSidebarOpen }) => {
               <button
                 className="btn btn-warning btn-sm me-2"
                 onClick={() =>
+                  currentUserRole === 'Group Admin' &&
                   navigate('/registerroles', {
                     state: { user: u, isEdit: true },
                   })
                 }
+                disabled={currentUserRole !== 'Group Admin'}
               >
                 Edit
               </button>
               <button
                 className="btn btn-danger btn-sm"
-                onClick={() => handleDelete(u.id)}
+                onClick={() =>
+                  currentUserRole === 'Group Admin' && handleDelete(u.id)
+                }
+                disabled={currentUserRole !== 'Group Admin'}
               >
                 Delete
               </button>

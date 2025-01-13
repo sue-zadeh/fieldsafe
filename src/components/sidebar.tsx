@@ -33,7 +33,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, toggleSidebar }) => {
 
   // Display admin's name or fallback to "Admin"
   const displayName =
-    firstname && lastname ? `${firstname} ${lastname}` : 'Admin'
+    firstname && lastname ? `${firstname} ${lastname}` : 'Group Admin'
 
   // Toggles the dropdown menu
   const toggleDropdown = (dropdown: string) => {
@@ -42,6 +42,9 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, toggleSidebar }) => {
 
   // Check if path is active
   const isActive = (path: string) => location.pathname === path
+
+  // get role from localStorage after login
+  const role = localStorage.getItem('role') // or 'authRole'
 
   // Sidebar container styling
   const sidebarStyle: React.CSSProperties = {
@@ -230,19 +233,21 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, toggleSidebar }) => {
         {/* All USERS */}
         <NavItem label="Organization Profile" dropdownId="organization">
           <ul style={dropdownListStyle}>
-            <li>
-              <Link
-                to="/registerroles"
-                style={{
-                  ...dropdownLinkStyle,
-                  ...(isActive('/registerroles')
-                    ? { fontWeight: 'bold', color: '#000' }
-                    : {}),
-                }}
-              >
-                <FaUserPlus style={{ marginRight: '8px' }} /> Add User
-              </Link>
-            </li>
+            {role === 'Group Admin' && (
+              <li>
+                <Link
+                  to="/registerroles" className="dropdown-item"
+                  style={{
+                    ...dropdownLinkStyle,
+                    ...(isActive('/registerroles')
+                      ? { fontWeight: 'bold', color: '#000' }
+                      : {}),
+                  }}
+                >
+                  <FaUserPlus style={{ marginRight: '8px' }} /> Add User
+                </Link>
+              </li>
+            )}
             <li>
               <Link
                 to="/groupadmin"

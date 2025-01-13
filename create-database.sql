@@ -1,6 +1,17 @@
+/*
 -- some code i need them to use in mysql terminal
 --ALTER TABLE login
   --MODIFY role ENUM('Admin', 'Field Staff', 'Team Leader', 'Group Admin') NOT NULL;
+--UPDATE staffs
+SET role = 'Field Staff'
+WHERE role = 'Volunteer';
+
+--SELECT DISTINCT role FROM staffs;
+-- DELETE FROM risk_controls WHERE risk_id= 49;
+
+--INSERT INTO risk_titles (title, isReadOnly)
+SELECT DISTINCT title, 1 FROM risks;
+=============================================
 
 -- Schema fieldbase
 
@@ -14,6 +25,12 @@
 --DROP TABLE IF EXISTS activity_people_hazards;
 --DROP TABLE IF EXISTS project_site_hazards;
 --DROP TABLE IF EXISTS project_activity_people_hazards;
+DROP TABLE IF EXISTS project_risk_controls;
+DROP TABLE IF EXISTS project_risks;
+DROP TABLE IF EXISTS risk_controls;
+DROP TABLE IF EXISTS risks;
+*/
+
 
 --the login table
 CREATE TABLE IF NOT EXISTS login (
@@ -124,52 +141,76 @@ CREATE TABLE project_activity_people_hazards (
     FOREIGN KEY (activity_people_hazard_id) REFERENCES activity_people_hazards(id) ON DELETE CASCADE
 );
 
+----------====RISK TABLES=======-----
 
---the project_risks table
-CREATE TABLE IF NOT EXISTS project_risks (
-  id INT AUTO_INCREMENT PRIMARY KEY,
-  project_id INT NOT NULL,
-  risk_id INT NOT NULL,
-  FOREIGN KEY (project_id) REFERENCES projects(id) ON DELETE CASCADE,
-  FOREIGN KEY (risk_id) REFERENCES risks(id) ON DELETE CASCADE,
-  created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+-- Drop tables if they exist
+DROP TABLE IF EXISTS project_risk_controls;
+DROP TABLE IF EXISTS project_risks;
+DROP TABLE IF EXISTS risk_controls;
+DROP TABLE IF EXISTS risks;
+DROP TABLE IF EXISTS risk_titles;
+
+-- Recreate the tables
+CREATE TABLE risk_titles (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    title VARCHAR(255) NOT NULL,
+    isReadOnly BOOLEAN DEFAULT 0,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP
 );
 
---the risks table
-CREATE TABLE IF NOT EXISTS risks (
-  id INT AUTO_INCREMENT PRIMARY KEY,
-  title VARCHAR(255) NOT NULL,
-  likelihood ENUM('highly unlikely', 'unlikely', 'quite possible', 'likely', 'almost certain') NOT NULL,
-  consequences ENUM('insignificant', 'minor', 'moderate', 'major', 'catastrophic') NOT NULL,
-  risk_rating VARCHAR(30) AS (
-    CASE 
-WHEN likelihood = 'highly unlikely' AND consequences IN ('insignificant', 'minor', 'moderate') THEN 'Low risk'  
-      WHEN likelihood = 'highly unlikely' AND consequences IN ('major') THEN 'moderate risk'
-      WHEN likelihood = 'highly unlikely' AND consequences IN (  'catastrophic')THEN 'High risk'
-      WHEN likelihood = 'unlikely' AND consequences IN 'insignificant' THEN 'Low risk'
-      WHEN likelihood = 'unlikely' AND consequences IN ('moderate', 'minor') THEN 'moderate risk'
-      WHEN likelihood = 'unlikely' AND consequences = ('catastrophic', 'major') THEN 'High risk'
-      WHEN likelihood = 'quite possible' AND consequences IN 'insignificant' THEN 'Low risk'
-      WHEN likelihood = 'quite possible' AND consequences IN 'minor' THEN 'moderate risk'
-      WHEN likelihood = 'quite possible' AND consequences IN ('moderate', 'major') THEN 'High risk'
-      WHEN likelihood = 'quite possible' AND consequences IN 'catastrophic' THEN 'Extreme risk'
-      WHEN likelihood = 'likely' AND consequences IN ('minor', 'moderate') THEN 'High risk'
-      WHEN likelihood IN ('likely', 'almost certain') AND consequences IN 'insignificant' THEN 'moderate risk'
-      WHEN likelihood IN ('likely', 'almost certain') AND consequences IN ('major', 'catastrophic') THEN 'Extreme risk'
-      WHEN likelihood = 'almost certain' AND consequences IN 'moderate' THEN 'Extreme risk'
-      
-    ELSE 'Unknown'
-    END
-  ) STORED,
-  additional_controls TEXT,
-  created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+CREATE TABLE risks (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    risk_title_id INT NOT NULL,
+    likelihood ENUM('highly unlikely', 'unlikely', 'quite possible', 'likely', 'almost certain') NOT NULL,
+    consequences ENUM('insignificant', 'minor', 'moderate', 'major', 'catastrophic') NOT NULL,
+    risk_rating VARCHAR(30) AS (
+        CASE
+            WHEN likelihood = 'highly unlikely' AND consequences IN ('insignificant', 'minor', 'moderate') THEN 'Low risk'
+            WHEN likelihood = 'highly unlikely' AND consequences = 'major' THEN 'moderate risk'
+            WHEN likelihood = 'highly unlikely' AND consequences = 'catastrophic' THEN 'High risk'
+            WHEN likelihood = 'unlikely' AND consequences = 'insignificant' THEN 'Low risk'
+            WHEN likelihood = 'unlikely' AND consequences IN ('minor', 'moderate') THEN 'moderate risk'
+            WHEN likelihood = 'unlikely' AND consequences IN ('major', 'catastrophic') THEN 'High risk'
+            WHEN likelihood = 'quite possible' AND consequences = 'insignificant' THEN 'Low risk'
+            WHEN likelihood = 'quite possible' AND consequences = 'minor' THEN 'moderate risk'
+            WHEN likelihood = 'quite possible' AND consequences IN ('moderate', 'major') THEN 'High risk'
+            WHEN likelihood = 'quite possible' AND consequences = 'catastrophic' THEN 'Extreme risk'
+            WHEN likelihood = 'likely' AND consequences IN ('minor', 'moderate') THEN 'High risk'
+            WHEN likelihood IN ('likely', 'almost certain') AND consequences = 'insignificant' THEN 'moderate risk'
+            WHEN likelihood IN ('likely', 'almost certain') AND consequences IN ('major', 'catastrophic') THEN 'Extreme risk'
+            WHEN likelihood = 'almost certain' AND consequences = 'minor' THEN 'High risk'
+            WHEN likelihood = 'almost certain' AND consequences = 'moderate' THEN 'Extreme risk'
+            ELSE 'Unknown'
+        END
+    ) STORED,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (risk_title_id) REFERENCES risk_titles(id) ON DELETE CASCADE
 );
 
+CREATE TABLE risk_controls (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    risk_title_id INT NOT NULL,
+    control_text TEXT NOT NULL,
+    isReadOnly BOOLEAN DEFAULT 0,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (risk_title_id) REFERENCES risk_titles(id) ON DELETE CASCADE
+);
 
+CREATE TABLE project_risks (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    project_id INT NOT NULL,
+    risk_id INT NOT NULL,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (project_id) REFERENCES projects(id) ON DELETE CASCADE,
+    FOREIGN KEY (risk_id) REFERENCES risks(id) ON DELETE CASCADE
+);
 
-
-
-
-
-
-
+CREATE TABLE project_risk_controls (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    project_id INT NOT NULL,
+    risk_control_id INT NOT NULL,
+    is_checked BOOLEAN DEFAULT 0,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (project_id) REFERENCES projects(id) ON DELETE CASCADE,
+    FOREIGN KEY (risk_control_id) REFERENCES risk_controls(id) ON DELETE CASCADE
+);

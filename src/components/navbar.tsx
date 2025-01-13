@@ -32,6 +32,9 @@ const Navbar: React.FC<NavbarProps> = ({
   // Simple helper to see if the current route matches:
   const isActive = (path: string) => location.pathname === path
 
+  // get role from localStorage after login
+  const role = localStorage.getItem('userRole') // or 'authRole'
+
   return (
     <nav
       className="navbar navbar-expand-lg"
@@ -103,9 +106,12 @@ const Navbar: React.FC<NavbarProps> = ({
                     }}
                   >
                     <BsCalendar2Plus style={{ marginRight: '5px' }} />
-                    {location.pathname === '/editproject' ? 'Edit Project' : 'Add Project'}
-                    </Link>
+                    {location.pathname === '/editproject'
+                      ? 'Edit Project'
+                      : 'Add Project'}
+                  </Link>
                 </li>
+
                 <li>
                   <Link
                     to="/searchproject"
@@ -201,20 +207,22 @@ const Navbar: React.FC<NavbarProps> = ({
                 className="dropdown-menu"
                 aria-labelledby="organizationDropdown"
               >
-                <li>
-                  <Link
-                    to="/registerroles"
-                    className="dropdown-item"
-                    style={{
-                      fontWeight: isActive('/registerroles')
-                        ? 'bold'
-                        : 'normal',
-                    }}
-                  >
-                    <FaUserPlus style={{ marginRight: '5px' }} />
-                    Add User
-                  </Link>
-                </li>
+                {role === 'Group Admin' && (
+                  <li>
+                    <Link
+                      to="/registerroles"
+                      className="dropdown-item"
+                      style={{
+                        fontWeight: isActive('/registerroles')
+                          ? 'bold'
+                          : 'normal',
+                      }}
+                    >
+                      <FaUserPlus style={{ marginRight: '5px' }} />
+                      Add User
+                    </Link>
+                  </li>
+                )}
                 <li>
                   <Link
                     to="/groupadmin"
