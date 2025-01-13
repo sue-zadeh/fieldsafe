@@ -201,55 +201,58 @@ INSERT INTO risk_controls (risk_title_id, control_text, isReadOnly) VALUES
 -- RISK ID 4:  Bushfire
 -- ==================================================*/
 INSERT INTO risk_controls (risk_title_id, control_text, isReadOnly) VALUES
-(4, 'All team members must know survey boundaries & remain within them.', 1),
-(4, 'Set times to return/report to supervisor.', 1),
+(4, 'Ensure that all team members know the boundaries of the survey area and remain within them at all times.', 1),
+(4, 'Set times at which teams must return or report to the supervisor.', 1),
 (4, 'Anyone lost should find nearest shelter & use distress signal (3 whistle blasts).', 1),
-(4, 'Everyone must have means to communicate an emergency signal (whistle, radio).', 1),
-(4, 'If collecting seeds, do so hygienically with gloves/tongs, etc.', 1),
-(4, 'Work in pairs minimum.', 1);
-(4, 'Wear sturdy boots suitable for terrain.', 1);
+(4, 'Instruct that any team member who becomes lost should find the nearest shelter and remain there while using an agreed distress signal eg. three whistle blasts.', 1),
+(4, 'Ensure that all team members have means of communicating an emergency signal (eg: whistle, radios) and fully understand the signals to be used.', 1),
+(4, 'If the survey involves collecting seats, ensure that this is done hygienically eg. by using gloves, tongs etc.', 1),
+(4, 'Work in pairs as a minimum group size.', 1),
+(4,'Wear boots that are suitable for walking, and sufficiently sturdy for the terrain.', 1);
 /*-- ==================================================
 -- RISK ID 5:   Bushwalking
 -- ==================================================*/
 INSERT INTO risk_controls (risk_title_id, control_text, isReadOnly) VALUES
-(5, 'Check participants have capacity for planned walk.', 1),
-(5, 'Seek local advice & carry reliable map if route unknown.', 1),
-(5, 'Do not proceed if extreme weather is likely.', 1),
-(5, 'Advise a reliable person of route & return time.', 1),
-(5, 'Remind participants to carry necessary medications.', 1),
-(5, 'Check participants have sufficient water.', 1),
-(5, 'Check footwear & clothing are suitable for terrain.', 1),
-(5, 'Regulate walk pace; leader at front, tail-end at rear.', 1),
-(5, 'Provide whistles for emergency signal (3 blasts).', 1),
-(5, 'Carry first aid kit.', 1);
+(5, 'Check that all participants have the physical capacity to safely complete the planned walk.',1),
+(5, 'If unfamiliar with the route, seek local advice and carry a reliable map.',1),
+(5, 'Do not proceed, or modify the plan, if extreme weather is likely. (Do not proceed on days of total fire ban.)',1),
+(5, 'Advise a reliable person of the proposed route and return time. Advise this person when the group has returned.',1),
+(5, 'Remind participants to carry necessary medications eg. Ventolin.',1),
+(5, 'Check that all participants have sufficient water.',1),
+(5, 'Check that participants have suitable footwear and clothing for the likely weather and terrain.',1),
+(5, 'Regulate walk pace. Generally the leader will walk at the front.',1),
+(5, 'Appoint a reliable person as "whip" or "tailend Charlie" who remains at the rear of the group and alerts the leader to any problems.',1),
+(5, 'Provide each person with a whistle and ensure that each person knows that three long blasts is the standard emergency/distress signal.',1),
+(5, 'Carry a first aid kit.', 1);
+
 /*-- ==================================================
 -- RISK ID 6:  COVID-19
 -- ==================================================*/
 INSERT INTO risk_controls (risk_title_id, control_text, isReadOnly) VALUES
-(6, 'COVID-19 Management SOP in place.', 1),
-(6, 'In-depth screening for new employees/volunteers/participants.', 1),
+(6, 'COVID 19 Management SOP in place.', 1),
+(6, 'In-depth screen process for all new employees, volunteers and participants.', 1),
 (6, 'COVID-19 specific induction process.', 1),
-(6, 'Cleaning & disinfection regimen at all managed projects.', 1),
-(6, 'Reinforce good personal hygiene practices.', 1),
-(6, 'Provide appropriate hygiene supplies for each site.', 1),
-(6, 'Everyone has their own labelled items.', 1),
-(6, 'Worksites & CV vehicles have a cleaning register.', 1);
+(6, 'Cleaning and disinfection regimen at all CV managed projects and activities.', 1),
+(6, 'Good personal hygiene practices reinforced.', 1),
+(6, 'Appropriate hygiene supplies available for each worksite.', 1),
+(6, 'All workers to have their own personally labelled items.', 1),
+(6, 'All worksites and CV vehicles to have a cleaning register.', 1);
 
 /*-- ==================================================
 -- RISK ID 7:  working with the Chemical use / poisoning 
 -- ==================================================*/
-INSERT INTO risk_controls (risk_id, control_text, isReadOnly) VALUES
-(7, 'Read, retain & comply with relevant MSDS.', 1),
-(7, 'Check for container leaks & spray equipment functioning.', 1),
-(7, 'Rotate tasks to avoid prolonged exposure; specify rotation frequency.', 1),
-(7, 'Demonstrate how to use, carry & store chemicals correctly.', 1),
-(7, 'Maintain safe working distance to avoid splash or spray drift; consider wind.', 1),
-(7, 'Provide adequate washing facilities (as MSDS advises).', 1),
-(7, 'Wear PPE as advised on MSDS (heat stress may be accelerated).', 1);
+INSERT INTO risk_controls (risk_title_id, control_text, isReadOnly) VALUES
+(7, 'Read, retain and comply with the relevant Material Safety Data Sheet (MSDS).', 1),
+(7, 'Check that there are no leaks in containers, and that spray equipment is operating correctly.', 1),
+(7, 'Rotate tasks to avoid prolonged periods of exposure; specify frequency of rotations.', 1),
+(7, 'Explain and demonstrate how to use, carry and store correctly.', 1),
+(7, 'Specify and maintain safe working distance to avoid splash or spray drift contamination and take account of wind (spray drift) direction.', 1),
+(7, 'Provide adequate washing facilities as directed by the MSDS.', 1),
+(7, 'Wear appropriate PPE as advised on the MSDS. (Note that the use of certain PPE may accelerate the onset of heat stress.)', 1);
 /*-- ==================================================
 -- RISK ID 8:     Collecting sharps
 -- ==================================================*/
-INSERT INTO risk_controls (risk_id, control_text, isReadOnly) VALUES
+INSERT INTO risk_controls (risk_title_id, control_text, isReadOnly) VALUES
 (8, 'Use tongs to pick up sharps', 1),
 (8, 'Determine a search strategy i.e. gain local knowledge of area, conduct a visual inspection of the site and flag any sharps for collection, minimise the number of persons involved in a search.', 1),
 (8, 'Rake through known areas of disposal.', 1),
@@ -261,7 +264,7 @@ INSERT INTO risk_controls (risk_id, control_text, isReadOnly) VALUES
 /*-- ==================================================
 -- RISK ID 9:  Fencing - injuries from wire 
 -- ==================================================*/
-INSERT INTO risk_controls (risk_id, control_text, isReadOnly) VALUES
+INSERT INTO risk_controls (risk_title_id, control_text, isReadOnly) VALUES
 (9, 'Arrange delivery of materials as near to fencing site as possible ie. minimise the need for carrying.', 1),
 (9, 'Use only approved methods of straining wire with a proper fencing strainer. Do not use a vehicle to strain wire.', 1),
 (9, 'Keep team members, who are not directly involved, well clear of any unsecured wire under tension.', 1),
@@ -275,7 +278,7 @@ INSERT INTO risk_controls (risk_id, control_text, isReadOnly) VALUES
 /*-- ==================================================
 -- RISK ID 10:  Litter collection - laceration/spike injuries, bites/
 -- ==================================================*/
-INSERT INTO risk_controls (risk_id, control_text, isReadOnly) VALUES
+INSERT INTO risk_controls (risk_title_id, control_text, isReadOnly) VALUES
 (10, 'Ensure adequate washing facilities are available and are used by team members.', 1),
 (10, 'Look carefully at litter items or piles that might be a refuge for snakes or spiders.', 1),
 (10, 'Check objects for spikes or sharp edges.', 1),
@@ -288,7 +291,7 @@ INSERT INTO risk_controls (risk_id, control_text, isReadOnly) VALUES
 /*-- ==================================================
 -- RISK ID 11:  Manual Handling
 -- ==================================================*/
-INSERT INTO risk_controls (risk_id, control_text, isReadOnly) VALUES
+INSERT INTO risk_controls (risk_title_id, control_text, isReadOnly) VALUES
 (11,'Gentle warm up stretches prior to starting task/activity.', 1), 
 (11, 'Use mechanical aids.', 1), 
 (11, 'Set weight limits based on load terrain and people.', 1), 
@@ -316,7 +319,7 @@ INSERT INTO risk_controls (risk_id, control_text, isReadOnly) VALUES
 /*-- ==================================================
 -- RISK ID 13:  Plant Propagation - Strains, soil borne diseases, 
 -- ==================================================*/
-INSERT INTO risk_controls (risk_id, control_text, isReadOnly) VALUES
+INSERT INTO risk_controls (risk_title_id, control_text, isReadOnly) VALUES
 (13, 'Avoid prolonged standing on hard surfaces.', 1),
 (13, 'Rotate tasks, even if team members are not experiencing discomfort.', 1),
 (13, 'Take regular breaks for stretching and gentle exercise.', 1),
@@ -328,9 +331,23 @@ INSERT INTO risk_controls (risk_id, control_text, isReadOnly) VALUES
 (13, 'Wear face masks when handling potting mix.', 1);
 
 /*-- ==================================================
--- RISK ID 14:  Seed collection - cuts/scratches, eye injuries
+-- RISK ID 14:  Predator control /checking traps
 -- ==================================================*/
-INSERT INTO risk_controls (risk_id, control_text, isReadOnly) VALUES
+INSERT INTO risk_controls (risk_title_id, control_text, isReadOnly) VALUES
+(14, 'must be competent and confident in trap setting',1),
+(14, 'check weather before',1),
+(14, 'check all kit/tools on hand relevant to length of trap line; eg water',1),
+(14, 'advise ‘buddy’ of leaving and return',1),
+(14, 'wear disposable or washable gloves when handling traps/disposing of carcases',1),
+(14, 'tongs used for clearing /cleaning traps',1),
+(14, 'Use setting tools',1), 
+(14, 'Carry hand sanitiser',1), 
+(14, 'Wear high-vis vest -esp. if traps along road.',1);
+
+/*-- ==================================================
+-- RISK ID 15:  Seed collection - cuts/scratches, eye injuries
+-- ==================================================*/
+INSERT INTO risk_controls (risk_title_id, control_text, isReadOnly) VALUES
 (14, 'Rotate tasks to guard against postural overuse injuries.', 1),
 (14, 'Specify and maintain a safe working distance between team members.', 1),
 (14, 'Explain and demonstrate tool use.', 1),
@@ -338,9 +355,9 @@ INSERT INTO risk_controls (risk_id, control_text, isReadOnly) VALUES
 (14, 'Wear PPE including safety glasses, gloves, high vis vests and if required hard hats.', 1);
 
 /*-- ==================================================
--- RISK ID 15:  Slips, Trips & Falls
+-- RISK ID 16:  Slips, Trips & Falls
 -- ==================================================*/
-INSERT INTO risk_controls (risk_id, control_text, isReadOnly) VALUES
+INSERT INTO risk_controls (risk_title_id, control_text, isReadOnly) VALUES
 (15, 'Remove trip hazards.', 1),
 (15, 'Mark trip hazards.', 1),
 (15, 'Ensure appropriate footwear with grip worn.', 1),
@@ -350,9 +367,9 @@ INSERT INTO risk_controls (risk_id, control_text, isReadOnly) VALUES
 (15, 'Direct supervision by Team Leader/Project Coard.', 1);
 
 /*-- ==================================================
--- RISK ID 16:  Soil Borne Diseases & Inflections
+-- RISK ID 17:  Soil Borne Diseases & Inflections
 -- ==================================================*/
-INSERT INTO risk_controls (risk_id, control_text, isReadOnly) VALUES
+INSERT INTO risk_controls (risk_title_id, control_text, isReadOnly) VALUES
 (16, 'ID team members in higher risk categories (diabetes, lung/kidney disease, open cuts) and deploy.', 1),
 (16, 'Cover any minor cuts or scratches prior to work.', 1),
 (16, 'Suppress dust and modify task to reduce dust.', 1),
@@ -360,9 +377,9 @@ INSERT INTO risk_controls (risk_id, control_text, isReadOnly) VALUES
 (16, 'Wear PPE; Long sleeves & pant, enclosed shoes, hat (when outside), gloves (impervious if wet), safety glasses, dust masks (if large amounts of dust).', 1);
 
 /*-- ==================================================
--- RISK ID 17:  Surveying & Data Collection
+-- RISK ID 18:  Surveying & Data Collection
 -- ==================================================*/
-INSERT INTO risk_controls (risk_id, control_text, isReadOnly) VALUES
+INSERT INTO risk_controls (risk_title_id, control_text, isReadOnly) VALUES
 (17, 'Ensure that all team members know the boundaries of the survey area and remain within them at all times.', 1),  
 (17, 'Set times at which teams must return or report to the supervisor.', 1), 
 (17, 'Instruct that any team member who becomes lost should find the nearest shelter and remain there while using an agreed distress signal eg. three whistle blasts.', 1),
@@ -372,9 +389,9 @@ INSERT INTO risk_controls (risk_id, control_text, isReadOnly) VALUES
 (17, 'Wear boots that are suitable for walking, and sufficiently sturdy for the terrain.', 1);
 
 /*-- ==================================================
--- RISK ID 18:  Track Construction and Maintenance - impact 
+-- RISK ID 19:  Track Construction and Maintenance - impact 
 -- ==================================================*/
-INSERT INTO risk_controls (risk_id, control_text, isReadOnly) VALUES
+INSERT INTO risk_controls (risk_title_id, control_text, isReadOnly) VALUES
 (18, 'Arrange delivery of tools and materials so as to minimise distance over which things need to be carried.', 1),
 (18, 'Encourage gentle warm up stretches before commencement and after breaks.', 1),
 (18, 'Maintain tools in good condition.', 1),
@@ -385,9 +402,9 @@ INSERT INTO risk_controls (risk_id, control_text, isReadOnly) VALUES
 (18, 'Ensure that boots are suitable for walking, and sufficiently sturdy for the terrain.', 1);
 
 /*-- ==================================================
--- RISK ID 19:  Tree Planting/ impact injuries, muscle strain
+-- RISK ID 20:  Tree Planting/ impact injuries, muscle strain
 -- ==================================================*/
-INSERT INTO risk_controls (risk_id, control_text, isReadOnly) VALUES
+INSERT INTO risk_controls (risk_title_id, control_text, isReadOnly) VALUES
 (19, 'Conduct a visual inspection of the site, and remove potential risks such as broken glass, wire etc.', 1),
 (19, 'Use kneeling mats or padding if there is a danger of spike injuries from glass, stones etc.', 1),
 (19, 'Rotate tasks, even if team members are not experiencing discomfort.', 1),
@@ -397,9 +414,9 @@ INSERT INTO risk_controls (risk_id, control_text, isReadOnly) VALUES
 (19, 'Wear gloves when handling soil, and additional PPE as necessary.', 1);
 
 /*-- ==================================================
--- RISK ID 20:  Using Machete or cane knife
+-- RISK ID 21:  Using Machete or cane knife
 -- ==================================================*/
-INSERT INTO risk_controls (risk_id, control_text, isReadOnly) VALUES
+INSERT INTO risk_controls (risk_title_id, control_text, isReadOnly) VALUES
 (20, 'Use only when an alternate tool is not practicable (eg loppers, hand saws, secateurs or similar).', 1),
 (20, 'Ensure machetes are kept sharp.', 1),
 (20, 'Team leaders only to sharpen (sharpen away from blade).', 1),

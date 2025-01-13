@@ -170,11 +170,20 @@ const AddRisk: React.FC<AddRiskProps> = ({ isSidebarOpen }) => {
   }
 
   return (
-    <div>
+    <div
+      className={`container-fluid ${
+        isSidebarOpen ? 'content-expanded' : 'content-collapsed'
+      }`}
+      style={{
+        marginLeft: isSidebarOpen ? '0px' : '0px',
+        transition: 'margin 0.3s ease',
+        paddingTop: '2px',
+      }}
+    >
+      {' '}
       <h2>Add / Edit Risks</h2>
       {notification && <Alert variant="info">{notification}</Alert>}
       {loading && <div>Loading...</div>}
-
       <Row>
         <Col md={6}>
           <h5>Create Risk</h5>

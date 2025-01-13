@@ -140,10 +140,13 @@ const AddHazard: React.FC<AddHazardsProps> = ({ isSidebarOpen }) => {
 
   return (
     <div
-      className="container-fluid"
+      className={`container-fluid ${
+        isSidebarOpen ? 'content-expanded' : 'content-collapsed'
+      }`}
       style={{
+        marginLeft: isSidebarOpen ? '0px' : '0px',
         transition: 'margin 0.3s ease',
-        paddingTop: '5px',
+        paddingTop: '2px',
       }}
     >
       <h2
