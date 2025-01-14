@@ -277,7 +277,11 @@ const AddRisk: React.FC<AddRiskProps> = ({ isSidebarOpen }) => {
         isSidebarOpen ? 'content-expanded' : 'content-collapsed'
       }`}
     >
-      <h2>Add / Edit Risks</h2>
+      <h2
+        style={{ color: '#0094B6', fontWeight: 'bold', paddingBottom: '4rem' }}
+      >
+        Add / Edit Risks
+      </h2>
       {notification && <Alert variant="info">{notification}</Alert>}
       {loading && <div>Loading...</div>}
 
@@ -292,7 +296,15 @@ const AddRisk: React.FC<AddRiskProps> = ({ isSidebarOpen }) => {
             maxWidth: '100%',
           }}
         >
-          <h5>Create a New Risk</h5>
+          <h4
+            style={{
+              color: '#0094B6',
+              fontWeight: 'bold',
+              paddingBottom: '2rem',
+            }}
+          >
+            Create a New Risk
+          </h4>
           <Form.Group
             className="mb-3"
             style={{
@@ -302,7 +314,7 @@ const AddRisk: React.FC<AddRiskProps> = ({ isSidebarOpen }) => {
               maxWidth: '100%',
             }}
           >
-            <Form.Label>Risk Title</Form.Label>
+            <Form.Label className="fs-5 fw-bold">Risk Title</Form.Label>
             <Form.Control
               type="text"
               value={newRiskTitle}
@@ -341,7 +353,7 @@ const AddRisk: React.FC<AddRiskProps> = ({ isSidebarOpen }) => {
 
         {/* ================= Column for Managing EXISTING Risks ================ */}
         <Col md={6}>
-          <h5>Existing Risks</h5>
+          <h5 className="fs-5">Existing Risks</h5>
 
           <Select
             options={riskOptions}
