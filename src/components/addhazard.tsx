@@ -159,9 +159,9 @@ const AddHazard: React.FC<AddHazardsProps> = ({ isSidebarOpen }) => {
       {notification && <Alert variant="info">{notification}</Alert>}
 
       {/* 
-        Row + 2 columns: site hazards in left col, activity hazards in right col 
-        We also add .col-md-6 {minWidth: '500px'} if you want each table to
-        at least be 500px wide so they won't overlap.
+        site hazards in left col, activity hazards in right col 
+        .col-md-6 {minWidth: '500px'} for each table to
+        at least be 500px wide to not overlap.
       */}
       <div className="row g-4">
         {/* ============ Site Hazards Column =========== */}
@@ -191,7 +191,7 @@ const AddHazard: React.FC<AddHazardsProps> = ({ isSidebarOpen }) => {
           {/* -------------- TABLE FOR SITE HAZARDS --------------- */}
           <div className="table-responsive">
             {' '}
-            {/* CHANGED: .table-responsive wrapper */}
+            {/* table-responsive wrapper */}
             <Table
               bordered
               hover
