@@ -1,6 +1,6 @@
 import React, { useState, useEffect, FormEvent } from 'react'
 import axios from 'axios'
-import { Table, Form, Button, Alert, ButtonGroup } from 'react-bootstrap'
+import { Table, Form, Button, Alert } from 'react-bootstrap'
 
 interface Hazard {
   id: number
@@ -116,6 +116,7 @@ const AddHazard: React.FC<AddHazardsProps> = ({ isSidebarOpen }) => {
         `${type === 'site' ? 'Site' : 'Activity'} hazard updated successfully!`
       )
       type === 'site' ? setEditSiteHazard(null) : setEditActivityHazard(null)
+
       type === 'site' ? fetchSiteHazards() : fetchActivityHazards()
     } catch (err) {
       setNotification('Failed to update hazard.')
@@ -154,155 +155,230 @@ const AddHazard: React.FC<AddHazardsProps> = ({ isSidebarOpen }) => {
       >
         Add Hazards
       </h2>
+
       {notification && <Alert variant="info">{notification}</Alert>}
-      <div className="d-flex column form-container bg-white p-4 g-4 rounded shadow">
-        <div className="col-md-6">
-          <div className="d-flex row form-container">
-            {/* Site Hazards */}
-            <h3 style={{ color: '#0094B6' }}>
+
+      {/* 
+        Row + 2 columns: site hazards in left col, activity hazards in right col 
+        We also add .col-md-6 {minWidth: '500px'} if you want each table to
+        at least be 500px wide so they won't overlap.
+      */}
+      <div className="row g-4">
+        {/* ============ Site Hazards Column =========== */}
+        <div className="col-md-6" style={{ minWidth: '500px' /* CHANGED */ }}>
+          <div className="bg-white rounded shadow p-3 mb-4">
+            <h4 style={{ color: '#0094B6', paddingBottom: '2rem' }}>
               <b>Add Site Hazard</b>
-            </h3>
-            <Form onSubmit={handleAddSiteHazard}>
+            </h4>
+            <Form onSubmit={handleAddSiteHazard} className="d-flex flex-column">
               <Form.Control
                 type="text"
                 style={{
                   whiteSpace: 'pre-wrap',
                   wordWrap: 'break-word',
                   overflowWrap: 'break-word',
-                  maxWidth: '100%',
                 }}
                 placeholder="Write a site hazard"
                 value={siteHazardDesc}
                 onChange={(e) => setSiteHazardDesc(e.target.value)}
               />
-              <Button className="m-3 px-4" type="submit">
+              <Button className="mt-3 align-self-start" type="submit">
                 Save
               </Button>
             </Form>
           </div>
-          <Table
-            bordered
-            hover
-            className="bg-white px-5 p-4 rounded shadow"
-            style={{
-              whiteSpace: 'pre-wrap',
-              wordWrap: 'break-word',
-              overflowWrap: 'break-word',
-              maxWidth: '50%',
-            }}
-          >
-            <thead>
-              <tr>
-                <th className="text-center">#</th>
-                <th className="text-center w-80">Hazard Description</th>
-                <th className="text-center w-25">Actions</th>
-              </tr>
-            </thead>
-            <tbody
+
+          {/* -------------- TABLE FOR SITE HAZARDS --------------- */}
+          <div className="table-responsive">
+            {' '}
+            {/* CHANGED: .table-responsive wrapper */}
+            <Table
+              bordered
+              hover
+              striped
+              size="sm"
+              className="bg-white rounded shadow w-100"
               style={{
-                whiteSpace: 'pre-wrap',
-                wordWrap: 'break-word',
-                overflowWrap: 'break-word',
-                maxWidth: '100%',
+                marginBottom: '2rem',
+                tableLayout: 'fixed', // CHANGED
+                width: '100%',
               }}
             >
-              {siteHazards.map((hazard, index) => (
-                <tr
-                  style={{
-                    whiteSpace: 'pre-wrap',
-                    wordWrap: 'break-word',
-                    overflowWrap: 'break-word',
-                    maxWidth: '100%',
-                  }}
-                  key={hazard.id}
-                >
-                  <td>{index + 1}</td>
-                  <td
-                    className="align-item-center"
+              <thead>
+                <tr>
+                  <th className="text-center" style={{ width: '30px' }}>
+                    #
+                  </th>
+                  <th
+                    className="text-center"
                     style={{
+                      width: '300px',
                       whiteSpace: 'pre-wrap',
                       wordWrap: 'break-word',
                       overflowWrap: 'break-word',
-                      maxWidth: '100%',
+                      wordBreak: 'break-all', // CHANGED, helps super-long words
                     }}
                   >
-                    {editSiteHazard?.id === hazard.id ? (
-                      <Form.Control
-                        value={editSiteHazard.hazard_description}
-                        style={{
-                          whiteSpace: 'pre-wrap',
-                          wordWrap: 'break-word',
-                          overflowWrap: 'break-word',
-                          maxWidth: '100%',
-                        }}
-                        onChange={(e) =>
-                          setEditSiteHazard((prev) =>
-                            prev
-                              ? { ...prev, hazard_description: e.target.value }
-                              : null
-                          )
-                        }
-                      />
-                    ) : (
-                      hazard.hazard_description
-                    )}
-                  </td>
-                  <td>
-                    {editSiteHazard?.id === hazard.id ? (
-                      <Button
-                        onClick={() => handleEditSave(editSiteHazard, 'site')}
-                      >
-                        Save
-                      </Button>
-                    ) : (
-                      <Button onClick={() => setEditSiteHazard(hazard)}>
-                        Edit
-                      </Button>
-                    )}
-                    <Button onClick={() => handleDelete(hazard.id, 'site')}>
-                      Delete
-                    </Button>
-                  </td>
+                    Hazard Description
+                  </th>
+                  <th className="text-center" style={{ width: '80px' }}>
+                    Actions
+                  </th>
                 </tr>
-              ))}
-            </tbody>
-          </Table>
+              </thead>
+              <tbody>
+                {siteHazards.map((hazard, index) => (
+                  <tr key={hazard.id}>
+                    <td className="text-center">{index + 1}</td>
+                    <td
+                      style={{
+                        width: '300px',
+                        whiteSpace: 'pre-wrap',
+                        wordWrap: 'break-word',
+                        overflowWrap: 'break-word',
+                        wordBreak: 'break-all', // CHANGED
+                      }}
+                    >
+                      {editSiteHazard?.id === hazard.id ? (
+                        <Form.Control
+                          value={editSiteHazard.hazard_description}
+                          style={{
+                            whiteSpace: 'pre-wrap',
+                            wordWrap: 'break-word',
+                            overflowWrap: 'break-word',
+                            wordBreak: 'break-all',
+                          }}
+                          onChange={(e) =>
+                            setEditSiteHazard((prev) =>
+                              prev
+                                ? {
+                                    ...prev,
+                                    hazard_description: e.target.value,
+                                  }
+                                : null
+                            )
+                          }
+                        />
+                      ) : (
+                        hazard.hazard_description
+                      )}
+                    </td>
+                    <td className="text-center" style={{ width: '200px' }}>
+                      {editSiteHazard?.id === hazard.id ? (
+                        <Button
+                          variant="success"
+                          size="sm"
+                          className="me-2"
+                          onClick={() => handleEditSave(editSiteHazard, 'site')}
+                        >
+                          Save
+                        </Button>
+                      ) : (
+                        <Button
+                          variant="warning"
+                          size="sm"
+                          className="me-2"
+                          onClick={() => setEditSiteHazard(hazard)}
+                        >
+                          Edit
+                        </Button>
+                      )}
+                      <Button
+                        variant="danger"
+                        size="sm"
+                        onClick={() => handleDelete(hazard.id, 'site')}
+                      >
+                        Delete
+                      </Button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </Table>
+          </div>
         </div>
-        {/* Activity Hazards */}
-        {/* <div className="d-flex row form-container bg-white p-4 g-2 rounded shadow"> */}
-          <div className="col-md-6">
-          {/* <div className=" form-container"> */}
 
-            <h3 style={{ color: '#0094B6' }}>
+        {/* ============ Activity/People Hazards Column =========== */}
+        <div className="col-md-6" style={{ minWidth: '500px' }}>
+          <div className="bg-white rounded shadow p-3 mb-4">
+            <h4 style={{ color: '#0094B6', paddingBottom: '2rem' }}>
               <b>Add Activity/People Hazard</b>
-            </h3>
-            <Form onSubmit={handleAddActivityHazard}>
+            </h4>
+            <Form
+              onSubmit={handleAddActivityHazard}
+              className="d-flex flex-column"
+            >
               <Form.Control
                 type="text"
                 placeholder="Write an activity hazard"
                 value={activityHazardDesc}
                 onChange={(e) => setActivityHazardDesc(e.target.value)}
               />
-              <Button className="m-3 px-4" type="submit">
+              <Button className="mt-3 align-self-start" type="submit">
                 Save
               </Button>
             </Form>
-            <Table bordered hover className="bg-white px-5 p-4 rounded shadow">
+          </div>
+
+          {/* -------------- TABLE FOR ACTIVITY HAZARDS --------------- */}
+          <div className="table-responsive">
+            {' '}
+            <Table
+              bordered
+              hover
+              striped
+              size="sm"
+              className="bg-white rounded shadow w-100"
+              style={{
+                marginBottom: '2rem',
+                tableLayout: 'fixed',
+                width: '100%',
+              }}
+            >
               <thead>
                 <tr>
-                  <th className="text-center">#</th>
-                  <th className="text-center w-90">Hazard Description</th>
-                  <th className="text-center w-25">Actions</th>
+                  <th className="text-center" style={{ width: '30px' }}>
+                    #
+                  </th>
+                  <th
+                    className="text-center"
+                    style={{
+                      width: '300px',
+                      whiteSpace: 'pre-wrap',
+                      wordWrap: 'break-word',
+                      overflowWrap: 'break-word',
+                      wordBreak: 'break-all',
+                    }}
+                  >
+                    Hazard Description
+                  </th>
+                  <th className="text-center" style={{ width: '80px' }}>
+                    Actions
+                  </th>
                 </tr>
               </thead>
               <tbody>
                 {activityHazards.map((hazard, index) => (
                   <tr key={hazard.id}>
                     <td className="text-center">{index + 1}</td>
-                    <td className="align-item-center">
+                    <td
+                      style={{
+                        width: '300px',
+                        whiteSpace: 'pre-wrap',
+                        wordWrap: 'break-word',
+                        overflowWrap: 'break-word',
+                        wordBreak: 'break-all',
+                      }}
+                    >
                       {editActivityHazard?.id === hazard.id ? (
                         <Form.Control
                           value={editActivityHazard.hazard_description}
+                          style={{
+                            whiteSpace: 'pre-wrap',
+                            wordWrap: 'break-word',
+                            overflowWrap: 'break-word',
+                            wordBreak: 'break-all',
+                          }}
                           onChange={(e) =>
                             setEditActivityHazard((prev) =>
                               prev
@@ -318,9 +394,12 @@ const AddHazard: React.FC<AddHazardsProps> = ({ isSidebarOpen }) => {
                         hazard.hazard_description
                       )}
                     </td>
-                    <td>
+                    <td className="text-center" style={{ width: '200px' }}>
                       {editActivityHazard?.id === hazard.id ? (
                         <Button
+                          variant="success"
+                          size="sm"
+                          className="me-2"
                           onClick={() =>
                             handleEditSave(editActivityHazard, 'activity')
                           }
@@ -328,11 +407,18 @@ const AddHazard: React.FC<AddHazardsProps> = ({ isSidebarOpen }) => {
                           Save
                         </Button>
                       ) : (
-                        <Button onClick={() => setEditActivityHazard(hazard)}>
+                        <Button
+                          variant="warning"
+                          size="sm"
+                          className="me-2"
+                          onClick={() => setEditActivityHazard(hazard)}
+                        >
                           Edit
                         </Button>
                       )}
                       <Button
+                        variant="danger"
+                        size="sm"
                         onClick={() => handleDelete(hazard.id, 'activity')}
                       >
                         Delete
@@ -343,10 +429,9 @@ const AddHazard: React.FC<AddHazardsProps> = ({ isSidebarOpen }) => {
               </tbody>
             </Table>
           </div>
-          </div>
         </div>
-      // </div>
-    // </div>
+      </div>
+    </div>
   )
 }
 

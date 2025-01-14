@@ -132,7 +132,7 @@ const AddObjectives: React.FC<ObjectivesProps> = ({ isSidebarOpen }) => {
       }}
     >
       <h2
-        style={{ color: '#0094B6', fontWeight: 'bold', paddingBottom: '4rem' }}
+        style={{ color: '#0094B6', fontWeight: 'bold', padding: '4rem' }}
       >
         Add Objectives
       </h2>
@@ -152,13 +152,42 @@ const AddObjectives: React.FC<ObjectivesProps> = ({ isSidebarOpen }) => {
           {objectives.length === 0 ? (
             <p className="text-muted">No objectives yet</p>
           ) : (
-            <Table bordered hover className="bg-white px-5 p-4 rounded shadow">
+            <Table
+              bordered
+              hover
+              striped
+              size="sm"
+              className="bg-white rounded shadow w-100"
+              style={{
+                marginBottom: '2rem',
+                tableLayout: 'fixed', 
+                width: '100%',
+              }}
+            >
+              {' '}
               <thead>
                 <tr>
-                  <th className="text-center">#</th>
-                  <th className="text-center">Title</th>
-                  <th className="text-center">Measurement</th>
-                  <th className="text-center">Actions</th>
+                  <th className="text-center" style={{ width: '30px' }}>
+                    #
+                  </th>
+                  <th
+                    className="text-center"
+                    style={{
+                      width: '200px',
+                      whiteSpace: 'pre-wrap',
+                      wordWrap: 'break-word',
+                      overflowWrap: 'break-word',
+                      wordBreak: 'break-all',
+                    }}
+                  >
+                    Title
+                  </th>
+                  <th className="text-center" style={{ width: '80px' }}>
+                    Measurement
+                  </th>
+                  <th className="text-center" style={{ width: '80px' }}>
+                    Actions
+                  </th>
                 </tr>
               </thead>
               <tbody>
@@ -172,6 +201,12 @@ const AddObjectives: React.FC<ObjectivesProps> = ({ isSidebarOpen }) => {
                           <Form.Control
                             type="text"
                             value={editObj.title}
+                            style={{
+                              whiteSpace: 'pre-wrap',
+                              wordWrap: 'break-word',
+                              overflowWrap: 'break-word',
+                              wordBreak: 'break-all',
+                            }}
                             onChange={(e) =>
                               setEditObj((prev) =>
                                 prev ? { ...prev, title: e.target.value } : null
@@ -202,7 +237,7 @@ const AddObjectives: React.FC<ObjectivesProps> = ({ isSidebarOpen }) => {
                       <td>
                         {isEditing ? (
                           <ButtonGroup>
-                            <Button
+                            <Button className="mt-3 align-self-start"
                               variant="success"
                               size="sm"
                               onClick={handleEditSave}
@@ -212,6 +247,7 @@ const AddObjectives: React.FC<ObjectivesProps> = ({ isSidebarOpen }) => {
                             <Button
                               variant="secondary"
                               size="sm"
+                              className="me-2"
                               onClick={handleEditCancel}
                             >
                               Cancel

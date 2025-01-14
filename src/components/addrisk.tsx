@@ -521,7 +521,7 @@ const AddRisk: React.FC<AddRiskProps> = ({ isSidebarOpen }) => {
                       overflowWrap: 'break-word',
                       wordWrap: 'break-word',
                       wordBreak:
-                        'break-word' /* optionally for extremely long strings with no spaces */,
+                        'break-word' /* for too long strings with no spaces */,
                     }}
                   >
                     {/*Bullet for risk control lists */}
