@@ -139,8 +139,8 @@ INSERT INTO project_hazards (project_id, hazard_id) VALUES
 (37, 'Working with/ near Power Auger', 1, '2025-01-13 22:10:50'),
 (38, 'Working with/ near animals', 1, '2025-01-13 22:10:50'),
 (39, 'Working with/ near brush cutters', 1, '2025-01-13 22:10:50'),
-(40, 'Working with/ near chainsaws', 1, '2025-01-13 22:10:50');
-
+(40, 'Working with/ near chainsaws', 1, '2025-01-13 22:10:50'),
+(41, 'Working in Snake Habitat', 1, '2025-01-13 22:10:50');
 
 /*--Populate the risks table*/
 INSERT INTO risks (id, risk_title_id, likelihood, consequences, created_at) VALUES
@@ -305,7 +305,7 @@ INSERT INTO risk_controls (risk_title_id, control_text, isReadOnly) VALUES
 /*-- ==================================================
 -- RISK ID 12:  Mulching - inhalation/eye injury
 -- ==================================================*/
-INSERT INTO risk_controls (risk_id, control_text, isReadOnly) VALUES
+INSERT INTO risk_controls (risk_title_id, control_text, isReadOnly) VALUES
 (12, 'Explain and demonstrate wheelbarrow loading and use.', 1), 
 (12, 'Explain and demonstrate correct techniques for using a rake.', 1), 
 (12, 'Explain and demonstrate correct use of fork/shovel.', 1), 
@@ -348,353 +348,363 @@ INSERT INTO risk_controls (risk_title_id, control_text, isReadOnly) VALUES
 -- RISK ID 15:  Seed collection - cuts/scratches, eye injuries
 -- ==================================================*/
 INSERT INTO risk_controls (risk_title_id, control_text, isReadOnly) VALUES
-(14, 'Rotate tasks to guard against postural overuse injuries.', 1),
-(14, 'Specify and maintain a safe working distance between team members.', 1),
-(14, 'Explain and demonstrate tool use.', 1),
-(14, 'Ensure not team members are working directly under others.', 1),
-(14, 'Wear PPE including safety glasses, gloves, high vis vests and if required hard hats.', 1);
+(15, 'Rotate tasks to guard against postural overuse injuries.', 1),
+(15, 'Specify and maintain a safe working distance between team members.', 1),
+(15, 'Explain and demonstrate tool use.', 1),
+(15, 'Ensure not team members are working directly under others.', 1),
+(15, 'Wear PPE including safety glasses, gloves, high vis vests and if required hard hats.', 1);
 
 /*-- ==================================================
 -- RISK ID 16:  Slips, Trips & Falls
 -- ==================================================*/
 INSERT INTO risk_controls (risk_title_id, control_text, isReadOnly) VALUES
-(15, 'Remove trip hazards.', 1),
-(15, 'Mark trip hazards.', 1),
-(15, 'Ensure appropriate footwear with grip worn.', 1),
-(15, 'Establish paths across slopes.', 1),
-(15, 'Do not carry loads that limit visibility.', 1),
-(15, 'Station vehicle in location with good access.', 1),
-(15, 'Direct supervision by Team Leader/Project Coard.', 1);
+(16, 'Remove trip hazards.', 1),
+(16, 'Mark trip hazards.', 1),
+(16, 'Ensure appropriate footwear with grip worn.', 1),
+(16, 'Establish paths across slopes.', 1),
+(16, 'Do not carry loads that limit visibility.', 1),
+(16, 'Station vehicle in location with good access.', 1),
+(16, 'Direct supervision by Team Leader/Project Coard.', 1);
 
 /*-- ==================================================
 -- RISK ID 17:  Soil Borne Diseases & Inflections
 -- ==================================================*/
 INSERT INTO risk_controls (risk_title_id, control_text, isReadOnly) VALUES
-(16, 'ID team members in higher risk categories (diabetes, lung/kidney disease, open cuts) and deploy.', 1),
-(16, 'Cover any minor cuts or scratches prior to work.', 1),
-(16, 'Suppress dust and modify task to reduce dust.', 1),
-(16, 'Provide washing facilities and wash areas of potential soil contact prior to eating and drinking.', 1),
-(16, 'Wear PPE; Long sleeves & pant, enclosed shoes, hat (when outside), gloves (impervious if wet), safety glasses, dust masks (if large amounts of dust).', 1);
+(17, 'ID team members in higher risk categories (diabetes, lung/kidney disease, open cuts) and deploy.', 1),
+(17, 'Cover any minor cuts or scratches prior to work.', 1),
+(17, 'Suppress dust and modify task to reduce dust.', 1),
+(17, 'Provide washing facilities and wash areas of potential soil contact prior to eating and drinking.', 1),
+(17, 'Wear PPE; Long sleeves & pant, enclosed shoes, hat (when outside), gloves (impervious if wet), safety glasses, dust masks (if large amounts of dust).', 1);
 
 /*-- ==================================================
 -- RISK ID 18:  Surveying & Data Collection
 -- ==================================================*/
 INSERT INTO risk_controls (risk_title_id, control_text, isReadOnly) VALUES
-(17, 'Ensure that all team members know the boundaries of the survey area and remain within them at all times.', 1),  
-(17, 'Set times at which teams must return or report to the supervisor.', 1), 
-(17, 'Instruct that any team member who becomes lost should find the nearest shelter and remain there while using an agreed distress signal eg. three whistle blasts.', 1),
-(17, 'Ensure that all team members have means of communicating an emergency signal (eg: whistle, radios) and fully understand the signals to be used.', 1),
-(17, 'If the survey involves collecting seats, ensure that this is done hygienically eg. by using gloves, tongs etc.', 1),  
-(17, 'Work in pairs as a minimum group size.', 1),  
-(17, 'Wear boots that are suitable for walking, and sufficiently sturdy for the terrain.', 1);
+(18, 'Ensure that all team members know the boundaries of the survey area and remain within them at all times.', 1),  
+(18, 'Set times at which teams must return or report to the supervisor.', 1), 
+(18, 'Instruct that any team member who becomes lost should find the nearest shelter and remain there while using an agreed distress signal eg. three whistle blasts.', 1),
+(18, 'Ensure that all team members have means of communicating an emergency signal (eg: whistle, radios) and fully understand the signals to be used.', 1),
+(18, 'If the survey involves collecting seats, ensure that this is done hygienically eg. by using gloves, tongs etc.', 1),  
+(18, 'Work in pairs as a minimum group size.', 1),  
+(18, 'Wear boots that are suitable for walking, and sufficiently sturdy for the terrain.', 1);
 
 /*-- ==================================================
 -- RISK ID 19:  Track Construction and Maintenance - impact 
 -- ==================================================*/
 INSERT INTO risk_controls (risk_title_id, control_text, isReadOnly) VALUES
-(18, 'Arrange delivery of tools and materials so as to minimise distance over which things need to be carried.', 1),
-(18, 'Encourage gentle warm up stretches before commencement and after breaks.', 1),
-(18, 'Maintain tools in good condition.', 1),
-(18, 'Maintain safe working distance of at least 3 metres.', 1),
-(18, 'Arrange emergency communication and explain this to all team members.', 1),
-(18, 'Rotate tasks even if team members are not experiencing discomfort.', 1),
-(18, 'Wear appropriate PPE inc. high visibility vests, gloves, safety glasses.', 1),
-(18, 'Ensure that boots are suitable for walking, and sufficiently sturdy for the terrain.', 1);
+(19, 'Arrange delivery of tools and materials so as to minimise distance over which things need to be carried.', 1),
+(19, 'Encourage gentle warm up stretches before commencement and after breaks.', 1),
+(19, 'Maintain tools in good condition.', 1),
+(19, 'Maintain safe working distance of at least 3 metres.', 1),
+(19, 'Arrange emergency communication and explain this to all team members.', 1),
+(19, 'Rotate tasks even if team members are not experiencing discomfort.', 1),
+(19, 'Wear appropriate PPE inc. high visibility vests, gloves, safety glasses.', 1),
+(19, 'Ensure that boots are suitable for walking, and sufficiently sturdy for the terrain.', 1);
 
 /*-- ==================================================
 -- RISK ID 20:  Tree Planting/ impact injuries, muscle strain
 -- ==================================================*/
 INSERT INTO risk_controls (risk_title_id, control_text, isReadOnly) VALUES
-(19, 'Conduct a visual inspection of the site, and remove potential risks such as broken glass, wire etc.', 1),
-(19, 'Use kneeling mats or padding if there is a danger of spike injuries from glass, stones etc.', 1),
-(19, 'Rotate tasks, even if team members are not experiencing discomfort.', 1),
-(19, 'Take regular breaks and encourage gentle stretching.', 1),
-(19, 'Provide adequate hand washing facilities.', 1),
-(19, 'Specify and maintain a safe working space between team members; usually two metres.', 1),
-(19, 'Wear gloves when handling soil, and additional PPE as necessary.', 1);
+(20, 'Conduct a visual inspection of the site, and remove potential risks such as broken glass, wire etc.', 1),
+(20, 'Use kneeling mats or padding if there is a danger of spike injuries from glass, stones etc.', 1),
+(20, 'Rotate tasks, even if team members are not experiencing discomfort.', 1),
+(20, 'Take regular breaks and encourage gentle stretching.', 1),
+(20, 'Provide adequate hand washing facilities.', 1),
+(20, 'Specify and maintain a safe working space between team members; usually two metres.', 1),
+(20, 'Wear gloves when handling soil, and additional PPE as necessary.', 1);
 
 /*-- ==================================================
 -- RISK ID 21:  Using Machete or cane knife
 -- ==================================================*/
 INSERT INTO risk_controls (risk_title_id, control_text, isReadOnly) VALUES
-(20, 'Use only when an alternate tool is not practicable (eg loppers, hand saws, secateurs or similar).', 1),
-(20, 'Ensure machetes are kept sharp.', 1),
-(20, 'Team leaders only to sharpen (sharpen away from blade).', 1),
-(20, 'Ensure handle and wrist strap are securely fastened.', 1),
-(20, 'Only assign machetes to volunteers who have previously demonstrated high levels of responsibility.', 1),
-(20, 'Allow a maximum of four machetes to be used at any one time.', 1),
-(20, 'Team Leader to maintain direct supervision.', 1),
-(20, 'Demonstrate correct use, including appropriate cutting angle (to avoid blade bouncing off target) and safe working distance (5 metre buffer zone).', 1),
-(20, 'Use only for cutting soft vegetation (small branches, vines, grasses etc) not hard wood.', 1),
-(20, 'Ensure appropriate PPE is worn, including gloves, long pants, sturdy boots and shin pads.', 1),
-(20, 'Rotate tasks or take regular breaks to maintain concentration and reduce repetitive strain injury.', 1),
-(20, 'Cover blade with a sheath or split hose when not in use, and store in an appropriate place.', 1);
+(21, 'Use only when an alternate tool is not practicable (eg loppers, hand saws, secateurs or similar).', 1),
+(21, 'Ensure machetes are kept sharp.', 1),
+(21, 'Team leaders only to sharpen (sharpen away from blade).', 1),
+(21, 'Ensure handle and wrist strap are securely fastened.', 1),
+(21, 'Only assign machetes to volunteers who have previously demonstrated high levels of responsibility.', 1),
+(21, 'Allow a maximum of four machetes to be used at any one time.', 1),
+(21, 'Team Leader to maintain direct supervision.', 1),
+(21, 'Demonstrate correct use, including appropriate cutting angle (to avoid blade bouncing off target) and safe working distance (5 metre buffer zone).', 1),
+(21, 'Use only for cutting soft vegetation (small branches, vines, grasses etc) not hard wood.', 1),
+(21, 'Ensure appropriate PPE is worn, including gloves, long pants, sturdy boots and shin pads.', 1),
+(21, 'Rotate tasks or take regular breaks to maintain concentration and reduce repetitive strain injury.', 1),
+(21, 'Cover blade with a sheath or split hose when not in use, and store in an appropriate place.', 1);
 
 /*-- ===============================
--- RISK ID 21: Using Power Tools
+-- RISK ID 22: Using Power Tools
 -- ===============================*/
-INSERT INTO risk_controls (risk_id, control_text, isReadOnly) VALUES
-(21, 'Explain and demonstrate how to use, carry and store tools correctly.', 1),
-(21, 'Maintain strict supervision.', 1),
-(21, 'Use and maintain tools in accordance with manufacturer specifications.', 1),
-(21, 'Specify and maintain a safe buffer zone around power tool users.', 1),
-(21, 'Ensure all equipment and lead attachments have been tested and tagged and are in a safe working condition and protected from water.', 1),
-(21, 'No broken plugs, sockets or switches.', 1),
-(21, 'Emergency shutdown procedures in place.', 1),
-(21, 'Circuit breaker/safety switch installed and/or RCD used when operating tool.', 1),
-(21, 'Start/stop switches clearly marked, in easy reach of operator.', 1),
-(21, 'Check that protective guards on tools are attached and effective.', 1),
-(21, 'Clear trip hazards from the work site.', 1),
-(21, 'Position the generator, if used, in a dry, stable location and prevent access to it by unauthorised people.', 1),
-(21, 'Check that team members have hair tied back and clothing tucked in.', 1),
-(21, 'Wear appropriate PPE (eye, ear, face protection, safety boots, hi-vis).', 1);
+INSERT INTO risk_controls (risk_title_id, control_text, isReadOnly) VALUES
+(22, 'Explain and demonstrate how to use, carry and store tools correctly.', 1),
+(22, 'Maintain strict supervision.', 1),
+(22, 'Use and maintain tools in accordance with manufacturer specifications.', 1),
+(22, 'Specify and maintain a safe buffer zone around power tool users.', 1),
+(22, 'Ensure all equipment and lead attachments have been tested and tagged and are in a safe working condition and protected from water.', 1),
+(22, 'No broken plugs, sockets or switches.', 1),
+(22, 'No frayed or damaged leads.', 1),
+(22, 'Emergency shutdown procedures in place.', 1),
+(22, 'Circuit breaker/safety switch installed and/or RCD used when operating tool.', 1),
+(22, 'Start/stop switches clearly marked, in easy reach of operator.', 1),
+(22, 'Check that protective guards on tools are attached and effective.', 1),
+(22, 'Clear trip hazards from the work site.', 1),
+(22, 'Position the generator, if used, in a dry, stable location and prevent access to it by unauthorised people.', 1),
+(22, 'Check that the team members have hair tied back and clothing tucked in, including drawstrings on jackets, hats, etc.', 1),
+(22, 'Wear appropriate PPE as recommended by the manufacturer eg. eye and ear protection, safety boots.', 1);
 
 /*-- ============================================
--- RISK ID 22: Using Swinging Tools
+-- RISK ID 23: Using Swinging Tools
 -- ============================================*/
-INSERT INTO risk_controls (risk_id, control_text, isReadOnly) VALUES
-(22, 'Ensure that suitable work boots, with reinforced toes, are being worn.', 1),
-(22, 'Encourage gentle warm up stretches before commencement and after breaks.', 1),
-(22, 'Maintain safe working distance of at least 3 metres; for short handled tools (e.g. hammer), 2 metres.', 1),
-(22, 'Explain and demonstrate how to use, carry and store tools correctly.', 1),
-(22, 'Maintain tools in good condition.', 1),
-(22, 'Establish a firm footing before swinging tools.', 1),
-(22, 'Raise tools no more than shoulder height on back swing.', 1),
-(22, 'Rotate tasks to avoid fatigue; specify rotation frequency if needed.', 1),
-(22, 'Adjust duration of work to physical capacities of team members.', 1),
-(22, 'Wear appropriate PPE (hi-vis vest, hard hat, glasses, gloves).', 1);
+INSERT INTO risk_controls (risk_title_id, control_text, isReadOnly) VALUES
+(23, 'Ensure that suitable work boots, with reinforced toes, are being worn.', 1),
+(23, 'Encourage gentle warm up stretches before commencement and after breaks.', 1),
+(23, 'Maintain safe working distance of at least 3 metres; for short handled tools (e.g. hammer), 2 metres.', 1),
+(23, 'Explain and demonstrate how to use, carry and store tools correctly.', 1),
+(23, 'Maintain tools in good condition.', 1),
+(23, 'Establish a firm footing before swinging tools.', 1),
+(23, 'Raise tools no more than shoulder height on back swing.', 1),
+(23, 'Rotate tasks even if team members are not experiencing discomfort; specify rotation frequency.', 1),
+(23, 'Adjust the duration of work periods to take account of the physical capacities of the team members.', 1),
+(23, 'Wear appropriate PPE eg. high visibility vest, hard hat, glasses and gloves.', 1);
 
 /*-- ==============================================
--- RISK ID 23: Using Temporary Accommodation
+-- RISK ID 24: Using Temporary Accommodation
 -- ==============================================*/
-INSERT INTO risk_controls (risk_id, control_text, isReadOnly) VALUES
-(23, 'Clear all exits so they are uncluttered and readily accessible.', 1),
-(23, 'Inspect all gas and electrical appliances to ensure safe, operational condition.', 1),
-(23, 'Do not overload power points with too many appliances.', 1),
-(23, 'Formulate a fire evacuation plan and communicate it to all team members.', 1),
-(23, 'Remove any combustible materials near a possible fire source.', 1),
-(23, 'Ensure backup (emergency) lighting is available (e.g. extra torches).', 1),
-(23, 'Enforce "No Smoking" policy.', 1),
-(23, 'Keep food storage and preparation areas clean, and toilets hygienic.', 1),
-(23, 'Store garbage outside the accommodation, dispose at earliest opportunity.', 1);
+INSERT INTO risk_controls (risk_title_id, control_text, isReadOnly) VALUES
+(24, 'Clear all exits so they are uncluttered and readily accessible.', 1),
+(24, 'Inspect all gas and electrical appliances to ensure that they are in a safe, operational condition.', 1),
+(24, 'Do not overload power points with too many appliances.', 1),
+(24, 'Formulate a fire evacuation plan and communicate it to all team members.', 1),
+(24, 'Remove any combustible materials that are stored near a possible fire source.', 1),
+(24, 'Ensure backup (emergency) lighting is available (e.g. extra torches).', 1),
+(24, 'Ensure that the CV "No Smoking" policy is enforced.', 1),
+(24, 'Keep food storage and preparation areas, showers and toilets clean and hygienic.', 1),
+(24, 'Store all garbage outside the accommodation, and dispose of it at the first practicable opportunity.', 1);
 
 /*-- ===========================================
--- RISK ID 24: Using picket rammers
+-- RISK ID 25: Using picket rammers
 -- ===========================================*/
-INSERT INTO risk_controls (risk_id, control_text, isReadOnly) VALUES
-(24, 'Use rammers with a minimum length of 1.2 metres.', 1),
-(24, 'Explain and demonstrate proper technique for picket ramming.', 1),
-(24, 'Encourage gentle warm up stretches before commencing picket ramming.', 1),
-(24, 'Assign only to those physically capable of performing safely.', 1),
-(24, 'Rotate tasks, even if members are not experiencing discomfort.', 1),
-(24, 'Only grip the vertical section of the handles when using the rammer.', 1),
-(24, 'Do not lift the rammer off the post during operation.', 1);
+INSERT INTO risk_controls (risk_title_id, control_text, isReadOnly) VALUES
+(25, 'Use rammers with a minimum length of 1.2 metres.', 1),
+(25, 'Explain and demonstrate proper technique for picket ramming.', 1),
+(25, 'Encourage gentle warm up stretches before commencing picket ramming.', 1),
+(25, 'Only allocate this task to people with the physical capacity to perform it safely.', 1),
+(25, 'Rotate tasks, even if team members are not experiencing discomfort; specify rotation frequency.', 1),
+(25, 'Only grip the vertical section of the handles when using the rammer.', 1),
+(25, 'Rammer not to be lifted off post during operation.', 1);
+(25, 'Remove/limit distractions for team members involved in post ramming.', 1),
+(25, 'Specify and maintain a safe working distance between team members.', 1),
+(25, 'All team members involved in task to wear hard hat, ear and eye protection, high visibility vests and gloves.', 1);
+
 
 /*-- =============================
--- RISK ID 25: Vehicle Travel
+-- RISK ID 26: Vehicle Travel
 -- =============================*/
-INSERT INTO risk_controls (risk_id, control_text, isReadOnly) VALUES
-(25, 'Comply with all road laws.', 1),
-(25, 'Complete pre-start checklist prior to operation.', 1),
-(25, 'Wear seat belts when vehicle is in motion.', 1),
-(25, 'Secure all tools/equipment in cargo area.', 1),
-(25, 'Minimise distraction and take breaks on long drives.', 1),
-(25, 'Appoint navigator to assist with directions.', 1),
-(25, 'Appoint a spotter when reversing.', 1),
-(25, 'Close all doors/tailgates before vehicle moves; maintain vehicle as per manual.', 1);
+INSERT INTO risk_controls (risk_title_id, control_text, isReadOnly) VALUES
+(26, 'Comply with all road laws.', 1),
+(26, 'Complete pre-start checklist prior to operation.', 1),
+(26, 'Wear seat belts when vehicle is in motion.', 1),
+(26, 'All tools and equip secured in cargo area.', 1),
+(26, 'Minimise distraction and take breaks on long drives.', 1),
+(26, 'Appoint navigator to assist with directions.', 1),
+(26, 'Appoint a spotter when reversing.', 1),
+(26, 'Ensure all doors and tailgates are closed before vehicle moves. - Maintain vehicle as per manufacturers manual.', 1);
 
 /*-- ============================================
--- RISK ID 26: Weeding (scratches, strains...)
+-- RISK ID 27: Weeding (scratches, strains...)
 -- ============================================*/
-INSERT INTO risk_controls (risk_id, control_text, isReadOnly) VALUES
-(26, 'Wear gloves whenever hands are at ground level.', 1),
-(26, 'Encourage gentle warm up stretches.', 1),
-(26, 'Comply with all MSDS directions if using chemicals.', 1),
-(26, 'Maintain safe working space between team members.', 1),
-(26, 'Provide adequate washing facilities.', 1),
-(26, 'Wear eye protection for risk of chemical splashes or twig spikes.', 1);
+INSERT INTO risk_controls (risk_title_id, control_text, isReadOnly) VALUES
+(27, 'Wear gloves whenever hands are at ground level.', 1),
+(27, 'Encourage gentle warm up stretches.', 1),
+(27, 'Comply with all MSDS directions if using chemicals.', 1),
+(27, 'Specify and maintain a safe working space between team members.', 1),
+(27, 'Provide adequate washing facilities.', 1),
+(27, 'Wear eye protection where potential for eye injury is identified. Chemical splashes and grass or twig spikes to eyes, are common weeding injuries.', 1);
 
 /*-- =========================================================
--- RISK ID 27: Working at heights (falls, falling objects)
+-- RISK ID 28: Working at heights (falls, falling objects)
 -- =========================================================*/
-INSERT INTO risk_controls (risk_id, control_text, isReadOnly) VALUES
-(27, 'Use safety rails, fall arrest devices, and helmet if fall height >2m.', 1),
-(27, 'Check for electrical services in the work location.', 1),
-(27, 'Maintain exclusion zone beneath elevated worker.', 1),
-(27, 'Use well maintained ladder on non-slip surface.', 1),
-(27, 'Only one person on ladder at a time; limit work at height.', 1),
-(27, 'Secure tools/equipment used at height.', 1),
-(27, 'Always face the ladder when ascending/descending.', 1),
-(27, 'Appoint spotters if necessary.', 1);
+INSERT INTO risk_controls (risk_title_id, control_text, isReadOnly) VALUES
+(28, 'Safety rails, fall arrest device and helmet must be in place if fall height exceeds 2m.', 1),
+(28, 'Complete check for any electrical services in work location.', 1),
+(28, 'Maintain exclusion zone beneath elevated worker.', 1),
+(28, 'Use well maintained ladder on non-slip surface.', 1),
+(28, 'Limit workers at height and only one person permitted on ladder at a time.', 1),
+(28, 'Secure tools and equipment being used at height.', 1),
+(28, 'Always work facing the ladder.', 1),
+(28, 'Appoint spotters.', 1);
 
 /*-- =======================================================================
--- RISK ID 28: Working in Cold Conditions (Hypothermia)
+-- RISK ID 29: Working in Cold Conditions (Hypothermia)
 -- =======================================================================*/
-INSERT INTO risk_controls (risk_id, control_text, isReadOnly) VALUES
-(28, 'Provide warm food/drinks if possible.', 1),
-(28, 'Gentle warm up stretches before starting work/after breaks.', 1),
-(28, 'Rotate tasks; avoid prolonged exposure in cold conditions.', 1),
-(28, 'Use sheltered area during inactivity or extreme conditions.', 1),
-(28, 'Schedule work outside the coldest times of day.', 1),
-(28, 'Encourage layered clothing to adjust to weather and activity.', 1),
-(28, 'Wear a warm hat, gloves, and appropriate footwear.', 1);
-
-/*-- ========================================================
--- RISK ID 29: Predator control / checking traps
--- ========================================================*/
-INSERT INTO risk_controls (risk_id, control_text, isReadOnly) VALUES
-(29, 'Be competent/confident in trap setting.', 1),
-(29, 'Check weather conditions beforehand.', 1),
-(29, 'Have all necessary kit/tools, including water.', 1),
-(29, 'Advise a "buddy" of departure and return times.', 1),
-(29, 'Wear disposable or washable gloves for handling traps/carcasses.', 1),
-(29, 'Use tongs for clearing/cleaning traps.', 1),
-(29, 'Use setting tools as appropriate.', 1),
-(29, 'Carry hand sanitizer.', 1);
+INSERT INTO risk_controls (risk_title_id, control_text, isReadOnly) VALUES
+(29, 'Make food and fluids available, including warm drinks where possible.', 1),
+(29, 'Conduct gentle warm up stretches before commencing work, and after breaks.', 1),
+(29, 'Rotate tasks to avoid prolonged exposure and specify frequency of rotations.', 1),
+(29, 'Identify and Use sheltered area during periods of inactivity e.g.: breaks or extreme conditions.', 1),
+(29, 'Structure work to avoid the coldest times of the day.', 1),
+(29, 'Encourage team members to wear layered clothing that enables them to adjust their body temperature according to weather conditions and activity level.', 1),
+(29, 'Wear a warm hat.', 1);
 
 /*-- =====================================================
 -- RISK ID 30: Working in Windy Conditions
 -- =====================================================*/
-INSERT INTO risk_controls (risk_id, control_text, isReadOnly) VALUES
-(30, 'Check local weather forecast for severe wind warnings.', 1),
-(30, 'Assess if large trees, dead limbs, or hanging timber could fall.', 1),
-(30, 'Consider activity type (mulching/digging may stir up dust/debris).', 1),
-(30, 'Check bushfire warnings; windy weather can escalate fire risk.', 1),
-(30, 'Confirm no participant has severe respiratory issues (e.g. asthma).', 1);
+INSERT INTO risk_controls (risk_title_id, control_text, isReadOnly) VALUES
+(30, 'Check local weather forecast.', 1),
+(30, 'Is a severe weather warning current?', 1),
+(30, 'Will you be working under trees on the site?', 1),
+(30, 'Does the site contain old growth or dead trees?', 1),
+(30, 'Are there dead limbs or hanging timber that could fall?', 1),
+(30, 'Consider the types of activities being undertaken (e.g. mulching/digging/planting may lead to more dust/debris in the air).', 1),
+(30, 'Check local fire warnings (windy weather can often mean bushfire weather).', 1),
+(30, 'Do you or any of your team members have a moderate to severe respiratory condition (e.g. asthma)?', 1);
+
 
 /*-- ==========================================
 -- RISK ID 31: Working in the dark
 -- ==========================================*/
-INSERT INTO risk_controls (risk_id, control_text, isReadOnly) VALUES
-(31, 'Verify no participant is unfit (physically/psychologically) for night work.', 1),
-(31, 'Ensure each person has a reliable torch.', 1),
-(31, 'Advise participants to wear layered clothing.', 1),
-(31, 'Confirm boundaries and meeting points before starting.', 1),
-(31, 'Work in pairs minimum; use a buddy system.', 1),
-(31, 'Inspect site in daylight to remove or mark hazards.', 1),
-(31, 'Issue whistles for emergency signals (3 blasts).', 1),
-(31, 'Avoid slippery or rough terrain.', 1),
-(31, 'Minimise gear carried.', 1),
+INSERT INTO risk_controls (risk_title_id, control_text, isReadOnly) VALUES
+(31, 'Check that no person has a physical or psychological problem that renders them unsuitable for working in the dark.', 1),
+(31, 'Check that each person has a reliable torch.', 1),
+(31, 'Advise all participants to have ample, layered clothing.', 1),
+(31, 'Check that work area boundaries are understood and meeting point is known.', 1),
+(31, 'Work in pairs as a minimum group size; establish a "buddy" system.', 1),
+(31, 'If possible, during daylight hours inspect the site and remove or clearly mark trip hazards or other hazardous areas.', 1),
+(31, 'Provide each person with a whistle and ensure that each person knows that three long blasts is the standard emergency/distress signal.', 1),
+(31, 'Avoid rough or slippery areas.', 1),
+(31, 'Minimise the number, weight and bulk of items to be carried.', 1),
 (31, 'Wear high visibility vests.', 1);
 
 /*-- ============================================================
 -- RISK ID 32: Working in tick habitat (allergic reaction...)
 -- ============================================================*/
-INSERT INTO risk_controls (risk_id, control_text, isReadOnly) VALUES
-(32, 'Seek local advice on tick presence; reconsider if severe infestation.', 1),
-(32, 'Wear long trousers tucked into socks, long sleeves, broad-brimmed hat.', 1),
-(32, 'Use light-colored clothing to spot ticks easily.', 1),
+INSERT INTO risk_controls (risk_title_id, control_text, isReadOnly) VALUES
+(32, 'Prior to project, seek local advice on presence of ticks. (If in plague proportion, reconsider whether or not to continue.)', 1),
+(32, 'Reduce tick access to skin by wearing long trousers (tucked into socks), long sleeved shirt (tucked in), broad-brimmed hat (reduces likelihood of ticks from getting into hair or down the neck of clothing)', 1),
+(32, 'If possible, wear light colored clothing so that any ticks on clothing are more readily spotted.', 1),
 (32, 'Apply DEET repellent to exposed skin.', 1),
-(32, 'Minimise vegetation disturbance; short work periods in high-tick areas.', 1),
-(32, 'After leaving area, check hair, neck, behind ears for ticks.', 1),
-(32, 'Check thoroughly in shower for any ticks.', 1),
-(32, 'If possible, run clothes in a hot dryer for 20 minutes post-activity.', 1);
+(32, 'Minimise disturbance to vegetation (as this appears to make ticks more active) by working for short periods in one location where ticks are a problem.', 1),
+(32, 'After leaving tick area, have team members check each other for ticks hair, behind ears, back of neck etc.', 1),
+(32, 'Encourage team members to check themselves fully when showering.', 1),
+(32, 'If possible, after working in a high tick population area, place clothing in a hot dryer for 20 minutes.', 1);
 
 /*-- =================================================
 -- RISK ID 33: Working near heavy machinery
 -- =================================================*/
-INSERT INTO risk_controls (risk_id, control_text, isReadOnly) VALUES
-(33, 'Eliminate or reduce need to work near heavy machinery.', 1),
-(33, 'Advise machine operator of worker locations/patterns.', 1),
-(33, 'Maintain direct liaison between team, supervisor, and operator.', 1),
-(33, 'Develop and demonstrate clear signals, understood by all.', 1),
-(33, 'Work upwind or out of dust/fume range.', 1),
-(33, 'Use a spotter to provide additional supervision.', 1);
+INSERT INTO risk_controls (risk_title_id, control_text, isReadOnly) VALUES
+(33, 'Eliminate or minimise the need for team members to work near heavy machinery.', 1),
+(33, 'Advise operator of the location and movement patterns of those working nearby.', 1),
+(33, 'Maintain direct liaison between the team, supervisor and the plant operator.', 1),
+(33, 'Develop and demonstrate a set of signals to be used; these must be clear, unambiguous and understood by all.', 1),
+(33, 'Work upwind or out of fume and dust range.', 1),
+(33, 'Appoint a "spotter" to provide additional supervision.', 1);
+(33, 'Wear high visibility vests.',1),
+(33, 'Wear appropriate PPE eg. glasses, respirators, ear protection.', 1);
 
 /*-- =============================================================
 -- RISK ID 34: Working near road sides (vehicle impact)
 -- =============================================================*/
-INSERT INTO risk_controls (risk_id, control_text, isReadOnly) VALUES
-(34, 'Minimise need to work near roadsides.', 1),
-(34, 'Use appropriate signage: SLOW DOWN, WORKERS NEAR ROADSIDE, etc.', 1),
-(34, 'Must have trained/authorised person for roads authority compliance.', 1),
-(34, 'Maintain direct/continuous supervision.', 1),
-(34, 'Spotter to supervise. Check signals are clear/unambiguous.', 1),
-(34, 'Work upwind or out of dust/fume range.', 1),
-(34, 'Wear high visibility vests/clothing.', 1);
+INSERT INTO risk_controls (risk_title_id, control_text, isReadOnly) VALUES
+(34, 'Eliminate or minimise the need for team members to work near roadsides.', 1),
+(34, 'Arrange for the placement of appropriate signage eg: SLOW DOWN, WORKERS NEAR ROADSIDE, and/or witches hats to indicate to drivers that there are workers ahead. (Note: This must be done by a competent person who has completed the proper training and received authorisation by the appropriate roads management authority.)', 1),
+(34, 'Maintain direct and continuous supervision.', 1),
+(34, 'Appoint a "spotter" to provide additional supervision.', 1),
+(34, 'Check that all team members understand the signals to be used, and that the signals are clear and unambiguous.', 1),
+(34, 'Work upwind or out of fume and dust range.', 1),
+(34, 'Wear high visibility vests or clothing.', 1);
 
 /*-- =======================================================
 -- RISK ID 35: Working near water (drowning)
 -- =======================================================*/
-INSERT INTO risk_controls (risk_id, control_text, isReadOnly) VALUES
-(35, 'Keep safe distance if water is deep, swift, or hazardous.', 1),
-(35, 'Mark no-go zones on steep/slippery banks.', 1),
-(35, 'Identify non-swimmers; keep them away from higher-risk areas.', 1),
-(35, 'Have rescue aids (rope, pole, flotation) downstream of likely entry.', 1),
-(35, 'Create emergency plan for non-contact water rescue.', 1),
-(35, 'Follow policy: no recreational swimming for volunteers.', 1),
-(35, 'Encourage dry spare socks.', 1),
-(35, 'Provide washing facilities (soap, clean water).', 1);
+INSERT INTO risk_controls (risk_title_id, control_text, isReadOnly) VALUES
+(35, 'Maintain a safe distance between team members and water that is deemed dangerous because of depth, current, murkiness, turbulence, difficulty of escape etc.', 1),
+(35, 'Designate areas on steep, slippery or unstable banks as no-go areas and flag or tape off', 1),
+(35, 'Identify non-swimmers and ensure that they are deployed away from higher risk areas.', 1),
+(35, 'Where there is an inadvertent possibility of the need to rescue someone from the water, ensure there are rescue aids readily accessible eg. rope, long pole, flotation device. Where there is a current, these aids must be positioned downstream of the most likely entry point.', 1),
+(35, 'Formulate an emergency response plan that is based on non-contact rescue strategies.', 1),
+(35, 'Maintain strict compliance with Conservation Volunteers\' policy of not facilitating recreational swimming.', 1),
+(35, 'Encourage team members to have adequate spare, dry socks.', 1),
+(35, 'Provide adequate washing facilities eg. soap and clean water.', 1);
+
 
 /*-- =========================================
 -- RISK ID 36: Working with schools
 -- =========================================*/
-INSERT INTO risk_controls (risk_id, control_text, isReadOnly) VALUES
-(36, 'Never be alone with a school student/young person.', 1),
-(36, 'Arrange access to toilet not used by students if possible.', 1),
-(36, 'Avoid moving CV vehicle when students are in close proximity.', 1),
-(36, 'Coordinate breaks to avoid conflict with student meal times.', 1),
-(36, 'Store tools/personal items safely; no unsupervised areas.', 1),
-(36, 'Teacher must remain present if students near a CV team.', 1),
-(36, 'Observe sign in/out, school rules, no offensive slogans, etc.', 1),
-(36, 'Know the school’s emergency evacuation plan and muster point.', 1);
+INSERT INTO risk_controls (risk_title_id, control_text, isReadOnly) VALUES
+(36, 'Do not allow yourself or any volunteer to be alone with a school student or young person.', 1),
+(36, 'Always try to arrange for the CV team to have access to a toilet that is not used by the students.', 1),
+(36, 'Avoid moving a CV vehicle on school property while students are out of class or in close proximity. If the vehicle absolutely must be moved, switch on hazard lights, appoint spotters in high visibility vests and drive at a speed no greater than 10kph.', 1),
+(36, 'Where possible coordinate breaks for your team with the meal breaks of the school students, this reduces the need to manage third parties entering your worksite.', 1),
+(36, 'Ensure that tools or personal belongings are not left in unsecured, unsupervised areas.', 1),
+(36, 'Insist that a teacher remain present if students are to work with or near to a CV team.', 1),
+(36, 'Observe the sign in/ sign out procedures required by the school and observe the rules, laws and standards that apply to the school grounds, eg. no smoking or wearing clothes with offensive slogans or images.', 1),
+(36, 'Become familiar with the school\'s emergency evacuation plan and muster point.', 1);
 
 /*-- ============================================================
 -- RISK ID 37: Working with/ near Power Auger
 -- ============================================================*/
-INSERT INTO risk_controls (risk_id, control_text, isReadOnly) VALUES
-(37, 'Operator must be trained/competent to use auger.', 1),
-(37, 'Operator must be physically able to handle it safely.', 1),
-(37, 'Check mechanical condition of auger before use.', 1),
-(37, 'Remove obstacles/missiles (stones, wire) from area before starting.', 1),
-(37, 'No one else within 20m while auger runs.', 1),
-(37, 'Others in vicinity must wear eye protection.', 1),
-(37, 'Follow manufacturer’s specs for use/maintenance.', 1),
-(37, 'Keep hands/feet clear of rotating auger bit.', 1),
-(37, 'Stop auger if others approach.', 1),
-(37, 'Appoint spotter for site surveillance.', 1),
-(37, 'Engage auger brake when moving holes; turn off auger when not in use.', 1),
-(37, 'Limit continuous auger use to ~20 mins to avoid muscle strain/overheating.', 1),
-(37, 'Wear PPE: boots, gloves, ear protection, hi-vis vest.', 1);
+INSERT INTO risk_controls (risk_title_id, control_text, isReadOnly) VALUES
+(37, 'Ensure the operator is properly trained and competent to operate the equipment.', 1),
+(37, 'Ensure the operator is of sufficient strength and stature to control the equipment safely.', 1),
+(37, 'Ensure the operator knows the proper use of the controls, especially how to engage the brake and how to shut down the auger quickly if necessary.', 1),
+(37, 'Complete a pre-operation check of the auger before use; checking the condition of the drill bit, condition of padding and anti-vibration mountings, condition of exhaust (this should direct exhaust fumes away from the operator), ensuring that automatic braking system and switches work and checking for any loose bolts.', 1),
+(37, 'Ensure that a 3 meter buffer zone is maintained between the auger and other people.', 1),
+(37, 'Adhere to all manufacturer specifications for use and maintenance.', 1),
+(37, 'Keep feet and hands well clear of rotating auger bit.', 1),
+(37, 'Tuck in loose clothing, keep hat cords behind your neck and tie back long hair or put it down the back of the shirt and remove necklaces to avoid entanglement.', 1),
+(37, 'Stop operating the auger if other people move within the buffer zone.', 1),
+(37, 'Appoint "spotter" for site surveillance.', 1),
+(37, 'Engage auger brake when moving between holes and turn off the auger when not in use.', 1),
+(37, 'Only run the auger for short periods of time (eg 20 minutes). This will help prevent muscle strain injuries, heat stress, and also prevents the machine from overheating. Allow auger to cool for a few minutes before refuelling.', 1),
+(37, 'Wear appropriate PPE, as advised by the manufacturer eg: safety boots, gloves, ear protection and high visibility vest.', 1);
 
 /*-- ==============================================
 -- RISK ID 38: Working with/near animals
 -- ==============================================*/
-INSERT INTO risk_controls (risk_id, control_text, isReadOnly) VALUES
+INSERT INTO risk_controls (risk_title_id, control_text, isReadOnly) VALUES
 (38, 'Provide appropriate animal handling training.', 1),
-(38, 'All team members must be alert for unpredictable animal behavior.', 1),
-(38, 'Consider physical strength/stature for handling certain animals.', 1),
-(38, 'Wear PPE: glasses, gloves, long sleeves.', 1),
-(38, 'Ensure adequate personal hygiene (clean water/soap).', 1);
+(38, 'Stress that all team members must be alert for unpredictable behaviour by animals.', 1),
+(38, 'Take into account the physical strength and stature of persons handling particular animals/species.', 1),
+(38, 'Wear appropriate PPE eg: glasses, gloves, long sleeves.', 1),
+(38, 'Make adequate provision for the maintenance of personal hygiene (eg: clean water and soap).', 1);
 
 /*-- =================================================
 -- RISK ID 39: Working with/ near brush cutters
 -- =================================================*/
-INSERT INTO risk_controls (risk_id, control_text, isReadOnly) VALUES
-(39, 'Ensure operator is trained to use brush cutter safely.', 1),
-(39, 'Check mechanical condition prior to use.', 1),
-(39, 'Remove obstacles/potential missiles from area.', 1),
-(39, 'No one within 20m while brush cutter is running.', 1),
-(39, 'Others in area must wear eye protection.', 1),
-(39, 'Follow manufacturer specs for use/maintenance.', 1),
-(39, 'Keep hands/feet clear of moving parts.', 1),
-(39, 'Stop if others approach; turn off when not in use.', 1),
-(39, 'Appoint spotter for site surveillance.', 1),
-(39, 'Wear PPE: eye/face protection, boots, ear protection, hi-vis.', 1);
+INSERT INTO risk_controls (risk_title_id, control_text, isReadOnly) VALUES
+(39, 'Ensure the operator is properly trained.', 1),
+(39, 'Ensure the operator is of sufficient strength and stature to control the equipment safely.', 1),
+(39, 'Check general mechanical condition of brush cutter before use.', 1),
+(39, 'Remove all obstacles or potential missiles (eg: stones, wire or timber) from the work area, prior to work commencing.', 1),
+(39, 'Ensure no other person is within 20 metres while the brush cutter is running.', 1),
+(39, 'Ensure that any other persons working in the general vicinity are wearing eye protection.', 1),
+(39, 'Adhere to all manufacturer specifications for use and maintenance.', 1),
+(39, 'Keep all feet and hands well clear of moving parts.', 1),
+(39, 'Stop operating the brush cutter if other people are close by.', 1),
+(39, 'Appoint a "spotter" to provide additional site surveillance.', 1),
+(39, 'Turn off the brush cutter when not in use or while removing debris.', 1),
+(39, 'Wear appropriate PPE eg: glasses, eye/face protection, safety boots, overalls, ear protection and high visibility vests.', 1);
 
 /*-- ==================================================
 -- RISK ID 40: Working with/ near chainsaws
 -- ==================================================*/
-INSERT INTO risk_controls (risk_id, control_text, isReadOnly) VALUES
-(40, 'Use only licensed operators for chainsaws.', 1),
-(40, 'Post warning signs at work area boundaries.', 1),
-(40, 'Clear workers/debris from immediate area & fall zone.', 1),
-(40, 'Appoint spotter to guard against bystanders.', 1),
-(40, 'Everyone on site wears high visibility vests.', 1),
-(40, 'Engage chain brake when not cutting.', 1),
-(40, 'Start saw on the ground (NO drop start).', 1),
-(40, 'Wear appropriate PPE: hard hat, ear muffs, boots, face guard, chainsaw chaps.', 1);
-
+INSERT INTO risk_controls (risk_title_id, control_text, isReadOnly) VALUES
+(40, 'Chainsaws only to be used by licensed operators.', 1),
+(40, 'Place warning signs at appropriate boundaries of the work area.', 1),
+(40, 'Clear other workers and debris from the immediate area of the operator and the fall zone.', 1),
+(40, 'Appoint a "spotter" to guard against any other team member or third party straying into the work area.', 1),
+(40, 'All persons on site to wear high visibility vests.', 1),
+(40, 'Always engage chain brake when not cutting.', 1),
+(40, 'Start the saw with it resting on the ground. DO NOT DROP START.', 1),
+(40, 'Wear appropriate PPE eg. hard hat, ear muffs, safety boots, face guardls, tellers trousers/chaps.', 1);
+/*-- ==================================================
+-- RISK ID 41: Working in Snake Habitat	
+-- ==================================================*/
+INSERT INTO risk_controls (risk_title_id, control_text, isReadOnly) VALUES
+(41, 'Conduct heavy line walk throughout site.',1),
+(41, 'Avoid working in circular formation.',1),
+(41, 'Use tools to lift object on the ground e.g. logs prior to handling.',1),
+(41, 'Wear PPE including long sleeves & pants, boots, thick socks and gloves.',1),
+(41, 'If sighted stay clear and alert other workers.',1),
+(41, 'Review worksite viability during warmer months.',1);
 
 /*--Populate the project_risks table*/
 INSERT INTO project_risks (id, project_id, risk_id, created_at) VALUES

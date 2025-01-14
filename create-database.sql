@@ -11,6 +11,8 @@ WHERE role = 'Volunteer';
 
 --INSERT INTO risk_titles (title, isReadOnly)
 SELECT DISTINCT title, 1 FROM risks;
+--DELETE FROM risk_titles WHERE id IN (41, 42);
+
 =============================================
 
 -- Schema fieldbase

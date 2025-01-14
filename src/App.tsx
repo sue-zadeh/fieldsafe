@@ -33,7 +33,7 @@ const App: React.FC = () => {
 
   // For inactivity:
   const [inactivityTimeout, setInactivityTimeout] = useState<number>(
-    15 * 60_000
+    20 * 60_000
   )
   // ^ e.g. 10 minutes, in ms
   const [showSessionModal, setShowSessionModal] = useState(false)
@@ -61,7 +61,7 @@ const App: React.FC = () => {
       //  Show modal 40 secs before logout
       const sessionTimer = setTimeout(() => {
         setShowSessionModal(true)
-      }, inactivityTimeout - 40_000) //  If 15 minutes- inactivityTimeout=15 min
+      }, inactivityTimeout - 40_000) //  If 20 minutes- inactivityTimeout=15 min
 
       // Then auto-logout at inactivityTimeout
       const logoutTimer = setTimeout(() => {
