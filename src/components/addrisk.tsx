@@ -343,10 +343,10 @@ const AddRisk: React.FC<AddRiskProps> = ({ isSidebarOpen }) => {
               />
             </Form.Group>
           ))}
-          <Button onClick={addNewControlInput} variant="secondary" size="sm">
+          <Button className='w-25 fs-6'onClick={addNewControlInput} variant="secondary" size="sm">
             + Add Control
           </Button>{' '}
-          <Button onClick={handleCreateRisk} variant="primary" size="sm">
+          <Button className='w-25 fs-6' onClick={handleCreateRisk} variant="primary" size="sm">
             Create Risk
           </Button>
         </Col>
@@ -427,7 +427,7 @@ const AddRisk: React.FC<AddRiskProps> = ({ isSidebarOpen }) => {
                         onChange={(e) => setEditingTitleText(e.target.value)}
                       />
                       <Button
-                        className="mr-8px mt-4px"
+                        className="mr-8px mt-4px w-25"
                         onClick={handleEditTitle}
                         variant="success"
                         size="sm"
@@ -435,7 +435,7 @@ const AddRisk: React.FC<AddRiskProps> = ({ isSidebarOpen }) => {
                         Save Title
                       </Button>
                       <Button
-                        className="mt-4px"
+                        className="mt-4px fs-6 w-15 "
                         onClick={() => setEditingTitle(false)}
                         variant="outline-secondary"
                         size="sm"
@@ -462,7 +462,7 @@ const AddRisk: React.FC<AddRiskProps> = ({ isSidebarOpen }) => {
                       >
                         {selectedRisk.title}
                       </h5>
-                      <Button
+                      <Button className='w-25 fs-6 mt-3'
                         variant="warning"
                         size="sm"
                         onClick={toggleEditTitle}
@@ -476,11 +476,11 @@ const AddRisk: React.FC<AddRiskProps> = ({ isSidebarOpen }) => {
 
               {/* Risk Delete button if not read-only */}
               {!selectedRisk.isReadOnly && (
-                <Button
+                <Button className='mt-2 fs-6 w-25'
                   variant="danger"
                   onClick={() => handleDeleteRisk(selectedRisk)}
                   size="sm"
-                  style={{ marginTop: '0.5rem' }}
+                  // style={{ marginTop: '0.5rem' }}
                 >
                   Delete Risk
                 </Button>
@@ -499,7 +499,7 @@ const AddRisk: React.FC<AddRiskProps> = ({ isSidebarOpen }) => {
               }}
             >
               {/* =====Risk Controls Table with bullets==== */}
-              <h6>Risk Controls</h6>
+              <h5 className=''><b>Risk Controls</b></h5>
               <ListGroup
                 style={
                   {
@@ -559,8 +559,8 @@ const AddRisk: React.FC<AddRiskProps> = ({ isSidebarOpen }) => {
                           {ctrl.control_text}
                           {/* Edit / Delete only if not read-only control */}
                           {!ctrl.isReadOnly && (
-                            <div style={{ marginTop: '6px' }}>
-                              <Button
+                            <div  style={{ marginTop: '6px' }}>
+                              <Button className='fs-6 px-3'
                                 onClick={() => startEditControl(ctrl)}
                                 variant="warning"
                                 size="sm"
@@ -568,7 +568,7 @@ const AddRisk: React.FC<AddRiskProps> = ({ isSidebarOpen }) => {
                               >
                                 Edit
                               </Button>
-                              <Button
+                              <Button className='fs-6 px-3'
                                 onClick={() => handleDeleteControl(ctrl)}
                                 variant="danger"
                                 size="sm"
@@ -587,7 +587,7 @@ const AddRisk: React.FC<AddRiskProps> = ({ isSidebarOpen }) => {
               {/* Add new control to existing risk (only if not read-only) */}
               {!selectedRisk.isReadOnly && (
                 <div style={{ marginTop: '1rem' }}>
-                  <Button onClick={handleAddRiskControl} size="sm">
+                  <Button className='fs-6 px-3'onClick={handleAddRiskControl} size="sm">
                     {showAddSingleControl ? 'Cancel' : 'Add New Control'}
                   </Button>
                   {showAddSingleControl && (
@@ -599,7 +599,7 @@ const AddRisk: React.FC<AddRiskProps> = ({ isSidebarOpen }) => {
                         placeholder="Enter new control text..."
                         style={{ marginBottom: '0.5rem' }}
                       />
-                      <Button
+                      <Button className='fs-6 px-2'
                         onClick={handleSaveNewRiskControl}
                         size="sm"
                         variant="primary"
