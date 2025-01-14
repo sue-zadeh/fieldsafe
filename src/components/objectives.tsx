@@ -132,7 +132,12 @@ const AddObjectives: React.FC<ObjectivesProps> = ({ isSidebarOpen }) => {
       }}
     >
       <h2
-        style={{ color: '#0094B6', fontWeight: 'bold', padding: '4rem' }}
+        style={{
+          color: '#0094B6',
+          fontWeight: 'bold',
+          paddingTop: '2rem',
+          paddingBottom: '3rem',
+        }}
       >
         Add Objectives
       </h2>
@@ -160,7 +165,7 @@ const AddObjectives: React.FC<ObjectivesProps> = ({ isSidebarOpen }) => {
               className="bg-white rounded shadow w-100"
               style={{
                 marginBottom: '2rem',
-                tableLayout: 'fixed', 
+                tableLayout: 'fixed',
                 width: '100%',
               }}
             >
@@ -196,7 +201,16 @@ const AddObjectives: React.FC<ObjectivesProps> = ({ isSidebarOpen }) => {
                   return (
                     <tr key={obj.id}>
                       <td className="text-center">{index + 1}</td>
-                      <td>
+                      {/* Title cell with wrapping */}
+                      <td
+                        style={{
+                          width: '200px',
+                          whiteSpace: 'pre-wrap',
+                          wordWrap: 'break-word',
+                          overflowWrap: 'break-word',
+                          wordBreak: 'break-all',
+                        }}
+                      >
                         {isEditing ? (
                           <Form.Control
                             type="text"
@@ -237,7 +251,8 @@ const AddObjectives: React.FC<ObjectivesProps> = ({ isSidebarOpen }) => {
                       <td>
                         {isEditing ? (
                           <ButtonGroup>
-                            <Button className="mt-3 align-self-start"
+                            <Button
+                              className="mt-3 align-self-start"
                               variant="success"
                               size="sm"
                               onClick={handleEditSave}
@@ -282,7 +297,10 @@ const AddObjectives: React.FC<ObjectivesProps> = ({ isSidebarOpen }) => {
 
         {/* RIGHT: add form */}
         <div className="col-md-6 bg-white px-5 pt-5 rounded shadow ">
-          <h4>Add a New Objective</h4>
+          <h4 style={{ color: '#0094B6' }}>
+            <b>Add a New Objective</b>
+          </h4>
+
           <Form onSubmit={handleSubmit}>
             <Form.Group className="m-3" controlId="objectiveTitle">
               <Form.Label>
