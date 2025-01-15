@@ -156,8 +156,21 @@ const AddHazard: React.FC<AddHazardsProps> = ({ isSidebarOpen }) => {
         Add Hazards
       </h2>
 
-      {notification && <Alert variant="info">{notification}</Alert>}
-
+      {notification && (
+        <div
+          style={{
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            width: '100%',
+            zIndex: 9999, // so it's on top
+          }}
+        >
+          <Alert variant="info" className="text-center m-0 rounded-0">
+            {notification}
+          </Alert>
+        </div>
+      )}
       {/* 
         site hazards in left col, activity hazards in right col 
         .col-md-6 {minWidth: '500px'} for each table to

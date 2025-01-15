@@ -147,11 +147,20 @@ const AddObjectives: React.FC<AddObjectivesProps> = ({ isSidebarOpen }) => {
       </h2>
 
       {notification && (
-        <Alert variant="info" className="text-center">
-          {notification}
-        </Alert>
+        <div
+          style={{
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            width: '100%',
+            zIndex: 9999, // so it's on top
+          }}
+        >
+          <Alert variant="info" className="text-center m-0 rounded-0">
+            {notification}
+          </Alert>
+        </div>
       )}
-
       <div className="row form-container bg-white p-4 g-4 rounded shadow">
         {/* LEFT: objectives list */}
         <div className="col-md-6">
@@ -301,8 +310,13 @@ const AddObjectives: React.FC<AddObjectivesProps> = ({ isSidebarOpen }) => {
 
         {/* RIGHT: add form */}
         <div className="col-md-6 bg-white px-5 pt-5 rounded shadow ">
-          <h4 style={{
-          color: '#0094B6'}}><b>Add a New Objective</b></h4>
+          <h4
+            style={{
+              color: '#0094B6',
+            }}
+          >
+            <b>Add a New Objective</b>
+          </h4>
           <Form onSubmit={handleSubmit}>
             <Form.Group className="m-3" controlId="objectiveTitle">
               <Form.Label>

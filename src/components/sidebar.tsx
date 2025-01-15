@@ -26,7 +26,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, toggleSidebar }) => {
   const location = useLocation()
 
   // Retrieve admin's name from localStorage
-  const firstname = localStorage.getItem('firstname') || 'Admin'
+  const firstname = localStorage.getItem('firstname') || 'Group Admin'
   const lastname = localStorage.getItem('lastname') || ''
   console.log('Retrieved Firstname:', firstname) // Debugging
   console.log('Retrieved Lastname:', lastname) // Debugging
@@ -44,7 +44,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, toggleSidebar }) => {
   const isActive = (path: string) => location.pathname === path
 
   // get role from localStorage after login
-  const role = localStorage.getItem('role') // or 'authRole'
+  const role = localStorage.getItem('role') 
 
   // Sidebar container styling
   const sidebarStyle: React.CSSProperties = {

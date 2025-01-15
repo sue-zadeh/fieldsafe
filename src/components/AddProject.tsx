@@ -14,6 +14,7 @@ import {
   Col,
   Row,
   Modal,
+  Alert,
   ListGroup,
 } from 'react-bootstrap'
 
@@ -542,8 +543,18 @@ const AddProject: React.FC<AddProjectProps> = ({ isSidebarOpen }) => {
 
       {/* Notification (displays for 8s) */}
       {notification && (
-        <div className="alert alert-info text-center fs-6 fw-bold">
-          {notification}
+        <div
+          style={{
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            width: '100%',
+            zIndex: 9999, // so it's on top
+          }}
+        >
+          <Alert variant="info" className="text-center m-0 rounded-0">
+            {notification}
+          </Alert>
         </div>
       )}
 

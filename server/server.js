@@ -98,6 +98,7 @@ app.post('/api/login', async (req, res) => {
       token,
       firstname: user.firstname,
       lastname: user.lastname,
+      role: user.role,
     })
   } catch (err) {
     console.error('Error during login:', err.message)

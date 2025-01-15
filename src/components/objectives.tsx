@@ -143,11 +143,20 @@ const AddObjectives: React.FC<ObjectivesProps> = ({ isSidebarOpen }) => {
       </h2>
 
       {notification && (
-        <Alert variant="info" className="text-center">
-          {notification}
-        </Alert>
+        <div
+          style={{
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            width: '100%',
+            zIndex: 9999, // so it's on top
+          }}
+        >
+          <Alert variant="info" className="text-center m-0 rounded-0">
+            {notification}
+          </Alert>
+        </div>
       )}
-
       <div className="row form-container bg-white p-4 g-4 rounded shadow">
         {/* LEFT: objectives list */}
         <div className="col-md-6">

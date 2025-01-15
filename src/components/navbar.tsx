@@ -33,7 +33,7 @@ const Navbar: React.FC<NavbarProps> = ({
   const isActive = (path: string) => location.pathname === path
 
   // get role from localStorage after login
-  const role = localStorage.getItem('userRole') // or 'authRole'
+  const role = localStorage.getItem('role')
 
   return (
     <nav

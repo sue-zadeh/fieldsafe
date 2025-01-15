@@ -64,13 +64,13 @@ const App: React.FC = () => {
       }, inactivityTimeout - 40_000) //  If 20 minutes- inactivityTimeout=15 min
 
       // Then auto-logout at inactivityTimeout
-      const logoutTimer = setTimeout(() => {
-        // If we reached here, user never clicked "Stay Logged In"
-        handleAutoLogout()
-      }, inactivityTimeout)
+      // const logoutTimer = setTimeout(() => {
+      // If we reached here, user never clicked "Stay Logged In"
+      //   handleAutoLogout()
+      // }, inactivityTimeout)
 
       sessionTimeoutRef.current = sessionTimer
-      logoutTimeoutRef.current = logoutTimer
+      // logoutTimeoutRef.current = logoutTimer
     }
 
     const resetTimer = () => {
@@ -117,12 +117,12 @@ const App: React.FC = () => {
   }, [showSessionModal])
 
   // If countdown hits 0, auto-logout
-  useEffect(() => {
-    if (countdown === 0 && showSessionModal) {
-      handleAutoLogout()
-    }
-    // eslint-disable-next-line
-  }, [countdown])
+  // useEffect(() => {
+  //   if (countdown === 0 && showSessionModal) {
+  //     handleAutoLogout()
+  //   }
+  //   // eslint-disable-next-line
+  // }, [countdown])
 
   const handleStayLoggedIn = () => {
     setShowSessionModal(false)
