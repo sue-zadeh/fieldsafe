@@ -195,8 +195,8 @@ const AddHazard: React.FC<AddHazardsProps> = ({ isSidebarOpen }) => {
                 value={siteHazardDesc}
                 onChange={(e) => setSiteHazardDesc(e.target.value)}
               />
-              <Button className="mt-3 align-self-start" type="submit">
-                Save
+              <Button className="mt-3 align-self-start w-100" style={{ backgroundColor: '#0094B6' }} type="submit">
+                Add Site Hazard
               </Button>
             </Form>
           </div>
@@ -282,6 +282,7 @@ const AddHazard: React.FC<AddHazardsProps> = ({ isSidebarOpen }) => {
                           variant="success"
                           size="sm"
                           className="me-2"
+                          style={{ backgroundColor: '#0094B6' }}
                           onClick={() => handleEditSave(editSiteHazard, 'site')}
                         >
                           Save
@@ -327,8 +328,8 @@ const AddHazard: React.FC<AddHazardsProps> = ({ isSidebarOpen }) => {
                 value={activityHazardDesc}
                 onChange={(e) => setActivityHazardDesc(e.target.value)}
               />
-              <Button className="mt-3 align-self-start" type="submit">
-                Save
+              <Button className="mt-3 align-self-start w-100" style={{ backgroundColor: '#0094B6' }} type="submit">
+                Add Activity / People Hazard
               </Button>
             </Form>
           </div>
@@ -413,6 +414,7 @@ const AddHazard: React.FC<AddHazardsProps> = ({ isSidebarOpen }) => {
                           variant="success"
                           size="sm"
                           className="me-2"
+                          style={{ backgroundColor: '#0094B6' }}
                           onClick={() =>
                             handleEditSave(editActivityHazard, 'activity')
                           }

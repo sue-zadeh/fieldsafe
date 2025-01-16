@@ -44,7 +44,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, toggleSidebar }) => {
   const isActive = (path: string) => location.pathname === path
 
   // get role from localStorage after login
-  const role = localStorage.getItem('role') 
+  const role = localStorage.getItem('role')
 
   // Sidebar container styling
   const sidebarStyle: React.CSSProperties = {
@@ -201,10 +201,10 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, toggleSidebar }) => {
           <ul style={dropdownListStyle}>
             <li>
               <Link
-                to="/addactivity"
+                to="/projectdetail"
                 style={{
                   ...dropdownLinkStyle,
-                  ...(isActive('/addactivity')
+                  ...(isActive('/projectdetail')
                     ? { fontWeight: 'bold', color: '#000' }
                     : {}),
                 }}
@@ -236,7 +236,8 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, toggleSidebar }) => {
             {role === 'Group Admin' && (
               <li>
                 <Link
-                  to="/registerroles" className="dropdown-item"
+                  to="/registerroles"
+                  className="dropdown-item"
                   style={{
                     ...dropdownLinkStyle,
                     ...(isActive('/registerroles')
@@ -292,7 +293,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, toggleSidebar }) => {
               </Link>
             </li>
 
-            <li>
+            {/* <li>
               <Link
                 to="/objectives"
                 style={{
@@ -305,7 +306,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, toggleSidebar }) => {
                 <FaBullseye style={{ marginRight: '8px' }} />
                 Add Objective
               </Link>
-            </li>
+            </li> */}
           </ul>
         </NavItem>
 

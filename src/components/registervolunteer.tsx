@@ -120,10 +120,10 @@ const Addvolunteer: React.FC<AddvolunteerProps> = ({ isSidebarOpen }) => {
       }}
     >
       <div
-        className="form-container bg-white p-4 rounded shadow"
+        className="form-container bg-white p-4 rounded shadow mt-4 align-item-center"
         style={{ maxWidth: '600px', width: '100%' }}
       >
-        <h2 className="text-center">
+        <h2 className="text-center" style={{color:'#0094b6'}}>
           {formData.id ? 'Edit Volunteer' : 'Add Volunteer'}
         </h2>
         {notification && (
@@ -207,7 +207,8 @@ const Addvolunteer: React.FC<AddvolunteerProps> = ({ isSidebarOpen }) => {
           </div>
           <button
             type="button"
-            className="btn btn-primary w-100 mt-3"
+            className="btn w-100 mt-3 text-light fs-6"
+            style={{ backgroundColor: '#0094b6' }}
             onClick={handleSubmit}
           >
             {formData.id ? 'Save Changes' : 'Register Volunteer'}

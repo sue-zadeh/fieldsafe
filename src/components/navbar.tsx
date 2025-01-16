@@ -14,7 +14,7 @@ import {
   BsPersonFillAdd,
 } from 'react-icons/bs'
 // import Logo from '../assets/logo3.png'
-import Logo from '../assets/logo1.png'
+import LogoLil from '../assets/logo-lil.png'
 
 interface NavbarProps {
   onLogout: () => void
@@ -52,10 +52,10 @@ const Navbar: React.FC<NavbarProps> = ({
         {/* Logo on the left */}
         <Link to="/" className="navbar-brand d-flex align-items-center">
           <img
-            src={Logo}
+            src={LogoLil}
             alt="logo"
             className="img-fluid me-2"
-            style={{ maxHeight: '50px' }}
+            style={{ maxHeight: '52px' }}
           />
         </Link>
 
@@ -152,10 +152,12 @@ const Navbar: React.FC<NavbarProps> = ({
               <ul className="dropdown-menu" aria-labelledby="activityDropdown">
                 <li>
                   <Link
-                    to="/addactivity"
+                    to="/projectdetail"
                     className="dropdown-item"
                     style={{
-                      fontWeight: isActive('/addactivity') ? 'bold' : 'normal',
+                      fontWeight: isActive('/projectdetail')
+                        ? 'bold'
+                        : 'normal',
                     }}
                   >
                     <MdLocalActivity style={{ marginRight: '5px' }} />
@@ -260,7 +262,7 @@ const Navbar: React.FC<NavbarProps> = ({
                   </Link>
                 </li>
 
-                <li>
+                {/* <li>
                   <Link
                     to="/objectives"
                     className="dropdown-item"
@@ -271,7 +273,7 @@ const Navbar: React.FC<NavbarProps> = ({
                     <FaBullseye style={{ marginRight: '5px' }} />
                     Add Objective
                   </Link>
-                </li>
+                </li> */}
               </ul>
             </li>
 
@@ -354,7 +356,7 @@ const Navbar: React.FC<NavbarProps> = ({
             {isLoggedIn && (
               <li className="nav-item">
                 <button
-                  className="btn btn-outline-danger ms-3"
+                  className="btn btn-outline-danger ms-3 fw-bold fs-6"
                   onClick={onLogout}
                   disabled={isLoggingOut}
                 >

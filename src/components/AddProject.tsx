@@ -76,10 +76,8 @@ const AddProject: React.FC<AddProjectProps> = ({ isSidebarOpen }) => {
   const [startDate, setStartDate] = useState('')
   const [status, setStatus] = useState<ProjectStatus>('inprogress')
 
-  // Notification (instead of toast)
   const [notification, setNotification] = useState<string | null>(null)
 
-  // rest
   const [allObjectives, setAllObjectives] = useState<Objective[]>([])
   const [selectedObjectives, setSelectedObjectives] = useState<number[]>([])
   const [location, setLocation] = useState('')

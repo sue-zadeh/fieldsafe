@@ -9,7 +9,7 @@ import {
   FaEyeSlash,
   FaLock,
 } from 'react-icons/fa'
-import { AiFillIdcard } from 'react-icons/ai'
+// import { AiFillIdcard } from 'react-icons/ai'
 import { MdPassword } from 'react-icons/md'
 import { Card, Form, Button, Row, Col, InputGroup } from 'react-bootstrap'
 
@@ -50,10 +50,10 @@ const RegisterRoles: React.FC<RegisterroleProps> = ({ isSidebarOpen }) => {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false)
 
   const [notification, setNotification] = useState<string | null>(null)
-  const [isSendingEmail, setIsSendingEmail] = useState(false) // for button spinner/feedback
+  const [, setIsSendingEmail] = useState(false) // for button spinner/feedback
   const [isLoading, setIsLoading] = useState<boolean>(false)
-  const [isEdit, setIsEdit] = useState<boolean>(false)
-  const [error, setError] = useState<string>('')
+  const [isEdit] = useState<boolean>(false)
+  const [, setError] = useState<string>('')
 
   const location = useLocation()
   const navigate = useNavigate()
@@ -150,7 +150,9 @@ const RegisterRoles: React.FC<RegisterroleProps> = ({ isSidebarOpen }) => {
       await axios.post('/api/send-email', {
         email: formData.email,
         subject: 'Welcome to FieldSafe!',
-        message: `Dear ${formData.firstname} ${formData.lastname},\n\nYou have been registered as a ${formData.role} in FieldSafe. Your login email is: ${formData.email}.\n\nBest regards,\nFieldSafe Team`,
+        message: `Dear ${formData.firstname} ${formData.lastname},\n\nYou are now registered as a ${formData.role}
+         for your organisation’s FieldSafe App use.\nwe welcome your feedback on its use.\n 
+         Your login email is: ${formData.email}.\nPlease click on forgot passord and enter your email. your password will email you\n\nBest regards,\nFieldSafe Team`,
       })
     } catch (error) {
       console.error('Error sending email:', error)

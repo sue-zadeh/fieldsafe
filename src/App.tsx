@@ -15,10 +15,9 @@ import Volunteer from './components/volunteer'
 import AddProject from './components/AddProject'
 import SearchProject from './components/searchproject'
 import AddObjective from './components/addobjective'
-import Objective from './components/objectives'
 import AddRisk from './components/addrisk'
 import AddHazard from './components/addhazard'
-// import ArchiveProj from './components/archiveprojects'
+import ProjectDetail from './components/projectdetail'
 // import Layout from './components/layout'
 
 const GOOGLE_MAPS_API_KEY = import.meta.env.VITE_GOOGLE_MAPS_API_KEY || ''
@@ -32,17 +31,14 @@ const App: React.FC = () => {
   const navigate = useNavigate()
 
   // For inactivity:
-  const [inactivityTimeout, setInactivityTimeout] = useState<number>(
-    20 * 60_000
-  )
-  // ^ e.g. 10 minutes, in ms
+  const INACTIVITY_LIMIT = 20 * 60_000 // 20 minutes in ms
   const [showSessionModal, setShowSessionModal] = useState(false)
-  const [countdown, setCountdown] = useState(30) // seconds left in the warning modal
+  const [countdown, setCountdown] = useState(60) // 60 seconds
   const [showSessionExpiredAlert, setShowSessionExpiredAlert] = useState(false)
 
   // references for timeouts so we can clear them
-  const sessionTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
-  const logoutTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const sessionTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const logoutTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   // ------------------------------------------
   // On mount: handle window resize for sidebar responsiveness
@@ -57,53 +53,53 @@ const App: React.FC = () => {
   // ------------------------------------------
   // Inactivity watchers
   useEffect(() => {
-    const startInactivityTimer = () => {
-      //  Show modal 40 secs before logout
-      const sessionTimer = setTimeout(() => {
+    // 1) Start or reset the inactivity timers
+    const startTimers = () => {
+      // Timer #1: after (INACTIVITY_LIMIT - 60_000), show the modal
+      // For 20 min total, show the modal after 19 min.
+      sessionTimerRef.current = setTimeout(() => {
         setShowSessionModal(true)
-      }, inactivityTimeout - 40_000) //  If 20 minutes- inactivityTimeout=15 min
-
-      // Then auto-logout at inactivityTimeout
-      // const logoutTimer = setTimeout(() => {
-      // If we reached here, user never clicked "Stay Logged In"
-      //   handleAutoLogout()
-      // }, inactivityTimeout)
-
-      sessionTimeoutRef.current = sessionTimer
-      // logoutTimeoutRef.current = logoutTimer
+        // Now we also start the logout timer:
+        logoutTimerRef.current = setTimeout(() => {
+          handleAutoLogout()
+        }, 60_000) // 1 minute after the modal
+      }, INACTIVITY_LIMIT - 60_000) // 19 minutes
+    }
+    // If the user does any mouse or key activity BEFORE the modal is shown,
+    //    reset both timers. But if the modal is already visible,
+    //    it do NOT reset (the user must click "Stay Logged In")
+    const handleUserActivity = () => {
+      if (!showSessionModal) {
+        // reset timers
+        if (sessionTimerRef.current) clearTimeout(sessionTimerRef.current)
+        if (logoutTimerRef.current) clearTimeout(logoutTimerRef.current)
+        setCountdown(60)
+        // hide the modal if it was showing (shouldn't be if !showSessionModal, but just in case)
+        setShowSessionModal(false)
+        startTimers()
+      }
     }
 
-    const resetTimer = () => {
-      // user moved mouse or typed => reset everything
-      if (sessionTimeoutRef.current) {
-        clearTimeout(sessionTimeoutRef.current)
-      }
-      if (logoutTimeoutRef.current) {
-        clearTimeout(logoutTimeoutRef.current)
-      }
-      setShowSessionModal(false)
-      setCountdown(40)
-      startInactivityTimer()
-    }
+    // Start the timers when the component mounts
+    startTimers()
 
-    // Start timers on mount
-    startInactivityTimer()
-    // Reset if user interacts
-    window.addEventListener('mousemove', resetTimer)
-    window.addEventListener('keydown', resetTimer)
+    // Listen for user activity
+    window.addEventListener('mousemove', handleUserActivity)
+    window.addEventListener('keydown', handleUserActivity)
 
     return () => {
       // cleanup
-      if (sessionTimeoutRef.current) clearTimeout(sessionTimeoutRef.current)
-      if (logoutTimeoutRef.current) clearTimeout(logoutTimeoutRef.current)
-      window.removeEventListener('mousemove', resetTimer)
-      window.removeEventListener('keydown', resetTimer)
+      if (sessionTimerRef.current) clearTimeout(sessionTimerRef.current)
+      if (logoutTimerRef.current) clearTimeout(logoutTimerRef.current)
+      window.removeEventListener('mousemove', handleUserActivity)
+      window.removeEventListener('keydown', handleUserActivity)
     }
-  }, [inactivityTimeout])
+  }, [showSessionModal]) //depends on showSessionModal
 
-  // If the session modal is visible, start the 30-sec countdown
+  // If the session modal is visible, start the 60-sec countdown
   useEffect(() => {
     if (showSessionModal) {
+      setCountdown(60) // reset to 60
       const intervalId = setInterval(() => {
         setCountdown((prev) => {
           if (prev <= 1) {
@@ -116,28 +112,28 @@ const App: React.FC = () => {
     }
   }, [showSessionModal])
 
-  // If countdown hits 0, auto-logout
-  // useEffect(() => {
-  //   if (countdown === 0 && showSessionModal) {
-  //     handleAutoLogout()
-  //   }
-  //   // eslint-disable-next-line
-  // }, [countdown])
+  // If countdown hits 0 while the modal is open, auto-logout
+  useEffect(() => {
+    if (countdown === 0 && showSessionModal) {
+      handleAutoLogout()
+    }
+  }, [countdown, showSessionModal])
 
   const handleStayLoggedIn = () => {
+    // user clicked "Stay Logged In"
     setShowSessionModal(false)
-    setCountdown(40)
-    // The timers themselves get reset by the user’s mouse or key press
+    setCountdown(60)
+    // reset the inactivity timers for another full 20 minutes
+    if (sessionTimerRef.current) clearTimeout(sessionTimerRef.current)
+    if (logoutTimerRef.current) clearTimeout(logoutTimerRef.current)
   }
 
   const handleAutoLogout = () => {
     setShowSessionModal(false)
-    setCountdown(40)
-    // Actually do the logout
-    setShowSessionExpiredAlert(true) // show a one-time alert that session expired
+    setCountdown(60)
+    setShowSessionExpiredAlert(true)
     handleLogout()
   }
-
   // ------------------------------------------
   // Token validation on page load
   useEffect(() => {
@@ -270,10 +266,7 @@ const App: React.FC = () => {
                     path="/Addobjective"
                     element={<AddObjective isSidebarOpen={isSidebarOpen} />}
                   />
-                  <Route
-                    path="/objectives"
-                    element={<Objective isSidebarOpen={isSidebarOpen} />}
-                  />
+
                   <Route
                     path="/SearchProject"
                     element={<SearchProject isSidebarOpen={isSidebarOpen} />}
@@ -285,6 +278,10 @@ const App: React.FC = () => {
                   <Route
                     path="/addhazard"
                     element={<AddHazard isSidebarOpen={isSidebarOpen} />}
+                  />
+                  <Route
+                    path="/projectdetail"
+                    element={<ProjectDetail isSidebarOpen={isSidebarOpen} />}
                   />
 
                   {/* etc. */}

@@ -344,10 +344,10 @@ const AddObjectives: React.FC<AddObjectivesProps> = ({ isSidebarOpen }) => {
 
             <Button
               type="submit"
-              className="w-100 mt-3 text-dark fs-5"
-              style={{ backgroundColor: '#76D6E2', color: '#fff' }}
+              className="w-100 mt-3 text-dark fs-6 "
+              style={{ backgroundColor: '#76D6E2'  }}
             >
-              Save
+              Add New Objective
             </Button>
           </Form>
         </div>

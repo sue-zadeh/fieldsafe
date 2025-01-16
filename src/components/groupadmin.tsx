@@ -270,7 +270,7 @@ const GroupAdmin: React.FC<GroupAdminProps> = ({ isSidebarOpen }) => {
         />
         <button
           className="btn btn-success w-25 fs-5"
-          style={{ backgroundColor: '#738c40' }}
+          style={{ backgroundColor: '#0094b6' }}
           onClick={handleSearch}
         >
           Search
