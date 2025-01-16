@@ -30,6 +30,7 @@ app.use('/uploads', express.static(path.join(__dirname, 'uploads')))
 app.use('/api/projects', projectsRouter)
 app.use('/api/objectives', objectivesRouter)
 
+
 app.use('/api', staffRoutes)
 app.use('/api', volunteerRoutes)
 

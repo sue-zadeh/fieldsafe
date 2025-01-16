@@ -6,10 +6,9 @@ import path from 'path'
 
 const router = express.Router()
 
-// Configure Multer storage
+// ================= Multer Setup =================
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
-    // store in "server/uploads"
     cb(null, 'server/uploads/')
   },
   filename: (req, file, cb) => {
@@ -20,54 +19,56 @@ const storage = multer.diskStorage({
 })
 const upload = multer({ storage })
 
-/**
- * ============ GET /api/projects/list ============
- *  1) If ?name= is provided, check if it exists => {exists: true|false}
- *  2) Otherwise => return joined list of all projects + objectives
- */
-router.get('/list', async (req, res) => {
+// ================= GET /api/projects =================
+// If ?name= is given, return {exists:true|false} for uniqueness check
+// Otherwise, return a simple list of *all* projects (SELECT * FROM projects).
+router.get('/', async (req, res) => {
   const { name } = req.query
   try {
-    // (1) If checking uniqueness
     if (name) {
+      // Uniqueness check
       const [rows] = await pool.query(
         'SELECT id FROM projects WHERE name = ?',
         [name]
       )
-      if (rows.length > 0) {
-        return res.json({ exists: true }) // name taken
-      } else {
-        return res.json({ exists: false })
-      }
+      return res.json({ exists: rows.length > 0 })
     } else {
-      // (2) Return all projects with joined objectives
-      const [rows] = await pool.query(`
-        SELECT 
-          p.*,
-          GROUP_CONCAT(o.title SEPARATOR ', ') AS objectiveTitles
-        FROM projects p
-        LEFT JOIN project_objectives po ON p.id = po.project_id
-        LEFT JOIN objectives o ON po.objective_id = o.id
-        GROUP BY p.id
-        ORDER BY p.id DESC;
-        
-      `)
+      // Return a simple list
+      const [rows] = await pool.query('SELECT * FROM projects ORDER BY id DESC')
       return res.json(rows)
     }
   } catch (err) {
-    console.error('Error fetching projects list:', err)
+    console.error('Error in GET /api/projects:', err)
     return res.status(500).json({ message: 'Failed to fetch projects' })
   }
 })
 
-/**
- * ============ GET /api/projects/:id ============
- *  Return a single project row + array of objective IDs
- */
+// ================= GET /api/projects/projList =================
+// So your "Search Project" page can keep using bridging data
+router.get('/projList', async (req, res) => {
+  try {
+    const [rows] = await pool.query(`
+      SELECT 
+        p.*,
+        GROUP_CONCAT(o.title SEPARATOR ', ') AS objectiveTitles
+      FROM projects p
+      LEFT JOIN project_objectives po ON p.id = po.project_id
+      LEFT JOIN objectives o ON po.objective_id = o.id
+      GROUP BY p.id
+      ORDER BY p.id DESC
+    `)
+    return res.json(rows)
+  } catch (err) {
+    console.error('Error in GET /api/projects/projList:', err)
+    return res.status(500).json({ message: 'Failed to fetch project list' })
+  }
+})
+
+// ============ GET /api/projects/:id ============
+// Return single project + array of objective IDs
 router.get('/:id', async (req, res) => {
   const { id } = req.params
   try {
-    // project row
     const [projRows] = await pool.query('SELECT * FROM projects WHERE id = ?', [
       id,
     ])
@@ -90,10 +91,7 @@ router.get('/:id', async (req, res) => {
   }
 })
 
-/**
- * ============ POST /api/projects (CREATE) ============
- *  Expects formData with name, location, startDate, status, etc.
- */
+// ============ POST /api/projects (CREATE) ============
 router.post(
   '/',
   upload.fields([
@@ -117,7 +115,7 @@ router.post(
         objectives, // JSON string
       } = req.body
 
-      // (A) First, check name uniqueness
+      // Check name uniqueness
       const [dupRows] = await pool.query(
         'SELECT id FROM projects WHERE name = ?',
         [name]
@@ -192,10 +190,7 @@ router.post(
   }
 )
 
-/**
- * ============ PUT /api/projects/:id (UPDATE) ============
- *  updates bridging objectives.
- */
+// ============ PUT /api/projects/:id (UPDATE) ============
 router.put(
   '/:id',
   upload.fields([
@@ -206,7 +201,6 @@ router.put(
     const { id } = req.params
 
     try {
-      // parse body
       const {
         name,
         location,
@@ -321,10 +315,7 @@ router.put(
   }
 )
 
-/**
- * ============ DELETE /api/projects/:id ============
- *  Confirm and delete bridging + project row.
- */
+// ============ DELETE /api/projects/:id ============
 router.delete('/:id', async (req, res) => {
   const { id } = req.params
   try {

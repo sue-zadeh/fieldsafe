@@ -1,6 +1,8 @@
 import React, { useState, useEffect, useRef } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 import axios from 'axios'
+import ActivityWizard from './activitywizard'
+
 import {
   Navbar,
   Nav,
@@ -23,13 +25,7 @@ const riskMatrix: { [key: string]: number } = {
   catastrophic: 5,
 }
 
-const likelihoodWeight: { [key: string]: number } = {
-  'highly unlikely': 1,
-  unlikely: 2,
-  'quite possible': 3,
-  likely: 4,
-  'almost certain': 5,
-}
+
 interface ProjectRiskProps {
   isSidebarOpen: boolean
 }
@@ -41,9 +37,23 @@ const ProjectRisk: React.FC<ProjectRiskProps> = ({ isSidebarOpen }) => {
   const [riskTitle, setRiskTitle] = useState('')
   const [likelihoodWeight, setLikelihoodWeight] = useState<string | null>(null)
   
+
+
+  //To know which project is selected
+  const location = useLocation()
+const { projectId } = location.state || {}
+
+const likelihoodWeight: { [key: string]: number } = {
+  'highly unlikely': 1,
+  unlikely: 2,
+  'quite possible': 3,
+  likely: 4,
+  'almost certain': 5,
+}
+
 const riskRating =
   likelihoodWeight[likelihood.toLowerCase()] *
-  riskMatrix[consequences.toLowerCase()]
+  riskMatrix[Consequences.toLowerCase()]
 
 try {
   await axios.post('/api/risks', {
@@ -65,6 +75,7 @@ try {
 }
 }
 
+
 return (
 <div
       className={`container-fluid ${
@@ -76,6 +87,7 @@ return (
         paddingTop: '2px',
       }}
     >
+      <ActivityWizard />
   <h2
     style={{ color: '#0094B6', fontWeight: 'bold', paddingBottom: '4rem' }}
   >
@@ -159,7 +171,6 @@ return (
      ))}
    </tbody>
  </Table>
-</div>
 </div>
 </div>
 )

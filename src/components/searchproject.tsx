@@ -1,3 +1,4 @@
+// src/components/SearchProject.tsx
 import React, { useState, useEffect } from 'react'
 import axios from 'axios'
 import { useNavigate, useLocation } from 'react-router-dom'
@@ -26,14 +27,14 @@ interface SearchProjectProps {
 const SearchProject: React.FC<SearchProjectProps> = ({ isSidebarOpen }) => {
   const [projects, setProjects] = useState<Project[]>([])
   const [notification, setNotification] = useState<string | null>(null)
-  const [activeTab, setActiveTab] = useState('activeprojects') // Default to "Active Projects"
+  const [activeTab, setActiveTab] = useState('activeprojects') // Default
   const navigate = useNavigate()
   const location = useLocation()
 
-  // Fetch all projects
+  // Fetch bridging data from /projList
   useEffect(() => {
     axios
-      .get('/api/projects/list')
+      .get('/api/projects/projList')
       .then((res) => {
         setProjects(res.data)
       })
@@ -43,7 +44,7 @@ const SearchProject: React.FC<SearchProjectProps> = ({ isSidebarOpen }) => {
       })
   }, [])
 
-  // Handle tab navigation from AddProject page
+  // If AddProject told us to redirect to "archiveprojects" or "activeprojects":
   useEffect(() => {
     const state = location.state as { redirectTo?: string }
     if (state?.redirectTo) {
@@ -63,7 +64,7 @@ const SearchProject: React.FC<SearchProjectProps> = ({ isSidebarOpen }) => {
     setActiveTab(tab)
   }
 
-  // Filter projects based on active tab
+  // Filter projects by status
   const filteredProjects =
     activeTab === 'activeprojects'
       ? projects.filter((p) => p.status !== 'archived')
@@ -94,12 +95,9 @@ const SearchProject: React.FC<SearchProjectProps> = ({ isSidebarOpen }) => {
     }
   }
 
-  // Helper function to format date
+  // Simple date format
   function formatDateNoShift(dateString: string): string {
-    // Suppose dateString is "2024-12-31"
-    // Manually split
     const [year, month, day] = dateString.split('-')
-    // Convert month from "01".."12" to name (or keep numeric if you want)
     const monthNames = [
       'January',
       'February',
@@ -115,10 +113,8 @@ const SearchProject: React.FC<SearchProjectProps> = ({ isSidebarOpen }) => {
       'December',
     ]
     const monthIndex = parseInt(month, 10) - 1
-    // Return string "December 31, 2024"
     return `${monthNames[monthIndex]} ${parseInt(day, 10)}, ${year}`
   }
-//To see in the start date in the search project page
   const formatDate = (dateString: string): string => {
     return formatDateNoShift(dateString)
   }
@@ -136,19 +132,15 @@ const SearchProject: React.FC<SearchProjectProps> = ({ isSidebarOpen }) => {
         backgroundColor: '#F4F7F1',
       }}
     >
-      {/* Notification */}
       {notification && (
         <div className="alert alert-info text-center">{notification}</div>
       )}
 
-      {/* Navbar for tabs */}
+      {/* Tabs (Active / Archive) */}
       <Navbar
         expand="lg"
         className="py-2"
-        style={{
-          backgroundColor: '#c4edf2',
-          width: '100%',
-        }}
+        style={{ backgroundColor: '#c4edf2' }}
       >
         <Navbar.Toggle
           aria-controls="basic-navbar-nav"
@@ -180,13 +172,7 @@ const SearchProject: React.FC<SearchProjectProps> = ({ isSidebarOpen }) => {
         </Navbar.Collapse>
       </Navbar>
 
-      <h2
-        className="m-4 fs-1"
-        style={{
-          color: '#0094B6',
-          fontWeight: 'bold',
-        }}
-      >
+      <h2 className="m-4 fs-1" style={{ color: '#0094B6', fontWeight: 'bold' }}>
         {activeTab === 'activeprojects'
           ? 'Active Projects'
           : 'Archived Projects'}
@@ -217,7 +203,6 @@ const SearchProject: React.FC<SearchProjectProps> = ({ isSidebarOpen }) => {
                     No Image
                   </div>
                 )}
-                {/* Status in bottom-right corner */}
                 <span
                   className="badge bg-info p-2 text-dark position-absolute fs-6"
                   style={{ bottom: '5px', right: '5px' }}

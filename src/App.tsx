@@ -17,7 +17,8 @@ import SearchProject from './components/searchproject'
 import AddObjective from './components/addobjective'
 import AddRisk from './components/addrisk'
 import AddHazard from './components/addhazard'
-import ProjectDetail from './components/projectdetail'
+import ProjectDetail from './components/projectdetails'
+import ProjectRisk from './components/projectrisk'
 // import Layout from './components/layout'
 
 const GOOGLE_MAPS_API_KEY = import.meta.env.VITE_GOOGLE_MAPS_API_KEY || ''
@@ -283,8 +284,10 @@ const App: React.FC = () => {
                     path="/projectdetail"
                     element={<ProjectDetail isSidebarOpen={isSidebarOpen} />}
                   />
-
-                  {/* etc. */}
+                  <Route
+                    path="/projectrisk"
+                    element={<ProjectRisk isSidebarOpen={isSidebarOpen} />}
+                  />
                 </Routes>
               </LoadScript>
             </div>

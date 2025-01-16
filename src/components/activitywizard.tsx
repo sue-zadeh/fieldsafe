@@ -1,17 +1,13 @@
 // src/components/ActivityWizard.tsx
-import React, { useState, useEffect } from 'react'
-import { Table, Button } from 'react-bootstrap'
-import axios from 'axios'
-
-interface Project {
-  id: number
-  name: string
-  location: string
-  startDate: string
-  status: string
-  primaryContactName: string
-  // add any other fields you need
-}
+import React, { useState } from 'react'
+import { Button } from 'react-bootstrap'
+// import ProjectRisk from './projectrisk'
+// import ProjectStaffs from './projectstaffs'
+// import ProjectHazards from './projecthazards'
+// import Projectvolunteerss from './projectvolunteers'
+// import ProjectChecklist from './projectchecklist'
+// import ProjectOutcome from './projectoutcome'
+// import ProjectComplete from './projectcomplete'
 
 const steps = [
   'Details',
@@ -24,45 +20,20 @@ const steps = [
 ]
 
 const ActivityWizard: React.FC = () => {
-  // Which step is active? 0-based index
   const [currentStep, setCurrentStep] = useState(0)
+  
 
-  // Data for the “Details” step
-  const [projects, setProjects] = useState<Project[]>([])
-
-  // Load project list once on mount, for the “Details” table
-  useEffect(() => {
-    fetchProjects()
-  }, [])
-
-  const fetchProjects = async () => {
-    try {
-      // E.g. GET /api/projects => or maybe /api/projects/list
-      const res = await axios.get('/api/projects')
-      // or: const res = await axios.get('/api/projects/list');
-      setProjects(res.data)
-    } catch (err) {
-      console.error('Error fetching projects:', err)
-    }
-  }
-
-  // Move to a specific step
   const handleStepClick = (index: number) => {
-    if (index > currentStep + 1) {
-      // Optionally forbid jumping ahead more than one step
-      // return;
-    }
+    // for forbiding jumping ahead, can add logic
     setCurrentStep(index)
   }
-
   const handleNext = () => {
     if (currentStep < steps.length - 1) {
       setCurrentStep((prev) => prev + 1)
     }
   }
 
-  // Render the horizontal steps
-  // Each circle is either completed, active, or upcoming
+  // Display circles
   const renderStepNav = () => {
     return (
       <div className="d-flex justify-content-between align-items-center mb-4">
@@ -80,7 +51,6 @@ const ActivityWizard: React.FC = () => {
                 }}
                 onClick={() => handleStepClick(index)}
               >
-                {/* Circle */}
                 <div
                   style={{
                     width: '2.2rem',
@@ -100,7 +70,6 @@ const ActivityWizard: React.FC = () => {
                 >
                   {index + 1}
                 </div>
-                {/* Label */}
                 <div
                   style={{
                     fontWeight: isActive ? 'bold' : 'normal',
@@ -110,7 +79,6 @@ const ActivityWizard: React.FC = () => {
                   {label}
                 </div>
               </div>
-              {/* Horizontal line except after last step */}
               {index < steps.length - 1 && (
                 <div
                   style={{
@@ -129,11 +97,10 @@ const ActivityWizard: React.FC = () => {
     )
   }
 
-  // Render content for each step
   const renderStepContent = () => {
     switch (currentStep) {
       case 0:
-        return renderDetailsStep()
+        return <div>Pick a project in ProjectDetails </div>
       case 1:
         return <div>Risk Step</div>
       case 2:
@@ -151,51 +118,20 @@ const ActivityWizard: React.FC = () => {
     }
   }
 
-  // Step 0: “Details” => show a table of projects
-  const renderDetailsStep = () => {
-    return (
-      <div>
-        <h4>Project Details</h4>
-        <Table bordered hover responsive>
-          <thead>
-            <tr>
-              <th>ID</th>
-              <th>Project Name</th>
-              <th>Location</th>
-              <th>Start Date</th>
-              <th>Status</th>
-              <th>Primary Contact</th>
-            </tr>
-          </thead>
-          <tbody>
-            {projects.map((proj) => (
-              <tr key={proj.id}>
-                <td>{proj.id}</td>
-                <td>{proj.name}</td>
-                <td>{proj.location}</td>
-                <td>{proj.startDate}</td>
-                <td>{proj.status}</td>
-                <td>{proj.primaryContactName}</td>
-              </tr>
-            ))}
-          </tbody>
-        </Table>
-
-        <p>Select a project above or do whatever logic you need here...</p>
-      </div>
-    )
-  }
-
   return (
     <div className="container mt-4">
-      <h2>Activity Notes Wizard</h2>
-      {/* Step Navigation */}
+      <h2
+        style={{
+          color: '#0094B6',
+          fontWeight: 'bold',
+          paddingTop: '1rem',
+          paddingBottom: '3rem',
+        }}
+      >
+        Activity Notes Wizard
+      </h2>
       {renderStepNav()}
-
-      {/* Step Content */}
       <div className="p-3 border rounded bg-white">{renderStepContent()}</div>
-
-      {/* Next Button */}
       {currentStep < steps.length - 1 && (
         <div className="text-end mt-3">
           <Button variant="primary" onClick={handleNext}>
