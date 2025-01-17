@@ -1,16 +1,6 @@
-// src/components/ProjectDetails.tsx
 import React, { useState, useEffect } from 'react'
 import axios from 'axios'
 import { Table } from 'react-bootstrap'
-import { useNavigate } from 'react-router-dom'
-import ActivityWizard from './activitywizard'
-import ProjectRisk from './projectrisk'
-// import ProjectStaffs from './projectstaffs'
-// import ProjectHazards from './projecthazards'
-// import Projectvolunteerss from './projectvolunteers'
-// import ProjectChecklist from './projectchecklist'
-// import ProjectOutcome from './projectoutcome'
-// import ProjectComplete from './projectcomplete'
 
 interface Project {
   id: number
@@ -23,20 +13,23 @@ interface Project {
 
 interface ProjectDetailProps {
   isSidebarOpen: boolean
+  // This callback is provided by ActivityWizard
+  // so we can notify it which project we selected:
+  onProjectSelected?: (projId: number, projName: string) => void
 }
 
-const ProjectDetails: React.FC<ProjectDetailProps> = ({ isSidebarOpen }) => {
-  const navigate = useNavigate()
+const ProjectDetails: React.FC<ProjectDetailProps> = ({
+  isSidebarOpen,
+  onProjectSelected,
+}) => {
   const [projects, setProjects] = useState<Project[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
-  // On mount, get a simple list from /api/projects
   useEffect(() => {
     const fetchProjects = async () => {
       try {
         setLoading(true)
-        // calls GET /api/projects => returns all in descending order
         const res = await axios.get('/api/projects')
         setProjects(res.data)
       } catch (err) {
@@ -49,9 +42,15 @@ const ProjectDetails: React.FC<ProjectDetailProps> = ({ isSidebarOpen }) => {
     fetchProjects()
   }, [])
 
-  // If user clicks anywhere on row => go risk project
-  const handleRowClick = (projectId: number) => {
-    navigate('/projectrisk', { state: { projectId } })
+  const handleArrowClick = (
+    e: React.MouseEvent<HTMLTableCellElement>,
+    proj: Project
+  ) => {
+    e.stopPropagation()
+    // Instead of direct routing, call the wizard callback
+    if (onProjectSelected) {
+      onProjectSelected(proj.id, proj.name)
+    }
   }
 
   if (loading) return <div>Loading projects...</div>
@@ -63,18 +62,22 @@ const ProjectDetails: React.FC<ProjectDetailProps> = ({ isSidebarOpen }) => {
         isSidebarOpen ? 'content-expanded' : 'content-collapsed'
       }`}
       style={{
-        marginLeft: isSidebarOpen ? '220px' : '20px',
+        // marginLeft: isSidebarOpen ? '0px' : '20px',
         transition: 'margin 0.3s ease',
-        paddingTop: '2rem',
+        paddingTop: '2px',
       }}
     >
-      <ActivityWizard />
-      <h3 className="mb-4" style={{
+      <h3
+        className="mb-4"
+        style={{
           color: '#0094B6',
           fontWeight: 'bold',
           paddingTop: '0.25rem',
           paddingBottom: '1rem',
-        }}>Project Details</h3>
+        }}
+      >
+        Project Details
+      </h3>
       <Table striped hover responsive>
         <thead>
           <tr>
@@ -88,27 +91,20 @@ const ProjectDetails: React.FC<ProjectDetailProps> = ({ isSidebarOpen }) => {
         </thead>
         <tbody>
           {projects.map((proj) => (
-            <tr
-              key={proj.id}
-              style={{ cursor: 'pointer' }}
-              onClick={() => handleRowClick(proj.id)}
-            >
+            <tr key={proj.id}>
               <td>{formatDate(proj.startDate)}</td>
               <td>{proj.name}</td>
               <td>{proj.location}</td>
               <td>{proj.status}</td>
               <td>{proj.primaryContactName || 'N/A'}</td>
-
-              {/* Arrow in last cell */}
               <td
-                onClick={(e) => {
-                  // Stop row-click if we only want arrow click:
-                  e.stopPropagation()
-                  handleRowClick(proj.id)
-                }}
+                onClick={(e) => handleArrowClick(e, proj)}
                 className="text-end"
+                style={{ cursor: 'pointer' }}
               >
-                <span style={{ fontSize: '2.5rem', paddingRight: '1rem' }}>&rarr;</span>
+                <span style={{ fontSize: '2.5rem', paddingRight: '1rem' }}>
+                  &rarr;
+                </span>
               </td>
             </tr>
           ))}

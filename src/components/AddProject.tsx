@@ -3,7 +3,7 @@ import React, { useState, useEffect, useRef } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 import axios, { AxiosError } from 'axios'
 import { GoogleMap, Marker, Autocomplete } from '@react-google-maps/api'
-import AddObjectives from './addobjective' // Adjust path for objectives nav item
+import AddObjectives from './addobjective' 
 import AddRisk from './addrisk'
 import AddHazard from './addhazard'
 import {
@@ -19,7 +19,6 @@ import {
 } from 'react-bootstrap'
 
 const OCEAN_BLUE = '#0094B6'
-// const SKY_BLUE = '#76D6E2'
 
 type ProjectStatus = 'inprogress' | 'completed' | 'onhold' | 'archived'
 
@@ -456,6 +455,7 @@ const AddProject: React.FC<AddProjectProps> = ({ isSidebarOpen }) => {
         marginLeft: isSidebarOpen ? '220px' : '20px',
         transition: 'margin 0.3s ease',
         paddingTop: '2px',
+        height: '100vh'
       }}
     >
       {/* Nav bar for projects page */}

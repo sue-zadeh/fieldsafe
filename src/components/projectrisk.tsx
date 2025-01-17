@@ -1,179 +1,168 @@
-import React, { useState, useEffect, useRef } from 'react'
-import { useLocation, useNavigate } from 'react-router-dom'
+// src/components/ProjectRisk.tsx
+import React, { useState, useEffect } from 'react'
+import { Alert, Form, Button, Table } from 'react-bootstrap'
 import axios from 'axios'
-import ActivityWizard from './activitywizard'
-
-import {
-  Navbar,
-  Nav,
-  Form,
-  Button,
-  Col,
-  Row,
-  Modal,
-  Alert,
-  ListGroup,
-} from 'react-bootstrap'
-
-
-// Calculate risk rating
-const riskMatrix: { [key: string]: number } = {
-  insignificant: 1,
-  minor: 2,
-  moderate: 3,
-  major: 4,
-  catastrophic: 5,
-}
-
+// import ActivityWizard from './activitywizard'
 
 interface ProjectRiskProps {
   isSidebarOpen: boolean
+  projectId: number | null
+  projectName?: string
 }
-const ProjectRisk: React.FC<ProjectRiskProps> = ({ isSidebarOpen }) => {
+
+const ProjectRisk: React.FC<ProjectRiskProps> = ({
+  isSidebarOpen,
+  projectId,
+  projectName = '',
+}) => {
   const [notification, setNotification] = useState<string | null>(null)
-  const [Likelihood, setLikelihood] = useState<string | null>(null)
-  const [Consequences, setConsequences] = useState<string | null>(null)
-  const [additionalControls, setAdditionalControls] = useState<string | null>(null)
+  const [risks, setRisks] = useState<any[]>([])
+  const [likelihood, setLikelihood] = useState('')
+  const [consequences, setConsequences] = useState('')
+  const [riskRating, setRiskRating] = useState('')
   const [riskTitle, setRiskTitle] = useState('')
-  const [likelihoodWeight, setLikelihoodWeight] = useState<string | null>(null)
-  
+  const [selectedHazards, setSelectedHazards] = useState<number[]>([])
 
+  // For hazard selection, we might store hazards in state
+  const [siteHazards, setSiteHazards] = useState<any[]>([])
+  // etc. Then a function to push them into bridging table: project_site_hazards
 
-  //To know which project is selected
-  const location = useLocation()
-const { projectId } = location.state || {}
+  useEffect(() => {
+    // optional: load existing "risks" for this project from some bridging table
+    // or just do nothing if you store them differently
+  }, [projectId])
 
-const likelihoodWeight: { [key: string]: number } = {
-  'highly unlikely': 1,
-  unlikely: 2,
-  'quite possible': 3,
-  likely: 4,
-  'almost certain': 5,
-}
+  // Simple rating calculation:
+  const calculateRiskRating = () => {
+    // example
+    const likeValue = likelihoodMap[likelihood.toLowerCase()] || 1
+    const consValue = consequenceMap[consequences.toLowerCase()] || 1
+    // pick a label
+    const total = likeValue * consValue
+    if (total <= 2) return 'Low Risk'
+    if (total <= 6) return 'Medium Risk'
+    if (total <= 10) return 'High Risk'
+    return 'Extreme Risk'
+  }
 
-const riskRating =
-  likelihoodWeight[likelihood.toLowerCase()] *
-  riskMatrix[Consequences.toLowerCase()]
+  const likelihoodMap: { [key: string]: number } = {
+    'highly unlikely': 1,
+    unlikely: 2,
+    'quite possible': 3,
+    likely: 4,
+    'almost certain': 5,
+  }
+  const consequenceMap: { [key: string]: number } = {
+    insignificant: 1,
+    minor: 2,
+    moderate: 3,
+    major: 4,
+    catastrophic: 5,
+  }
+  // const projectName =
+  //   localStorage.getItem('selectedProjectName') || 'No project'
 
-try {
-  await axios.post('/api/risks', {
-    title: riskTitle.trim(),
-    likelihood,
-    consequences,
-    riskRating,
-    additionalControls: additionalControls.trim(),
-  })
-  setNotification('Risk added successfully!')
-  setRiskTitle('')
-  setLikelihood('')
-  setConsequences('')
-  setAdditionalControls('')
-  fetchRisks()
-} catch (err) {
-  console.error('Error adding risk:', err)
-  setNotification('Failed to add risk.')
-}
-}
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    const rating = calculateRiskRating()
+    setRiskRating(rating)
+    // If you want to store in the DB bridging table:
+    if (!projectId) {
+      setNotification('No project chosen.')
+      return
+    }
+    try {
+      // Possibly do a POST to /api/project_risks or something
+      const res = await axios.post('/api/project_risks', {
+        project_id: projectId,
+        title: riskTitle,
+        likelihood,
+        consequences,
+        risk_rating: rating,
+      })
+      setNotification('Risk added to this project.')
+      // then load them again
+    } catch (err) {
+      console.error(err)
+      setNotification('Error adding risk to project.')
+    }
+  }
 
-
-return (
-<div
+  return (
+    <div
       className={`container-fluid ${
         isSidebarOpen ? 'content-expanded' : 'content-collapsed'
       }`}
       style={{
-        marginLeft: isSidebarOpen ? '0px' : '0px',
+        marginLeft: isSidebarOpen ? '20px' : '20px',
         transition: 'margin 0.3s ease',
-        paddingTop: '2px',
+        paddingTop: '1rem',
       }}
     >
-      <ActivityWizard />
-  <h2
-    style={{ color: '#0094B6', fontWeight: 'bold', paddingBottom: '4rem' }}
-  >
-    Add Hazards & Risks
-  </h2> 
-{notification && (
-  <Alert variant="info" className="text-center">
-    {notification}
-  </Alert>
-)}
+      {/* <ActivityWizard isSidebarOpen={isSidebarOpen} /> */}
+      {notification && <Alert variant="info">{notification}</Alert>}
+      {/* <h3
+        style={{ color: '#0094B6', fontWeight: 'bold', paddingBottom: '1rem' }}
+      >
+        Project Risk for: {projectName || 'No Project Selected'}
+      </h3> */}
 
-{/* Risks Section */}
-//  <div className="col-md-6">
-//  <h4>Risks</h4>
-//  <Form onSubmit={handleRiskSubmit}>
-//    <Form.Group className="mb-3">
-//      <Form.Label>Risk Title</Form.Label>
-//      <Form.Control
-       type="text"
-       placeholder="E.g., Working near water"
-       value={riskTitle}
-       onChange={(e) => setRiskTitle(e.target.value)}
-     />
-   </Form.Group>
-   <Form.Group className="mb-3">
-     <Form.Label>Likelihood</Form.Label>
-     <Form.Control
-       as="select"
-       value={likelihood}
-       onChange={(e) => setLikelihood(e.target.value)}
-     >
-       <option value="">Select Likelihood</option>
-       <option>Highly Unlikely</option>
-       <option>Unlikely</option>
-       <option>Quite Possible</option>
-       <option>Likely</option>
-       <option>Almost Certain</option>
-     </Form.Control>
-   </Form.Group>
-   <Form.Group className="mb-3">
-     <Form.Label>Consequences</Form.Label>
-     <Form.Control
-       as="select"
-       value={consequences}
-       onChange={(e) => setConsequences(e.target.value)}
-     >
-       <option value="">Select Consequences</option>
-       <option>Insignificant</option>
-       <option>Minor</option>
-       <option>Moderate</option>
-       <option>Major</option>
-       <option>Catastrophic</option>
-     </Form.Control>
-   </Form.Group>
-   <Form.Group className="mb-3">
-     <Form.Label>Additional Controls</Form.Label>
-     <Form.Control
-       as="textarea"
-       rows={3}
-       placeholder="E.g., Wear gloves, carry sanitizer"
-       value={additionalControls}
-       onChange={(e) => setAdditionalControls(e.target.value)}
-     />
-   </Form.Group>
-   <Button type="submit">Add Risk</Button>
- </Form>
+      <Form onSubmit={handleSubmit}>
+        <Form.Group className="mb-3">
+          <Form.Label>Risk Title</Form.Label>
+          <Form.Control
+            type="text"
+            value={riskTitle}
+            onChange={(e) => setRiskTitle(e.target.value)}
+          />
+        </Form.Group>
+        <Form.Group className="mb-3">
+          <Form.Label>Likelihood</Form.Label>
+          <Form.Select
+            value={likelihood}
+            onChange={(e) => setLikelihood(e.target.value)}
+          >
+            <option value="">Select Likelihood</option>
+            <option>Highly Unlikely</option>
+            <option>Unlikely</option>
+            <option>Quite Possible</option>
+            <option>Likely</option>
+            <option>Almost Certain</option>
+          </Form.Select>
+        </Form.Group>
+        <Form.Group className="mb-3">
+          <Form.Label>Consequences</Form.Label>
+          <Form.Select
+            value={consequences}
+            onChange={(e) => setConsequences(e.target.value)}
+          >
+            <option value="">Select Consequence</option>
+            <option>Insignificant</option>
+            <option>Minor</option>
+            <option>Moderate</option>
+            <option>Major</option>
+            <option>Catastrophic</option>
+          </Form.Select>
+        </Form.Group>
 
- <Table bordered hover className="mt-3">
-   <thead>
-     <tr>
-       <th>#</th>
-       <th>Title</th>
-     </tr>
-   </thead>
-   <tbody>
-     {risks.map((risk, index) => (
-       <tr key={risk.id}>
-         <td>{index + 1}</td>
-         <td>{risk.title}</td>
-       </tr>
-     ))}
-   </tbody>
- </Table>
-</div>
-</div>
-)
+        <div className="mb-2">
+          <strong>Calculated Risk Rating:</strong> {calculateRiskRating()}
+        </div>
+
+        <Button variant="primary" type="submit">
+          Save Risk
+        </Button>
+      </Form>
+
+      {/* Possibly a hazard selector for this project */}
+      <hr />
+      <h4>Project Hazards</h4>
+      <p>
+        Select site hazards or activity hazards to link to this project, etc.
+      </p>
+      {/* similar approach to your AddHazard logic, but store bridging in project_site_hazards */}
+    </div>
+  )
 }
 
 export default ProjectRisk

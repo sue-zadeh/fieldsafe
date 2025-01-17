@@ -130,6 +130,7 @@ const SearchProject: React.FC<SearchProjectProps> = ({ isSidebarOpen }) => {
         minHeight: '100vh',
         paddingTop: '10px',
         backgroundColor: '#F4F7F1',
+        height: '100vh'
       }}
     >
       {notification && (

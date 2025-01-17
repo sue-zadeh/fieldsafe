@@ -201,10 +201,10 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, toggleSidebar }) => {
           <ul style={dropdownListStyle}>
             <li>
               <Link
-                to="/projectdetail"
+                to="/activity-notes"
                 style={{
                   ...dropdownLinkStyle,
-                  ...(isActive('/projectdetail')
+                  ...(isActive('/activity-notes')
                     ? { fontWeight: 'bold', color: '#000' }
                     : {}),
                 }}
