@@ -188,4 +188,79 @@ router.delete('/staff/:id', async (req, res) => {
   }
 })
 
+// ----====Project Staffs===-----
+
+// GET /api/project_staff/:project_id
+router.get('/project_staff/:project_id', async (req, res) => {
+  const { project_id } = req.params
+  try {
+    const sql = `
+      SELECT ps.id, ps.project_id, s.firstname, s.lastname, s.phone, s.role
+      FROM project_staff ps
+      JOIN staffs s ON ps.staff_id = s.id
+      WHERE ps.project_id = ?
+    `
+    const [rows] = await pool.query(sql, [project_id])
+    res.json(rows)
+  } catch (error) {
+    console.error('Error fetching project staff:', error)
+    res.status(500).json({ message: 'Error fetching project staff' })
+  }
+})
+///////////////////////////////////////////
+// ----===Add Staffs===----
+// POST /api/project_staff
+router.post('/project_staff', async (req, res) => {
+  const { project_id, staff_id } = req.body
+  try {
+    const sql = `
+      INSERT INTO project_staff (project_id, staff_id)
+      VALUES (?, ?)
+    `
+    await pool.execute(sql, [project_id, staff_id])
+    res.status(201).json({ message: 'Staff assigned to project successfully' })
+  } catch (error) {
+    console.error('Error assigning staff:', error)
+    res.status(500).json({ message: 'Error assigning staff to project' })
+  }
+})
+// ----=====Delete Staffs=====----
+
+// Show Only Unassigned Staffs
+router.get('/unassigned_staff/:project_id', async (req, res) => {
+  const { project_id } = req.params
+  try {
+    const sql = `
+      SELECT s.id, s.firstname, s.lastname, s.phone, s.role
+      FROM staffs s
+      WHERE s.id NOT IN (
+        SELECT ps.staff_id
+        FROM project_staff ps
+        WHERE ps.project_id = ?
+      )
+    `
+    const [rows] = await pool.query(sql, [project_id])
+    res.json(rows)
+  } catch (error) {
+    console.error('Error fetching unassigned staff:', error)
+    res.status(500).json({ message: 'Error fetching unassigned staff' })
+  }
+})
+
+// DELETE /api/project_staff/:id
+router.delete('/project_staff/:id', async (req, res) => {
+  const { id } = req.params
+  try {
+    const sql = `
+      DELETE FROM project_staff
+      WHERE id = ?
+    `
+    await pool.execute(sql, [id])
+    res.json({ message: 'Staff removed from project' })
+  } catch (error) {
+    console.error('Error removing staff:', error)
+    res.status(500).json({ message: 'Error removing staff from project' })
+  }
+})
+
 export default router

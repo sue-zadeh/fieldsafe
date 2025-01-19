@@ -14,7 +14,8 @@ import { sendEmail } from './email.js'
 import projectsRouter from './projects.js'
 import objectivesRouter from './objectives.js'
 import hazardRiskRoutes from './hazard.js'
-import riskRouter from './risk.js' // or './riskhazard.js'
+import riskRouter from './risk.js'
+import projectRiskRoutes from './projectrisk.js'
 
 dotenv.config()
 // For find __dirname in ES Modules---------------
@@ -30,12 +31,13 @@ app.use('/uploads', express.static(path.join(__dirname, 'uploads')))
 app.use('/api/projects', projectsRouter)
 app.use('/api/objectives', objectivesRouter)
 
-
 app.use('/api', staffRoutes)
 app.use('/api', volunteerRoutes)
 
 app.use('/api', hazardRiskRoutes)
 app.use('/api', riskRouter)
+app.use('/api/projectrisk', projectRiskRoutes)
+
 // test route
 app.get('/api/ping', (req, res) => {
   res.json({ message: 'pong' })

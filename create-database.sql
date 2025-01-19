@@ -17,7 +17,6 @@ SELECT DISTINCT title, 1 FROM risks;
 
 -- Schema fieldbase
 
---DROP TABLE IF EXISTS login;
 --DROP TABLE IF EXISTS staffs;
 --DROP TABLE IF EXISTS volunteers;
 --DROP TABLE IF EXISTS objectives; 
@@ -33,18 +32,6 @@ DROP TABLE IF EXISTS risk_controls;
 DROP TABLE IF EXISTS risks;
 */
 
-
---the login table
-CREATE TABLE IF NOT EXISTS login (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    firstname VARCHAR(50), 
-    lastname VARCHAR(50),
-    username VARCHAR(255) UNIQUE NOT NULL,
-    password VARCHAR(255) NOT NULL,
-    role ENUM('admin','Field Staff', 'Team Leader', 'Group Admin') NOT NULL;
-);
-
-
 -- the staffs table
 CREATE TABLE IF NOT EXISTS staffs (
     id INT AUTO_INCREMENT PRIMARY KEY,
@@ -58,6 +45,16 @@ CREATE TABLE IF NOT EXISTS staffs (
     
 );
 
+--the project_staffs
+CREATE TABLE IF NOT EXISTS project_staff (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    project_id INT NOT NULL,
+    staff_id INT NOT NULL,
+    FOREIGN KEY (project_id) REFERENCES projects(id) ON DELETE CASCADE,
+    FOREIGN KEY (staff_id) REFERENCES staffs(id) ON DELETE CASCADE
+);
+
+
 -- the volunteers table
 CREATE TABLE volunteers (
     id INT AUTO_INCREMENT PRIMARY KEY,
@@ -68,6 +65,15 @@ CREATE TABLE volunteers (
     emergencyContact VARCHAR(50) NOT NULL,
     emergencyContactNumber VARCHAR(15) NOT NULL,
     role ENUM('Volunteer') DEFAULT 'Volunteer'
+);
+
+--the project_volunteer table
+CREATE TABLE IF NOT EXISTS project_volunteer (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    project_id INT NOT NULL,
+    volunteer_id INT NOT NULL,
+    FOREIGN KEY (project_id) REFERENCES projects(id) ON DELETE CASCADE,
+    FOREIGN KEY (volunteer_id) REFERENCES volunteers(id) ON DELETE CASCADE
 );
 
 -- The projects table
@@ -113,6 +119,7 @@ CREATE TABLE IF NOT EXISTS project_objectives (
   FOREIGN KEY (objective_id) REFERENCES objectives(id)
 );
 
+-------====Hazards TABLES=======-----
 -- Site Hazards Table
 CREATE TABLE site_hazards (
     id INT AUTO_INCREMENT PRIMARY KEY,
@@ -206,6 +213,17 @@ CREATE TABLE project_risks (
     FOREIGN KEY (project_id) REFERENCES projects(id) ON DELETE CASCADE,
     FOREIGN KEY (risk_id) REFERENCES risks(id) ON DELETE CASCADE
 );
+
+/*-- Create the project_risk_titles table*/
+CREATE TABLE IF NOT EXISTS project_risk_titles (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    project_id INT NOT NULL,
+    risk_title_id INT NOT NULL,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (project_id) REFERENCES projects(id) ON DELETE CASCADE,
+    FOREIGN KEY (risk_title_id) REFERENCES risk_titles(id) ON DELETE CASCADE
+);
+
 
 CREATE TABLE project_risk_controls (
     id INT AUTO_INCREMENT PRIMARY KEY,

@@ -1,6 +1,9 @@
+// src/components/projectdetails.tsx
+
 import React, { useState, useEffect } from 'react'
 import axios from 'axios'
 import { Table } from 'react-bootstrap'
+import { useNavigate } from 'react-router-dom'
 
 interface Project {
   id: number
@@ -13,15 +16,14 @@ interface Project {
 
 interface ProjectDetailProps {
   isSidebarOpen: boolean
-  // This callback is provided by ActivityWizard
-  // so we can notify it which project we selected:
   onProjectSelected?: (projId: number, projName: string) => void
 }
 
-const ProjectDetails: React.FC<ProjectDetailProps> = ({
+const projectdetails: React.FC<ProjectDetailProps> = ({
   isSidebarOpen,
   onProjectSelected,
 }) => {
+  const navigate = useNavigate()
   const [projects, setProjects] = useState<Project[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -42,31 +44,34 @@ const ProjectDetails: React.FC<ProjectDetailProps> = ({
     fetchProjects()
   }, [])
 
-  const handleArrowClick = (
-    e: React.MouseEvent<HTMLTableCellElement>,
-    proj: Project
-  ) => {
+  /** Called if user clicks the row or arrow */
+  const handleRowClick = (proj: Project, e: React.MouseEvent) => {
     e.stopPropagation()
-    // Instead of direct routing, call the wizard callback
+
+    // Example: if you want to navigate to the /projectrisk route:
+    // navigate('/projectrisk', { state: { projectId: proj.id } })
+
+    // Tell the parent wizard which project was chosen:
     if (onProjectSelected) {
       onProjectSelected(proj.id, proj.name)
     }
+
+    // If you store in localStorage:
+    localStorage.setItem('selectedProjectId', String(proj.id))
+    localStorage.setItem('selectedProjectName', proj.name)
   }
 
-  if (loading) return <div>Loading projects...</div>
-  if (error) return <div className="alert alert-danger">{error}</div>
+  if (loading) {
+    return <div>Loading projects...</div>
+  }
+  if (error) {
+    return <div className="alert alert-danger">{error}</div>
+  }
 
   return (
-    <div
-      className={`container-fluid ${
-        isSidebarOpen ? 'content-expanded' : 'content-collapsed'
-      }`}
-      style={{
-        // marginLeft: isSidebarOpen ? '0px' : '20px',
-        transition: 'margin 0.3s ease',
-        paddingTop: '2px',
-      }}
-    >
+    <div>
+      {/* No container-fluid or margin/padding here;
+          let the parent (App.tsx / ActivityTabs) handle layout */}
       <h3
         className="mb-4"
         style={{
@@ -78,6 +83,7 @@ const ProjectDetails: React.FC<ProjectDetailProps> = ({
       >
         Project Details
       </h3>
+
       <Table striped hover responsive>
         <thead>
           <tr>
@@ -91,18 +97,26 @@ const ProjectDetails: React.FC<ProjectDetailProps> = ({
         </thead>
         <tbody>
           {projects.map((proj) => (
-            <tr key={proj.id}>
+            <tr
+              key={proj.id}
+              style={{ cursor: 'pointer' }}
+              onClick={(e) => handleRowClick(proj, e)}
+            >
               <td>{formatDate(proj.startDate)}</td>
               <td>{proj.name}</td>
               <td>{proj.location}</td>
               <td>{proj.status}</td>
               <td>{proj.primaryContactName || 'N/A'}</td>
+
+              {/* Arrow in the last cell */}
               <td
-                onClick={(e) => handleArrowClick(e, proj)}
                 className="text-end"
-                style={{ cursor: 'pointer' }}
+                onClick={(e) => {
+                  e.stopPropagation()
+                  handleRowClick(proj, e)
+                }}
               >
-                <span style={{ fontSize: '2.5rem', paddingRight: '1rem' }}>
+                <span style={{ fontSize: '1.5rem', paddingRight: '1rem' }}>
                   &rarr;
                 </span>
               </td>
@@ -114,11 +128,12 @@ const ProjectDetails: React.FC<ProjectDetailProps> = ({
   )
 }
 
-// A simple date-formatter
+/** A quick date formatter */
 function formatDate(isoString: string) {
   if (!isoString) return ''
   const d = new Date(isoString)
   if (isNaN(d.getTime())) return isoString
+
   const day = d.getDate().toString().padStart(2, '0')
   const monthNames = [
     'January',
@@ -139,4 +154,4 @@ function formatDate(isoString: string) {
   return `${day}-${monthName}-${year}`
 }
 
-export default ProjectDetails
+export default projectdetails

@@ -21,6 +21,13 @@ INSERT INTO staffs (firstname, lastname, email, phone, password, role) VALUES
 ('Mark', 'Taylor', 'mark.taylor@example.com', '4567890123', 'Field Staff'),
 ('Emily', 'Davis', 'emily.davis@example.com', '7890123456', 'Field Staff');
 
+
+-- Assign staff to projects in project_staff table
+INSERT INTO project_staff (project_id, staff_id) VALUES
+(1, 1), -- Alice (Group Admin) works on Conservation Project A
+(1, 2), -- Bob (Field Staff) works on Conservation Project A
+(2, 3); -- Charlie (Team Leader) works on Training Project B
+
 -- Populate the volunteers table
 INSERT INTO volunteers (firstname, lastname, email, phone, emergencyContact, emergencyContactNumber, role)
 VALUES
@@ -148,6 +155,12 @@ INSERT INTO risks (id, risk_title_id, likelihood, consequences, created_at) VALU
 (2, 2, 'likely', 'major', NOW()),
 (3, 3, 'almost certain', 'minor', NOW());
 
+-- Populate the project_risk_titles
+INSERT INTO project_risk_titles (project_id, risk_title_id)
+VALUES
+(1, 1), -- Example: Project 1, Risk Title 1
+(1, 2), -- Project 1, Risk Title 2
+(2, 3); -- Project 2, Risk Title 3
 
 
 /*-- Populate the risk_controls table
