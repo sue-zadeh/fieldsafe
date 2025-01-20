@@ -273,9 +273,9 @@ const AddRisk: React.FC<AddRiskProps> = ({ isSidebarOpen }) => {
 
   return (
     <div
-    // className={`container-fluid ${
-    //   isSidebarOpen ? 'content-expanded' : 'content-collapsed'
-    // }`}
+    className={`container-fluid ${
+      isSidebarOpen ? 'content-expanded' : 'content-collapsed'
+    }`}
     >
       <h2
         style={{ color: '#0094B6', fontWeight: 'bold', paddingBottom: '4rem' }}

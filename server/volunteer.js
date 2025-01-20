@@ -178,62 +178,105 @@ volunteerRouter.delete('/volunteers/:id', async (req, res) => {
     res.status(500).json({ message: 'Error deleting volunteer.' })
   }
 })
-///////////////////////////////
-// ----===Add Staffs===----
-// POST /api/project_staff
-router.post('/project_staff', async (req, res) => {
-  const { project_id, staff_id } = req.body
-  try {
-    const sql = `
-      INSERT INTO project_staff (project_id, staff_id)
-      VALUES (?, ?)
-    `
-    await pool.execute(sql, [project_id, staff_id])
-    res.status(201).json({ message: 'Staff assigned to project successfully' })
-  } catch (error) {
-    console.error('Error assigning staff:', error)
-    res.status(500).json({ message: 'Error assigning staff to project' })
-  }
-})
-// ----=====Delete Volunteers=====----
 
-// Show Only Unassigned Volunteers
-router.get('/unassigned_volunteer/:project_id', async (req, res) => {
+////////////////////////////////////////////////
+
+// ----=== Volunteers in Projects ====------
+
+// GET /api/project_staff/:project_id
+volunteerRouter.get('/project_volunteer/:project_id', async (req, res) => {
   const { project_id } = req.params
   try {
     const sql = `
-      SELECT s.id, s.firstname, s.lastname, s.phone, s.role
-      FROM volunteers s
-      WHERE s.id NOT IN (
-        SELECT ps.staff_id
-        FROM project_staff ps
-        WHERE ps.project_id = ?
+      SELECT pv.id, pv.project_id, v.firstname, v.lastname, v.phone, v.emergencyContact, v.emergencyContactNumber
+      FROM project_volunteer pv
+      JOIN volunteers v ON pv.volunteer_id = v.id
+      WHERE pv.project_id = ?
+    `
+    const [rows] = await pool.query(sql, [project_id])
+    res.json(rows)
+  } catch (error) {
+    console.error('Error fetching project volunteer:', error)
+    res.status(500).json({ message: 'Error fetching project volunteer' })
+  }
+})
+
+// ----=== Add volunteers in Projects ===----
+// POST /api/project_staff
+volunteerRouter.post('/project_volunteer', async (req, res) => {
+  const { project_id, volunteer_ids } = req.body
+  const values = volunteer_ids.map((id) => [project_id, id])
+  try {
+    const sql = `
+      INSERT INTO project_volunteer (project_id, volunteer_id)
+      VALUES ?
+    `
+    await pool.query(sql, [values])
+    res.status(201).json({ message: 'Volunteers assigned successfully' })
+  } catch (error) {
+    console.error('Error assigning volunteers:', error)
+    res.status(500).json({ message: 'Error assigning volunteers to project' })
+  }
+})
+
+// ----===== Remove  Unsigned Volunteers the from Project =====----
+// GET /unassigned_volunteer/:project_id
+volunteerRouter.get('/unassigned_volunteer/:project_id', async (req, res) => {
+  const { project_id } = req.params
+
+  try {
+    const sql = `
+      SELECT v.id, v.firstname, v.lastname, v.phone, v.emergencyContact, v.emergencyContactNumber
+      FROM volunteers v
+      WHERE v.id NOT IN (
+        SELECT pv.volunteer_id
+        FROM project_volunteer pv
+        WHERE pv.project_id = ?
       )
     `
     const [rows] = await pool.query(sql, [project_id])
     res.json(rows)
   } catch (error) {
-    console.error('Error fetching unassigned staff:', error)
-    res.status(500).json({ message: 'Error fetching unassigned staff' })
+    console.error('Error fetching unassigned volunteers:', error)
+    res.status(500).json({ message: 'Error fetching unassigned volunteers.' })
   }
 })
 
-// DELETE /api/project_staff/:id
-router.delete('/project_staff/:id', async (req, res) => {
+// POST /api/project_volunteer
+// volunteerRouter.post('/project_volunteer', async (req, res) => {
+//   const { project_id, volunteer_ids } = req.body
+//   try {
+//     const values = volunteer_ids.map((id) => [project_id, id])
+//     const sql = `
+//       INSERT INTO project_volunteer (project_id, volunteer_id)
+//       VALUES ?
+//     `
+//     await pool.query(sql, [values])
+//     res.status(201).json({ message: 'Volunteers assigned successfully' })
+//   } catch (error) {
+//     console.error('Error assigning volunteers:', error)
+//     res.status(500).json({ message: 'Error assigning volunteers to project' })
+//   }
+// })
+
+// ----=====Delete Volunteers=====----
+
+// Show Only Unassigned Volunteers
+
+// DELETE /api/project_volunteer/:id
+volunteerRouter.delete('/project_volunteer/:id', async (req, res) => {
   const { id } = req.params
   try {
     const sql = `
-      DELETE FROM project_staff
+      DELETE FROM project_volunteer
       WHERE id = ?
     `
     await pool.execute(sql, [id])
-    res.json({ message: 'Staff removed from project' })
+    res.json({ message: 'Volunteer removed from project' })
   } catch (error) {
-    console.error('Error removing staff:', error)
-    res.status(500).json({ message: 'Error removing staff from project' })
+    console.error('Error removing volunteer:', error)
+    res.status(500).json({ message: 'Error removing volunteer from project' })
   }
 })
-
-
 
 export default volunteerRouter

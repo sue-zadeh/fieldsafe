@@ -4,6 +4,8 @@ import { useLocation } from 'react-router-dom'
 import ProjectDetails from './projectdetails'
 import ProjectRisk from './projectrisk'
 import ProjectStaffs from './projectstaffs'
+import ProjectVolunteers from './projectvolunteers'
+import ProjectCheckList from './projectchecklist'
 interface ActivityTabsProps {
   isSidebarOpen: boolean
 }
@@ -132,7 +134,7 @@ const ActivityTabs: React.FC<ActivityTabsProps> = ({ isSidebarOpen }) => {
 
   const renderStepContent = () => {
     switch (currentStep) {
-      case 0:
+      case 0: ///// Projects Details tab
         return (
           <div>
             <h5>Choose a Project by pressing Arrow Key</h5>
@@ -142,7 +144,7 @@ const ActivityTabs: React.FC<ActivityTabsProps> = ({ isSidebarOpen }) => {
             />
           </div>
         )
-      case 1:
+      case 1: //// Risks and Hazards tab
         if (selectedProjectId === null) {
           return (
             <div>Please select a project before proceeding to "Risk" step.</div>
@@ -160,7 +162,7 @@ const ActivityTabs: React.FC<ActivityTabsProps> = ({ isSidebarOpen }) => {
             />
           </div>
         )
-      case 2:
+      case 2: //// Staffs Tab
         if (selectedProjectId === null) {
           return (
             <div>
@@ -180,19 +182,63 @@ const ActivityTabs: React.FC<ActivityTabsProps> = ({ isSidebarOpen }) => {
             />
           </div>
         )
+
+      case 3: //// Volunteers Tab
+        if (selectedProjectId === null) {
+          return (
+            <div>
+              Please select a project before proceeding to "Volunteer" step.
+            </div>
+          )
+        }
+        return (
+          <div>
+            <p className="fw-bold p-2 fs-4" style={{ color: '#0094B6' }}>
+              Selected Project: {selectedProjectName || '(none)'}
+            </p>
+            <ProjectVolunteers
+              isSidebarOpen={isSidebarOpen}
+              projectId={selectedProjectId}
+              projectName={selectedProjectName}
+            />
+          </div>
+        )
+      case 4: // Checklist Tab
+        if (selectedProjectId === null) {
+          return (
+            <div>
+              <h5 className="text-danger">
+                Please select a project in the "Details" step before accessing
+                the "Checklist" tab.
+              </h5>
+            </div>
+          )
+        }
+        return (
+          <div>
+            <p className="fw-bold p-2 fs-4" style={{ color: '#0094B6' }}>
+              Selected Project: {selectedProjectName || '(none)'}
+            </p>
+            <ProjectCheckList
+              isSidebarOpen={isSidebarOpen}
+              projectId={selectedProjectId}
+              projectName={selectedProjectName}
+            />
+          </div>
+        )
+
       default:
         return <div>Coming Soon...</div>
     }
   }
-
   return (
     <div
       className={`container-fluid ${
         isSidebarOpen ? 'content-expanded' : 'content-collapsed'
       }`}
       style={{
-        marginLeft: isSidebarOpen ? '220px' : '20px',
-        minHeight: '100vh',
+        marginLeft: isSidebarOpen ? '210px' : '20px',
+        minHeight: '1',
         paddingTop: '2rem',
       }}
     >
@@ -202,12 +248,12 @@ const ActivityTabs: React.FC<ActivityTabsProps> = ({ isSidebarOpen }) => {
       </div>
       <div className="d-flex justify-content-end mt-3">
         {currentStep > 0 && (
-          <Button variant="secondary" onClick={handleBack}>
+          <Button className='px-4' style={{backgroundColor: '#0094B6', marginRight:'1rem', }} variant="secondary" onClick={handleBack}>
             &laquo; Back
           </Button>
         )}
         {currentStep < steps.length - 1 && (
-          <Button variant="primary" onClick={handleNext}>
+          <Button className='px-4' style={{backgroundColor: '#0094B6'}} variant="primary" onClick={handleNext}>
             Next &raquo;
           </Button>
         )}

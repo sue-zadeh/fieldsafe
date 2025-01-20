@@ -729,3 +729,17 @@ INSERT INTO project_risks (id, project_id, risk_id, created_at) VALUES
 INSERT INTO project_risk_controls (id, project_id, risk_control_id, is_checked, created_at) VALUES
 (1, 1, 1, 1, NOW()),
 (2, 1, 2, 0, NOW());
+
+
+---====Checklist =====----
+
+// Populating Checklist Table with Data
+INSERT INTO Checklist (description) VALUES
+('All vehicle/driver licences/rego current'),
+('Pre-existing medical conditions checked'),
+('Weather checked, appropriate clothing worn/available'),
+('Risk assessment checked and shared completed'),
+('Correct PPE available'),
+('First Aid kit stocked and on site'),
+('First Aider present'),
+('Project and safety induction completed');

@@ -335,4 +335,41 @@ router.delete('/:id', async (req, res) => {
   }
 })
 
+//----======= CheckList=======------------
+
+// API to get checklist items for a project
+router.get('/api/project/:projectId/checklist', (req, res) => {
+  const { projectId } = req.params
+  const query = `
+      SELECT pc.id, c.description, pc.is_checked 
+      FROM Project_Checklist pc 
+      INNER JOIN Checklist c ON pc.checklist_id = c.id 
+      WHERE pc.project_id = ?
+  `
+  db.query(query, [projectId], (err, results) => {
+    if (err) {
+      console.error('Error fetching project checklist:', err)
+      return res.status(500).send('Server error')
+    }
+    res.json(results)
+  })
+})
+
+// API to toggle checklist item status
+router.put('/api/project/:projectId/checklist/:checklistId', (req, res) => {
+  const { projectId, checklistId } = req.params
+  const query = `
+      UPDATE Project_Checklist 
+      SET is_checked = NOT is_checked 
+      WHERE project_id = ? AND checklist_id = ?
+  `
+  db.query(query, [projectId, checklistId], (err, results) => {
+    if (err) {
+      console.error('Error updating checklist item:', err)
+      return res.status(500).send('Server error')
+    }
+    res.status(200).send('Checklist item updated')
+  })
+})
+
 export default router

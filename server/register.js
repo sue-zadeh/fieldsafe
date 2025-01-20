@@ -188,6 +188,7 @@ router.delete('/staff/:id', async (req, res) => {
   }
 })
 
+///////////////////////////////////////////
 // ----====Project Staffs===-----
 
 // GET /api/project_staff/:project_id
@@ -207,8 +208,8 @@ router.get('/project_staff/:project_id', async (req, res) => {
     res.status(500).json({ message: 'Error fetching project staff' })
   }
 })
-///////////////////////////////////////////
-// ----===Add Staffs===----
+
+// ----=== Add Staffs in Projects ===----
 // POST /api/project_staff
 router.post('/project_staff', async (req, res) => {
   const { project_id, staff_id } = req.body
@@ -224,7 +225,7 @@ router.post('/project_staff', async (req, res) => {
     res.status(500).json({ message: 'Error assigning staff to project' })
   }
 })
-// ----=====Delete Staffs=====----
+// ----===== Remove from the List Unsigned Staffs from the Project =====----
 
 // Show Only Unassigned Staffs
 router.get('/unassigned_staff/:project_id', async (req, res) => {

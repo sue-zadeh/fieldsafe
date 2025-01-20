@@ -400,13 +400,7 @@ export const ProjectRisk: React.FC<ProjectRiskProps> = ({
 
   return (
     <div
-      className={`container-fluid ${
-        isSidebarOpen ? 'content-expanded' : 'content-collapsed'
-      }`}
-      style={{
-        transition: 'margin 0.3s ease',
-        paddingTop: '1rem',
-      }}
+      className={` ${isSidebarOpen ? 'content-expanded' : 'content-collapsed'}`}
     >
       {message && (
         <Alert
@@ -577,54 +571,52 @@ export const ProjectRisk: React.FC<ProjectRiskProps> = ({
           >
             <Form.Label>Select Risk Title</Form.Label>
             <Form.Select
-    value={selectedRiskTitleId ?? ''}
-    onChange={(e) => handlePickRiskTitle(Number(e.target.value))}
-    style={{
-        maxHeight: '150px',
-        overflowY: 'auto',
-        whiteSpace: 'normal',
-        wordWrap: 'break-word',
-        overflowWrap: 'break-word',
-    }}
->
-    <option value="" style={{ whiteSpace: 'normal' }}>
-        -- Select Risk --
-    </option>
-    {allRiskTitles.map((rt) => (
-        <option
-            key={rt.id}
-            value={rt.id}
-            style={{
-              maxHeight: '150px',
-              maxWidth: '50%',
-              overflowY: 'auto',
-              whiteSpace: 'normal',
-              wordWrap: 'break-word',
-              overflowWrap: 'break-word',
-            }}
-        >
-            {rt.title}
-        </option>
-    ))}
-</Form.Select>
+              value={selectedRiskTitleId ?? ''}
+              onChange={(e) => handlePickRiskTitle(Number(e.target.value))}
+              style={{
+                maxHeight: '150px',
+                overflowY: 'auto',
+                whiteSpace: 'normal',
+                wordWrap: 'break-word',
+                overflowWrap: 'break-word',
+              }}
+            >
+              <option value="" style={{ whiteSpace: 'normal' }}>
+                -- Select Risk --
+              </option>
+              {allRiskTitles.map((rt) => (
+                <option
+                  key={rt.id}
+                  value={rt.id}
+                  style={{
+                    maxHeight: '150px',
+                    maxWidth: '50%',
+                    overflowY: 'auto',
+                    whiteSpace: 'normal',
+                    wordWrap: 'break-word',
+                    overflowWrap: 'break-word',
+                  }}
+                >
+                  {rt.title}
+                </option>
+              ))}
+            </Form.Select>
+          </Form.Group>
 
-            </Form.Group>
-
-            <Form.Group className="mb-3 flex-fill">
-              <Form.Label>Consequences</Form.Label>
-              <Form.Select
-                value={consequences}
-                onChange={(e) => setConsequences(e.target.value)}
-              >
-                <option value="">-- Select Consequence --</option>
-                <option>insignificant</option>
-                <option>minor</option>
-                <option>moderate</option>
-                <option>major</option>
-                <option>catastrophic</option>
-              </Form.Select>
-            </Form.Group>
-          
+          <Form.Group className="mb-3 flex-fill">
+            <Form.Label>Consequences</Form.Label>
+            <Form.Select
+              value={consequences}
+              onChange={(e) => setConsequences(e.target.value)}
+            >
+              <option value="">-- Select Consequence --</option>
+              <option>insignificant</option>
+              <option>minor</option>
+              <option>moderate</option>
+              <option>major</option>
+              <option>catastrophic</option>
+            </Form.Select>
+          </Form.Group>
 
           {/* Risk Rating (read‐only) */}
           <Form.Group className="mb-3">

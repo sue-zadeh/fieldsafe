@@ -69,9 +69,9 @@ const projectdetails: React.FC<ProjectDetailProps> = ({
   }
 
   return (
-    <div>
-      {/* No container-fluid or margin/padding here;
-          let the parent (App.tsx / ActivityTabs) handle layout */}
+    <div
+      className={` ${isSidebarOpen ? 'content-expanded' : 'content-collapsed'}`}
+    >
       <h3
         className="mb-4"
         style={{

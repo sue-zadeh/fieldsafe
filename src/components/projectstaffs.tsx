@@ -11,9 +11,10 @@ interface Staff {
 
 interface StaffTabProps {
   projectId: number
+  isSidebarOpen: boolean
 }
 
-const StaffTab: React.FC<StaffTabProps> = ({ projectId }) => {
+const StaffTab: React.FC<StaffTabProps> = ({ projectId, isSidebarOpen }) => {
   const [unassignedStaff, setUnassignedStaff] = useState<Staff[]>([])
   const [projectStaffs, setProjectStaffs] = useState<Staff[]>([])
   const [selectedGroupAdmin, setSelectedGroupAdmin] = useState<number | null>(
@@ -99,12 +100,14 @@ const StaffTab: React.FC<StaffTabProps> = ({ projectId }) => {
   }
 
   return (
-    <div>
+    <div
+      className={` ${isSidebarOpen ? 'content-expanded' : 'content-collapsed'}`}
+    >
+      {' '}
       <h3>Assign Staff to Project</h3>
       <p className="fw-bold p-2 fs-4" style={{ color: '#0094B6' }}>
         Selected Project: {projectId}
       </p>
-
       {/* Dropdowns for each staff type */}
       <div className="row mb-3">
         {/* Group Admins */}
@@ -123,7 +126,8 @@ const StaffTab: React.FC<StaffTabProps> = ({ projectId }) => {
             ))}
           </select>
           <button
-            className="btn btn-primary btn-sm"
+            style={{ backgroundColor: '#0094B6' }}
+            className="btn btn-primary btn-sm px-2"
             onClick={() => handleAddStaff(selectedGroupAdmin)}
             disabled={!selectedGroupAdmin}
           >
@@ -147,7 +151,8 @@ const StaffTab: React.FC<StaffTabProps> = ({ projectId }) => {
             ))}
           </select>
           <button
-            className="btn btn-primary btn-sm"
+            style={{ backgroundColor: '#0094B6' }}
+            className="btn btn-primary btn-sm px-3"
             onClick={() => handleAddStaff(selectedFieldStaff)}
             disabled={!selectedFieldStaff}
           >
@@ -171,7 +176,8 @@ const StaffTab: React.FC<StaffTabProps> = ({ projectId }) => {
             ))}
           </select>
           <button
-            className="btn btn-primary btn-sm"
+            style={{ backgroundColor: '#0094B6' }}
+            className="btn btn-primary btn-sm px-2"
             onClick={() => handleAddStaff(selectedTeamLeader)}
             disabled={!selectedTeamLeader}
           >
@@ -179,7 +185,6 @@ const StaffTab: React.FC<StaffTabProps> = ({ projectId }) => {
           </button>
         </div>
       </div>
-
       {/* Table of assigned staff */}
       <table className="table table-striped">
         <thead>
