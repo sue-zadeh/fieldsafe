@@ -119,7 +119,7 @@ const ActivityTabs: React.FC<ActivityTabsProps> = ({ isSidebarOpen }) => {
               </span>
               {index < steps.length - 1 && (
                 <div
-                  className="flex-grow-1 mx-2"
+                  className="flex-grow-1 mx-1"
                   style={{
                     height: '2px',
                     backgroundColor: isCompleted ? '#28a745' : '#ccc',
@@ -153,7 +153,7 @@ const ActivityTabs: React.FC<ActivityTabsProps> = ({ isSidebarOpen }) => {
         }
         return (
           <div>
-            <p className="fw-bold p-2 fs-4" style={{ color: '#0094B6' }}>
+            <p className="fw-bold fs-4" style={{ color: '#0094B6' }}>
               Selected Project: {selectedProjectName || '(none)'}
             </p>
             <ProjectRisk
@@ -173,7 +173,7 @@ const ActivityTabs: React.FC<ActivityTabsProps> = ({ isSidebarOpen }) => {
         }
         return (
           <div>
-            <p className="fw-bold p-2 fs-4" style={{ color: '#0094B6' }}>
+            <p className="fw-bold fs-4" style={{ color: '#0094B6' }}>
               Selected Project: {selectedProjectName || '(none)'}
             </p>
             <ProjectStaffs
@@ -194,7 +194,7 @@ const ActivityTabs: React.FC<ActivityTabsProps> = ({ isSidebarOpen }) => {
         }
         return (
           <div>
-            <p className="fw-bold p-2 fs-4" style={{ color: '#0094B6' }}>
+            <p className="fw-bold fs-4" style={{ color: '#0094B6' }}>
               Selected Project: {selectedProjectName || '(none)'}
             </p>
             <ProjectVolunteers
@@ -217,7 +217,7 @@ const ActivityTabs: React.FC<ActivityTabsProps> = ({ isSidebarOpen }) => {
         }
         return (
           <div>
-            <p className="fw-bold p-2 fs-4" style={{ color: '#0094B6' }}>
+            <p className="fw-bold fs-4" style={{ color: '#0094B6' }}>
               Selected Project: {selectedProjectName || '(none)'}
             </p>
             <ProjectCheckList
@@ -240,7 +240,7 @@ const ActivityTabs: React.FC<ActivityTabsProps> = ({ isSidebarOpen }) => {
         }
         return (
           <div>
-            <p className="fw-bold p-2 fs-4" style={{ color: '#0094B6' }}>
+            <p className="fw-bold fs-4" style={{ color: '#0094B6' }}>
               Selected Project: {selectedProjectName || '(none)'}
             </p>
             <ProjectOutcome
@@ -257,9 +257,7 @@ const ActivityTabs: React.FC<ActivityTabsProps> = ({ isSidebarOpen }) => {
   }
   return (
     <div
-      className={` ${
-        isSidebarOpen ? 'content-expanded' : 'content-collapsed'
-      }`}
+      className={` ${isSidebarOpen ? 'content-expanded' : 'content-collapsed'}`}
       style={{
         marginLeft: isSidebarOpen ? '220px' : '20px',
         minHeight: '1',
@@ -267,13 +265,13 @@ const ActivityTabs: React.FC<ActivityTabsProps> = ({ isSidebarOpen }) => {
       }}
     >
       {renderStepNav()}
-      <div className="p-3 border rounded bg-white mx-2">
+      <div className="p-3 border rounded bg-white mx-0">
         {renderStepContent()}
       </div>
       <div className="d-flex justify-content-end mt-3">
         {currentStep > 0 && (
           <Button
-            className="px-4"
+            className="px-0"
             style={{ backgroundColor: '#0094B6', marginRight: '1rem' }}
             variant="secondary"
             onClick={handleBack}
@@ -283,7 +281,7 @@ const ActivityTabs: React.FC<ActivityTabsProps> = ({ isSidebarOpen }) => {
         )}
         {currentStep < steps.length - 1 && (
           <Button
-            className="px-4"
+            className="px-0"
             style={{ backgroundColor: '#0094B6' }}
             variant="primary"
             onClick={handleNext}

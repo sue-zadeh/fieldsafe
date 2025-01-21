@@ -267,15 +267,17 @@ const OutcomeTab: React.FC<OutcomeTabProps> = ({
   }
 
   return (
-    <div className="d-flex flex-column">
+    <div
+      className={`${
+        isSidebarOpen ? 'content-expanded' : 'content-collapsed'
+      } d-flex flex-column`}
+    >
       <h3 className="fw-bold p-2 fs-4" style={{ color: '#0094B6' }}>
-        Outcome (Project Objectives)
+        Outcome (Objectives) for this Project
       </h3>
 
       {/* Objectives */}
-      <h5 className="ms-3 mt-3" style={{ color: '#0094B6' }}>
-        Objectives for this Project
-      </h5>
+      {/* <h5 className="ms-3 mt-3" style={{ color: '#0094B6' }}></h5> */}
       <div className="table-responsive px-3">
         <table className="table table-striped table-hover">
           <thead>
@@ -348,8 +350,9 @@ const OutcomeTab: React.FC<OutcomeTabProps> = ({
                         </button>
                       </>
                     ) : (
-                      <button style={{ backgroundColor: '#0094B6'}}
+                      <button
                         className="btn btn-primary btn-sm rounded transparent px-3"
+                        style={{ backgroundColor: '#0094B6' }}
                         onClick={() => startEditObjective(obj)}
                       >
                         Edit
@@ -484,7 +487,7 @@ const OutcomeTab: React.FC<OutcomeTabProps> = ({
 
             <div className="mt-2">
               <button
-                className="btn btn-success me-2"
+                className="btn btn-primary btn-sm rounded transparent px-3"
                 onClick={handleSavePredator}
               >
                 {editingPredatorId ? 'Update' : 'Add'}
@@ -533,7 +536,7 @@ const OutcomeTab: React.FC<OutcomeTabProps> = ({
                     <td>{rec.others}</td>
                     <td>
                       <button
-                        className="btn btn-primary btn-sm me-2"
+                        className="btn btn-primary btn-sm rounded transparent px-3"
                         onClick={() => startEditPredator(rec)}
                       >
                         Edit
