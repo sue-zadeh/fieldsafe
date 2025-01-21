@@ -85,6 +85,14 @@ INSERT INTO project_objectives (project_id, objective_id)
 VALUES
  (1, 1),
  (1, 2);
+
+ /* Insert the three defaults for peradator table */
+INSERT INTO predator (sub_type)
+VALUES ('Traps established'),
+       ('Traps checked'),
+       ('Catches');
+
+ -- Populate the site_hazards table
 INSERT INTO site_hazards (hazard_description) VALUES 
 ('Slippery Surface'), 
 ('Bad Weather'), 

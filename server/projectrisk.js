@@ -90,9 +90,10 @@ router.post('/risks-create-row', async (req, res) => {
 router.put('/risks/:riskId', async (req, res) => {
   const { riskId } = req.params
   const { likelihood, consequences } = req.body
+  console.log('Updating risk ID:', riskId, 'with', likelihood, consequences) // debug
 
   try {
-    await pool.query(
+    const [result] = await pool.query(
       `
       UPDATE risks
       SET likelihood = ?, consequences = ?
@@ -100,6 +101,12 @@ router.put('/risks/:riskId', async (req, res) => {
     `,
       [likelihood, consequences, riskId]
     )
+
+    // Check affectedRows
+    if (result.affectedRows === 0) {
+      return res.status(404).json({ error: `No risk found with ID ${riskId}` })
+    }
+
     res.json({ message: 'Risk updated.' })
   } catch (err) {
     console.error(err)
@@ -119,12 +126,13 @@ router.get('/project_risks', async (req, res) => {
       SELECT
         pr.id AS projectRiskId,
         r.id AS riskId,
+        r.risk_title_id AS riskTitleId, 
         rt.title AS risk_title_label,
         r.likelihood,
         r.consequences,
         r.risk_rating
       FROM project_risks pr
-      JOIN risks r      ON pr.risk_id = r.id
+      JOIN risks r        ON pr.risk_id = r.id
       JOIN risk_titles rt ON r.risk_title_id = rt.id
       WHERE pr.project_id = ?
     `,

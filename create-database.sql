@@ -95,8 +95,9 @@ CREATE TABLE IF NOT EXISTS projects (
   createdAt DATETIME DEFAULT CURRENT_TIMESTAMP,
 FOREIGN KEY (createdBy) REFERENCES login(id)
 );
-
+-----------------------------------------
 -------====Objectives TABLES=======-----
+-------------------------------------
 --the objectives table
 CREATE TABLE IF NOT EXISTS objectives (
   id INT AUTO_INCREMENT PRIMARY KEY,
@@ -113,12 +114,36 @@ CREATE TABLE IF NOT EXISTS project_objectives (
   id INT AUTO_INCREMENT PRIMARY KEY,
   project_id INT NOT NULL,
   objective_id INT NOT NULL,
-  amount INT NOT NULL DEFAULT 1
+  amount INT NOT NULL DEFAULT NULL,
   dateStart DATE NULL,
   dateEnd   DATE NULL,
   FOREIGN KEY (project_id) REFERENCES projects(id),
   FOREIGN KEY (objective_id) REFERENCES objectives(id)
 );
+-----------------------
+--The pradator table
+CREATE TABLE IF NOT EXISTS predator (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  sub_type VARCHAR(100) NOT NULL
+);
+
+--The project_pradator table
+CREATE TABLE IF NOT EXISTS project_predator (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  project_id INT NOT NULL,
+  predator_id INT NOT NULL,
+  measurement INT NULL,
+  dateStart DATE NULL,
+  dateEnd DATE NULL,
+  rats INT DEFAULT 0,
+  possums INT DEFAULT 0,
+  mustelids INT DEFAULT 0,
+  hedgehogs INT DEFAULT 0,
+  others INT DEFAULT 0,
+  FOREIGN KEY (project_id) REFERENCES projects(id) ON DELETE CASCADE,
+  FOREIGN KEY (predator_id) REFERENCES predator(id) ON DELETE CASCADE
+);
+
 
 
 -------====Hazards TABLES=======-----

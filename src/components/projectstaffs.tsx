@@ -104,9 +104,9 @@ const StaffTab: React.FC<StaffTabProps> = ({ projectId, isSidebarOpen }) => {
       className={` ${isSidebarOpen ? 'content-expanded' : 'content-collapsed'}`}
     >
       {' '}
-      <h3>Assign Staff to Project</h3>
+      <h3 style={{ color: '#0094B6' }}>Assign Staff to Project</h3>
       <p className="fw-bold p-2 fs-4" style={{ color: '#0094B6' }}>
-        Selected Project: {projectId}
+        {/* Selected Project: {projectId} */}
       </p>
       {/* Dropdowns for each staff type */}
       <div className="row mb-3">

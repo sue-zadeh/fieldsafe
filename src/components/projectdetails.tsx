@@ -48,7 +48,7 @@ const projectdetails: React.FC<ProjectDetailProps> = ({
   const handleRowClick = (proj: Project, e: React.MouseEvent) => {
     e.stopPropagation()
 
-    // Example: if we want to navigate to the /projectrisk route:
+    // For navigating to the /projectrisk route:
     // navigate('/projectrisk', { state: { projectId: proj.id } })
 
     //  which project was chosen:
