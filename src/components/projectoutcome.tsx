@@ -16,7 +16,7 @@ interface IPredatorRecord {
   id: number
   project_id: number
   predator_id: number
-  sub_type: string // from JOIN with predator table
+  sub_type: string
   measurement: number | null
   dateStart: string | null
   dateEnd: string | null
@@ -35,6 +35,7 @@ interface IPredatorOption {
 interface OutcomeTabProps {
   projectId: number
   isSidebarOpen: boolean
+  projectName: string
 }
 
 const OutcomeTab: React.FC<OutcomeTabProps> = ({
@@ -57,7 +58,6 @@ const OutcomeTab: React.FC<OutcomeTabProps> = ({
     null
   )
 
-  // The user picks from the predator table:
   const [predatorList, setPredatorList] = useState<IPredatorOption[]>([])
   const [selectedPredatorId, setSelectedPredatorId] = useState<number | null>(
     null
@@ -78,11 +78,17 @@ const OutcomeTab: React.FC<OutcomeTabProps> = ({
         const res = await axios.get<IProjectObjective[]>(
           `/api/objectives/project_objectives/${projectId}`
         )
-        setObjectives(res.data)
+        // remove time portion from dateStart/dateEnd
+        const transformed = res.data.map((obj) => ({
+          ...obj,
+          dateStart: obj.dateStart ? obj.dateStart.slice(0, 10) : null,
+          dateEnd: obj.dateEnd ? obj.dateEnd.slice(0, 10) : null,
+        }))
+        setObjectives(transformed)
 
         // Check if "Establishing Predator Control" (objective_id=11) is present
-        const hasPredatorControl = res.data.some(
-          (obj) => obj.objective_id === 11
+        const hasPredatorControl = transformed.some(
+          (o) => o.objective_id === 11
         )
         setShowPredatorSection(hasPredatorControl)
       } catch (err) {
@@ -98,7 +104,6 @@ const OutcomeTab: React.FC<OutcomeTabProps> = ({
   useEffect(() => {
     const fetchPredatorList = async () => {
       try {
-        // fetch sub_types from /api/predator
         const subtypesRes = await axios.get<IPredatorOption[]>(`/api/predator`)
         setPredatorList(subtypesRes.data)
       } catch (error) {
@@ -113,7 +118,13 @@ const OutcomeTab: React.FC<OutcomeTabProps> = ({
           const res = await axios.get<IPredatorRecord[]>(
             `/api/project_predator/${projectId}`
           )
-          setPredatorRecords(res.data)
+          // remove time portion
+          const transformed = res.data.map((p) => ({
+            ...p,
+            dateStart: p.dateStart ? p.dateStart.slice(0, 10) : null,
+            dateEnd: p.dateEnd ? p.dateEnd.slice(0, 10) : null,
+          }))
+          setPredatorRecords(transformed)
         } catch (error) {
           console.error('Error fetching project predator records:', error)
         }
@@ -140,15 +151,20 @@ const OutcomeTab: React.FC<OutcomeTabProps> = ({
   const saveObjective = async (id: number) => {
     try {
       await axios.put(`/api/objectives/project_objectives/${id}`, {
-        amount: editAmount ? Number(editAmount) : null, // store null if blank
+        amount: editAmount ? Number(editAmount) : null,
         dateStart: editDateStart || null,
         dateEnd: editDateEnd || null,
       })
-      // Refresh the list
-      const res = await axios.get<IProjectObjective[]>(
+      // Refresh
+      const newRes = await axios.get<IProjectObjective[]>(
         `/api/objectives/project_objectives/${projectId}`
       )
-      setObjectives(res.data)
+      const transformed = newRes.data.map((obj) => ({
+        ...obj,
+        dateStart: obj.dateStart ? obj.dateStart.slice(0, 10) : null,
+        dateEnd: obj.dateEnd ? obj.dateEnd.slice(0, 10) : null,
+      }))
+      setObjectives(transformed)
       cancelEditObjective()
     } catch (error) {
       console.error('Error updating project objective:', error)
@@ -183,12 +199,11 @@ const OutcomeTab: React.FC<OutcomeTabProps> = ({
   }
 
   const handleSavePredator = async () => {
+    if (!selectedPredatorId) {
+      alert('Please select a predator sub‐type.')
+      return
+    }
     try {
-      if (!selectedPredatorId) {
-        alert('Please select a predator sub‐type.')
-        return
-      }
-
       if (editingPredatorId) {
         // Update existing
         await axios.put(`/api/project_predator/${editingPredatorId}`, {
@@ -218,11 +233,16 @@ const OutcomeTab: React.FC<OutcomeTabProps> = ({
         })
       }
 
-      // Refresh predator data
+      // Refresh
       const res = await axios.get<IPredatorRecord[]>(
         `/api/project_predator/${projectId}`
       )
-      setPredatorRecords(res.data)
+      const transformed = res.data.map((p) => ({
+        ...p,
+        dateStart: p.dateStart ? p.dateStart.slice(0, 10) : null,
+        dateEnd: p.dateEnd ? p.dateEnd.slice(0, 10) : null,
+      }))
+      setPredatorRecords(transformed)
 
       resetPredatorForm()
     } catch (err) {
@@ -240,27 +260,19 @@ const OutcomeTab: React.FC<OutcomeTabProps> = ({
     }
   }
 
-  // Helper to see if the currently selected sub‐type is “Catches”
   const isSelectedCatches = () => {
     if (!selectedPredatorId) return false
     const pred = predatorList.find((p) => p.id === selectedPredatorId)
     return pred?.sub_type === 'Catches'
   }
 
-  // ----- RENDER -----
   return (
-    <div
-      className={`${
-        isSidebarOpen ? 'content-expanded' : 'content-collapsed'
-      } d-flex flex-column`}
-    >
+    <div className="d-flex flex-column">
       <h3 className="fw-bold p-2 fs-4" style={{ color: '#0094B6' }}>
         Outcome (Project Objectives)
       </h3>
 
-      {/* ------------------------------------------
-          1) TABLE OF PROJECT OBJECTIVES
-      -------------------------------------------- */}
+      {/* Objectives */}
       <h5 className="ms-3 mt-3" style={{ color: '#0094B6' }}>
         Objectives for this Project
       </h5>
@@ -283,24 +295,18 @@ const OutcomeTab: React.FC<OutcomeTabProps> = ({
                 <tr key={obj.projectObjectiveId}>
                   <td>{obj.title}</td>
                   <td>{obj.measurement}</td>
-                  {/* Amount */}
                   <td>
-                    {
-                      isEditing ? (
-                        <input
-                          type="number"
-                          className="form-control"
-                          value={editAmount}
-                          onChange={(e) => setEditAmount(e.target.value)}
-                        />
-                      ) : obj.amount !== null ? (
-                        obj.amount
-                      ) : (
-                        ''
-                      ) // show blank if null
-                    }
+                    {isEditing ? (
+                      <input
+                        type="number"
+                        className="form-control"
+                        value={editAmount}
+                        onChange={(e) => setEditAmount(e.target.value)}
+                      />
+                    ) : (
+                      obj.amount ?? ''
+                    )}
                   </td>
-                  {/* Date Start */}
                   <td>
                     {isEditing ? (
                       <input
@@ -313,7 +319,6 @@ const OutcomeTab: React.FC<OutcomeTabProps> = ({
                       obj.dateStart || ''
                     )}
                   </td>
-                  {/* Date End */}
                   <td>
                     {isEditing ? (
                       <input
@@ -343,8 +348,8 @@ const OutcomeTab: React.FC<OutcomeTabProps> = ({
                         </button>
                       </>
                     ) : (
-                      <button
-                        className="btn btn-primary btn-sm"
+                      <button style={{ backgroundColor: '#0094B6'}}
+                        className="btn btn-primary btn-sm rounded transparent px-3"
                         onClick={() => startEditObjective(obj)}
                       >
                         Edit
@@ -358,9 +363,7 @@ const OutcomeTab: React.FC<OutcomeTabProps> = ({
         </table>
       </div>
 
-      {/* ------------------------------------------
-          2) PREDATOR CONTROL SECTION (if applicable)
-      -------------------------------------------- */}
+      {/* Predator Section */}
       {showPredatorSection && (
         <>
           <h5 className="ms-3 mt-4" style={{ color: '#0094B6' }}>
@@ -378,7 +381,6 @@ const OutcomeTab: React.FC<OutcomeTabProps> = ({
                 : 'Add Predator Record'}
             </h6>
             <div className="row mb-2">
-              {/* Sub-Objective from the predator table */}
               <div className="col">
                 <label>Sub-Objective</label>
                 <select
@@ -430,7 +432,6 @@ const OutcomeTab: React.FC<OutcomeTabProps> = ({
               </div>
             </div>
 
-            {/* If user selected "Catches" */}
             {isSelectedCatches() && (
               <div className="row mb-2">
                 <div className="col">

@@ -12,6 +12,7 @@ interface Staff {
 interface StaffTabProps {
   projectId: number
   isSidebarOpen: boolean
+  projectName: string
 }
 
 const StaffTab: React.FC<StaffTabProps> = ({ projectId, isSidebarOpen }) => {
@@ -100,9 +101,7 @@ const StaffTab: React.FC<StaffTabProps> = ({ projectId, isSidebarOpen }) => {
   }
 
   return (
-    <div
-      className={` ${isSidebarOpen ? 'content-expanded' : 'content-collapsed'}`}
-    >
+    <div>
       {' '}
       <h3 style={{ color: '#0094B6' }}>Assign Staff to Project</h3>
       <p className="fw-bold p-2 fs-4" style={{ color: '#0094B6' }}>

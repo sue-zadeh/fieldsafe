@@ -227,12 +227,12 @@ const ActivityTabs: React.FC<ActivityTabsProps> = ({ isSidebarOpen }) => {
             />
           </div>
         )
-        case 5: // Outcome Tab
+      case 5: // Outcome Tab
         if (selectedProjectId === null) {
           return (
             <div>
               <h5 className="text-danger">
-              Please select a project in the "Details" step before accessing
+                Please select a project in the "Details" step before accessing
                 the "Outcome" tab.
               </h5>
             </div>
@@ -257,11 +257,11 @@ const ActivityTabs: React.FC<ActivityTabsProps> = ({ isSidebarOpen }) => {
   }
   return (
     <div
-      className={`container-fluid ${
+      className={` ${
         isSidebarOpen ? 'content-expanded' : 'content-collapsed'
       }`}
       style={{
-        marginLeft: isSidebarOpen ? '210px' : '20px',
+        marginLeft: isSidebarOpen ? '220px' : '20px',
         minHeight: '1',
         paddingTop: '2rem',
       }}
@@ -272,12 +272,22 @@ const ActivityTabs: React.FC<ActivityTabsProps> = ({ isSidebarOpen }) => {
       </div>
       <div className="d-flex justify-content-end mt-3">
         {currentStep > 0 && (
-          <Button className='px-4' style={{backgroundColor: '#0094B6', marginRight:'1rem', }} variant="secondary" onClick={handleBack}>
+          <Button
+            className="px-4"
+            style={{ backgroundColor: '#0094B6', marginRight: '1rem' }}
+            variant="secondary"
+            onClick={handleBack}
+          >
             &laquo; Back
           </Button>
         )}
         {currentStep < steps.length - 1 && (
-          <Button className='px-4' style={{backgroundColor: '#0094B6'}} variant="primary" onClick={handleNext}>
+          <Button
+            className="px-4"
+            style={{ backgroundColor: '#0094B6' }}
+            variant="primary"
+            onClick={handleNext}
+          >
             Next &raquo;
           </Button>
         )}

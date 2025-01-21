@@ -13,6 +13,10 @@ WHERE role = 'Volunteer';
 SELECT DISTINCT title, 1 FROM risks;
 --DELETE FROM risk_titles WHERE id IN (41, 42);
 --RENAME TABLE old_table_name TO new_table_name
+
+--UPDATE project_objectives
+SET amount = NULL
+WHERE amount = 1;
 =============================================
 
 -- Schema fieldbase

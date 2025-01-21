@@ -11,7 +11,6 @@ import {
   ButtonGroup,
 } from 'react-bootstrap'
 import axios from 'axios'
-// import './ProjectRisk.css'
 
 interface ProjectRiskProps {
   isSidebarOpen: boolean
@@ -28,7 +27,7 @@ interface RiskTitle {
 interface RiskRow {
   projectRiskId: number
   riskId: number
-  riskTitleId: number // <--- it should be from the backend
+  riskTitleId: number // from the backend
   risk_title_label: string
   likelihood: string
   consequences: string
@@ -59,6 +58,42 @@ interface OptionType {
 }
 
 const ProjectRisk: React.FC<ProjectRiskProps> = ({
+  isSidebarOpen,
+  projectId,
+  projectName,
+}) => {
+  // -------------------------------------------
+  // Inline <style> to override active tab color
+  // -------------------------------------------
+  return (
+    <>
+      <style>{`
+        /* Override .nav-link.active to have #0094B6 color */
+        .nav-tabs .nav-link.active {
+          color: #0094B6 !important;
+          font-weight: bold;
+          background-color: #eef8fb !important;
+          border-color: #0094B6 #0094B6 transparent !important;
+        }
+        .nav-tabs .nav-link {
+          color: #333;
+        }
+      `}</style>
+
+      <ProjectRiskInner
+        isSidebarOpen={isSidebarOpen}
+        projectId={projectId}
+        projectName={projectName}
+      />
+    </>
+  )
+}
+
+////////////////////////////////////////////////////////////////
+// We'll separate the logic into an inner component
+// so we can place <style> above easily.
+////////////////////////////////////////////////////////////////
+const ProjectRiskInner: React.FC<ProjectRiskProps> = ({
   isSidebarOpen,
   projectId,
   projectName,
@@ -259,7 +294,7 @@ const ProjectRisk: React.FC<ProjectRiskProps> = ({
         control_text: newControlText.trim(),
       })
       setNewControlText('')
-      // re-fetch the controls for that title
+      // re-fetch
       const res = await axios.get(`/api/risks/${selectedRiskTitleId}/controls`)
       setRiskControlsForTitle(res.data)
     } catch (err) {
@@ -280,7 +315,7 @@ const ProjectRisk: React.FC<ProjectRiskProps> = ({
     setConsequences(r.consequences)
     setLocalRiskRating(r.risk_rating)
 
-    // fetch that risk title’s controls so we can check/uncheck them
+    // fetch that risk title’s controls
     setSelectedRiskTitleId(r.riskTitleId)
 
     if (r.riskTitleId) {
@@ -303,6 +338,18 @@ const ProjectRisk: React.FC<ProjectRiskProps> = ({
   }
 
   async function handleSaveRisk() {
+    // Debug logging:
+    if (isEditing && editingRisk) {
+      console.log(
+        'Editing risk ID:',
+        editingRisk.riskId,
+        'with values => likelihood:',
+        likelihood,
+        'consequences:',
+        consequences
+      )
+    }
+
     if (!likelihood || !consequences) {
       setMessage('Please pick a likelihood and consequence.')
       return
@@ -315,7 +362,6 @@ const ProjectRisk: React.FC<ProjectRiskProps> = ({
           setMessage('Please pick a risk title first.')
           return
         }
-        // create row in 'risks'
         const createRes = await axios.post('/api/risks-create-row', {
           risk_title_id: selectedRiskTitleId,
           likelihood,
@@ -323,13 +369,11 @@ const ProjectRisk: React.FC<ProjectRiskProps> = ({
         })
         const newRiskId = createRes.data.riskId
 
-        // link to project
         await axios.post('/api/project_risks', {
           project_id: projectId,
           risk_id: newRiskId,
         })
 
-        // link chosen controls
         for (const cid of chosenControlIds) {
           await axios.post('/api/project_risk_controls', {
             project_id: projectId,
@@ -342,7 +386,10 @@ const ProjectRisk: React.FC<ProjectRiskProps> = ({
       } else {
         // == EDIT MODE ==
         if (!editingRisk) return
-        // update the existing "risks" row
+        // Log the ID to confirm it's not undefined
+        console.log('PUT /api/risks/', editingRisk.riskId)
+
+        // update the "risks" row
         await axios.put(`/api/risks/${editingRisk.riskId}`, {
           likelihood,
           consequences,
@@ -353,7 +400,7 @@ const ProjectRisk: React.FC<ProjectRiskProps> = ({
           `/api/project_risk_controls?projectId=${projectId}&riskId=${editingRisk.riskId}`
         )
 
-        // re-add newly chosen controls
+        // re-add newly chosen
         for (const cid of chosenControlIds) {
           await axios.post('/api/project_risk_controls', {
             project_id: projectId,
@@ -379,11 +426,9 @@ const ProjectRisk: React.FC<ProjectRiskProps> = ({
   async function handleRemoveRisk(r: RiskRow) {
     if (!window.confirm(`Remove risk "${r.risk_title_label}"?`)) return
     try {
-      // delete from project_risk_controls
       await axios.delete(
         `/api/project_risk_controls?projectId=${projectId}&riskId=${r.riskId}`
       )
-      // delete from project_risks
       await axios.delete(
         `/api/project_risks?projectId=${projectId}&riskId=${r.riskId}`
       )
@@ -404,6 +449,7 @@ const ProjectRisk: React.FC<ProjectRiskProps> = ({
     setSelectedHazardIds([])
     setShowHazardModal(true)
   }
+
   function closeHazardModal() {
     setShowHazardModal(false)
   }
@@ -484,7 +530,6 @@ const ProjectRisk: React.FC<ProjectRiskProps> = ({
   }))
 
   function isOptionDisabled(option: OptionType) {
-    // if projectRisks has a row with same label => disable
     const found = projectRisks.find(
       (pr) => pr.risk_title_label === option.label
     )
@@ -506,10 +551,7 @@ const ProjectRisk: React.FC<ProjectRiskProps> = ({
   return (
     <div
       className={isSidebarOpen ? 'content-expanded' : 'content-collapsed'}
-      style={{
-        transition: 'margin 0.3s ease',
-        paddingTop: '1rem',
-      }}
+      style={{ transition: 'margin 0.3s ease', paddingTop: '1rem' }}
     >
       {message && (
         <Alert variant="info" dismissible onClose={() => setMessage(null)}>
@@ -518,14 +560,17 @@ const ProjectRisk: React.FC<ProjectRiskProps> = ({
       )}
 
       <h3 style={{ fontWeight: 'bold', color: '#0094B6' }} className="mb-3">
-        Determine “Risk” & Hazards
-        {/* for Project: {projectName} */}
+        Determine “Risk” & Hazards for Project: {projectName}
       </h3>
 
       {/* ==================== RISKS TABLE ==================== */}
-      <div className="d-flex justify-content-between align-items-center mb-2">
+      <div>
         <h4 style={{ color: '#0094B6' }}>Risks</h4>
-        <Button variant="primary" onClick={openAddRiskModal}>
+        <Button className='px-4'
+          style={{ backgroundColor: '#0094B6'}}
+          variant="primary"
+          onClick={openAddRiskModal}
+        >
           + Add Risk
         </Button>
       </div>
@@ -603,7 +648,7 @@ const ProjectRisk: React.FC<ProjectRiskProps> = ({
           <Button
             variant="secondary"
             size="sm"
-            className="mb-2"
+            className="mb-2" style={{ backgroundColor: '#0094B6'}}
             onClick={() => openHazardModal('site')}
           >
             + Add Site Hazards
@@ -638,7 +683,7 @@ const ProjectRisk: React.FC<ProjectRiskProps> = ({
           </Table>
         </Tab>
         <Tab eventKey="activity" title="Activity/People Hazards">
-          <Button
+          <Button style={{ backgroundColor: '#0094B6'}}
             variant="secondary"
             size="sm"
             className="mb-2"
@@ -692,7 +737,7 @@ const ProjectRisk: React.FC<ProjectRiskProps> = ({
             wordBreak: 'break-word',
           }}
         >
-          {/* If not editing, we let them pick a risk title */}
+          {/* If not editing, let them pick a risk title */}
           {!isEditing && (
             <Form.Group className="mb-3">
               <Form.Label>Risk Title</Form.Label>
@@ -754,19 +799,18 @@ const ProjectRisk: React.FC<ProjectRiskProps> = ({
             <Form.Control type="text" readOnly value={localRiskRating} />
           </Form.Group>
 
-          {/* If editing or adding, let them see + pick controls */}
+          {/* Show controls if we have a risk title */}
           {selectedRiskTitleId && (
             <div className="mb-3">
               <h5 style={{ color: '#0094B6' }}>Risk Controls</h5>
               <p className="text-muted" style={{ fontSize: '0.9rem' }}>
-                Check or uncheck the controls you want for this risk
+                Check/uncheck the controls for this risk
               </p>
               <div
                 style={{
                   maxHeight: '150px',
                   overflowY: 'auto',
                   border: '1px solid #ccc',
-                  cursor: 'pointer',
                   padding: '6px',
                   marginBottom: '0.5rem',
                   whiteSpace: 'normal',
@@ -777,10 +821,11 @@ const ProjectRisk: React.FC<ProjectRiskProps> = ({
                   <Form.Check
                     key={ctrl.id}
                     type="checkbox"
+                    id={`ctrl-${ctrl.id}`} // unique ID for label toggling
                     label={ctrl.control_text}
                     checked={chosenControlIds.includes(ctrl.id)}
                     onChange={() => toggleChooseControl(ctrl.id)}
-                    style={{ cursor: 'pointer' }}
+                    style={{ cursor: 'pointer', marginBottom: '5px' }}
                   />
                 ))}
               </div>
@@ -810,7 +855,7 @@ const ProjectRisk: React.FC<ProjectRiskProps> = ({
       </Modal>
 
       {/* ===== ADD HAZARDS MODAL ===== */}
-      <Modal show={showHazardModal} onHide={() => setShowHazardModal(false)}>
+      <Modal show={showHazardModal} onHide={closeHazardModal}>
         <Modal.Header closeButton>
           <Modal.Title style={{ color: '#0094B6' }}>
             {hazardTab === 'site'
@@ -834,6 +879,7 @@ const ProjectRisk: React.FC<ProjectRiskProps> = ({
                 return (
                   <Form.Check
                     key={h.id}
+                    id={`site-haz-${h.id}`} // unique ID
                     type="checkbox"
                     label={
                       h.hazard_description + (isUsed ? ' (already added)' : '')
@@ -841,7 +887,7 @@ const ProjectRisk: React.FC<ProjectRiskProps> = ({
                     disabled={isUsed}
                     checked={selectedHazardIds.includes(h.id)}
                     onChange={() => toggleHazardSelected(h.id)}
-                    style={{ cursor: 'pointer' }}
+                    style={{ cursor: 'pointer', marginBottom: '5px' }}
                   />
                 )
               })
@@ -852,6 +898,7 @@ const ProjectRisk: React.FC<ProjectRiskProps> = ({
                 return (
                   <Form.Check
                     key={h.id}
+                    id={`act-haz-${h.id}`} // unique ID
                     type="checkbox"
                     label={
                       h.hazard_description + (isUsed ? ' (already added)' : '')
@@ -859,13 +906,13 @@ const ProjectRisk: React.FC<ProjectRiskProps> = ({
                     disabled={isUsed}
                     checked={selectedHazardIds.includes(h.id)}
                     onChange={() => toggleHazardSelected(h.id)}
-                    style={{ cursor: 'pointer' }}
+                    style={{ cursor: 'pointer', marginBottom: '5px' }}
                   />
                 )
               })}
         </Modal.Body>
         <Modal.Footer>
-          <Button variant="secondary" onClick={() => setShowHazardModal(false)}>
+          <Button variant="secondary" onClick={closeHazardModal}>
             Cancel
           </Button>
           <Button variant="primary" onClick={handleSaveHazards}>

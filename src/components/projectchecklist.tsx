@@ -9,6 +9,7 @@ interface Checklist {
 interface ProjectChecklistProps {
   projectId: number
   isSidebarOpen: boolean
+  projectName: string
 }
 
 const ProjectChecklist: React.FC<ProjectChecklistProps> = ({
@@ -97,11 +98,7 @@ const ProjectChecklist: React.FC<ProjectChecklistProps> = ({
   }
 
   return (
-    <div
-      className={`${
-        isSidebarOpen ? 'content-expanded' : 'content-collapsed'
-      } d-flex flex-column align-items-center`}
-    >
+    <div className="d-flex flex-column align-items-center">
       <h3 className="fw-bold p-2 fs-4" style={{ color: '#0094B6' }}>
         Assign Checklists to Project
       </h3>

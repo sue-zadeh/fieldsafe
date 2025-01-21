@@ -69,9 +69,7 @@ const projectdetails: React.FC<ProjectDetailProps> = ({
   }
 
   return (
-    <div
-      className={` ${isSidebarOpen ? 'content-expanded' : 'content-collapsed'}`}
-    >
+    <div>
       <h3
         className="mb-4"
         style={{

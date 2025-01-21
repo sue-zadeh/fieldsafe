@@ -13,6 +13,7 @@ interface Volunteer {
 interface VolunteerTabProps {
   projectId: number
   isSidebarOpen: boolean
+  projectName: string
 }
 
 const VolunteerTab: React.FC<VolunteerTabProps> = ({
@@ -93,11 +94,7 @@ const VolunteerTab: React.FC<VolunteerTabProps> = ({
   }
 
   return (
-    <div
-      className={` ${
-        isSidebarOpen ? 'content-expanded' : 'content-collapsed'
-      } d-flex flex-column align-items-center`}
-    >
+    <div className="d-flex flex-column align-items-center">
       <h3 className="fw-bold p-2 fs-4" style={{ color: '#0094B6' }}>
         Assign Volunteers to Project
       </h3>
