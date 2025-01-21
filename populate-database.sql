@@ -733,8 +733,8 @@ INSERT INTO project_risk_controls (id, project_id, risk_control_id, is_checked, 
 
 ---====Checklist =====----
 
-// Populating Checklist Table with Data
-INSERT INTO Checklist (description) VALUES
+-- Insert checklist items
+INSERT INTO checklist (description) VALUES
 ('All vehicle/driver licences/rego current'),
 ('Pre-existing medical conditions checked'),
 ('Weather checked, appropriate clothing worn/available'),
@@ -743,3 +743,14 @@ INSERT INTO Checklist (description) VALUES
 ('First Aid kit stocked and on site'),
 ('First Aider present'),
 ('Project and safety induction completed');
+
+-- Example project_checklist data (assuming project_id = 1)
+INSERT INTO project_checklist (project_id, checklist_id, is_checked) VALUES
+(1, 1, 0),
+(1, 2, 0),
+(1, 3, 0),
+(1, 4, 0),
+(1, 5, 0),
+(1, 6, 0),
+(1, 7, 0),
+(1, 8, 0);

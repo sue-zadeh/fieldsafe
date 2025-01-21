@@ -1,93 +1,177 @@
 import React, { useState, useEffect } from 'react'
 import axios from 'axios'
-import { Table, Form } from 'react-bootstrap'
 
-interface ProjectCheckListProps {
-  isSidebarOpen: boolean
-  projectId: number
-  projectName: string
-}
-
-interface ChecklistItem {
+interface Checklist {
   id: number
   description: string
-  is_checked: boolean
 }
 
-const ProjectChecklist: React.FC<ProjectCheckListProps> = ({
-  isSidebarOpen,
-  projectId,
-}) => {
-  const [loading, setLoading] = useState(true)
-  const [checklist, setChecklist] = useState<ChecklistItem[]>([])
+interface ProjectChecklistProps {
+  projectId: number
+  isSidebarOpen: boolean
+}
 
+const ProjectChecklist: React.FC<ProjectChecklistProps> = ({
+  projectId,
+  isSidebarOpen,
+}) => {
+  const [unassignedChecklists, setUnassignedChecklists] = useState<Checklist[]>(
+    []
+  )
+  const [projectChecklists, setProjectChecklists] = useState<Checklist[]>([])
+  const [selectedChecklists, setSelectedChecklists] = useState<number[]>([])
+
+  // 1) Fetch unassigned checklists
   useEffect(() => {
-    const fetchChecklist = async () => {
+    const fetchUnassignedChecklists = async () => {
       try {
-        const response = await axios.get(`/api/project/${projectId}/checklist`)
-        setChecklist(response.data)
-        setLoading(false)
-      } catch (error) {
-        console.error('Error fetching checklist:', error)
+        const res = await axios.get(`/api/unassigned_checklist/${projectId}`)
+        setUnassignedChecklists(res.data)
+      } catch (err) {
+        console.error('Error fetching unassigned checklists:', err)
       }
     }
-    fetchChecklist()
+
+    // Only fetch if projectId is valid (non-zero)
+    if (projectId) {
+      fetchUnassignedChecklists()
+    }
+  }, [projectId, projectChecklists])
+  // We include 'projectChecklists' so that whenever we add or remove items,
+  // the "unassigned" list can re-update.
+
+  // 2) Fetch assigned checklists
+  useEffect(() => {
+    const fetchProjectChecklists = async () => {
+      try {
+        const res = await axios.get(`/api/project_checklist/${projectId}`)
+        setProjectChecklists(res.data)
+      } catch (err) {
+        console.error('Error fetching project checklists:', err)
+      }
+    }
+
+    // Only fetch if projectId is valid
+    if (projectId) {
+      fetchProjectChecklists()
+    }
   }, [projectId])
 
-  const handleCheckToggle = async (checklistId: number) => {
+  // 3) Add selected checklists to the project
+  const handleAddChecklists = async () => {
+    if (selectedChecklists.length === 0) return
     try {
-      const response = await axios.put(
-        `/api/project/${projectId}/checklist/${checklistId}`
-      )
-      if (response.status === 200) {
-        setChecklist((prevChecklist) =>
-          prevChecklist.map((item) =>
-            item.id === checklistId
-              ? { ...item, is_checked: !item.is_checked }
-              : item
-          )
-        )
-      }
-    } catch (error) {
-      console.error('Error updating checklist item:', error)
+      await axios.post('/api/project_checklist', {
+        project_id: projectId,
+        checklist_ids: selectedChecklists,
+      })
+
+      // refresh the assigned checklists
+      const assignedRes = await axios.get(`/api/project_checklist/${projectId}`)
+      setProjectChecklists(assignedRes.data)
+
+      // clear selected
+      setSelectedChecklists([])
+    } catch (err) {
+      console.error('Error assigning checklists to project:', err)
     }
   }
 
-  if (loading) {
-    return <p>Loading checklist...</p>
+  // 4) Remove a checklist from the project
+  const handleRemoveChecklist = async (pcId: number) => {
+    const checklistToRemove = projectChecklists.find((c) => c.id === pcId)
+    if (!checklistToRemove) return
+
+    const confirmRemoval = window.confirm(
+      `Remove "${checklistToRemove.description}" from this project?`
+    )
+    if (!confirmRemoval) return
+
+    try {
+      await axios.delete(`/api/project_checklist/${pcId}`)
+      // filter out from projectChecklists
+      setProjectChecklists((prev) => prev.filter((item) => item.id !== pcId))
+    } catch (err) {
+      console.error('Error removing checklist from project:', err)
+    }
   }
 
   return (
     <div
-      className={`${isSidebarOpen ? 'content-expanded' : 'content-collapsed'}`}
+      className={`${
+        isSidebarOpen ? 'content-expanded' : 'content-collapsed'
+      } d-flex flex-column align-items-center`}
     >
-      <div className="checklist-container">
-        <h2>Checklist</h2>
-        <Table bordered hover>
-          <thead>
-            <tr>
-              <th>#</th>
-              <th>Description</th>
-              <th>Completed</th>
-            </tr>
-          </thead>
-          <tbody>
-            {checklist.map((item, index) => (
-              <tr key={item.id}>
-                <td>{index + 1}</td>
-                <td>{item.description}</td>
-                <td>
-                  <Form.Check
-                    type="checkbox"
-                    checked={item.is_checked}
-                    onChange={() => handleCheckToggle(item.id)}
-                  />
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </Table>
+      <h3 className="fw-bold p-2 fs-4" style={{ color: '#0094B6' }}>
+        Assign Checklists to Project
+      </h3>
+
+      <h5 style={{ marginBottom: '1rem' }}>
+        (Hold Ctrl/Cmd to select multiple)
+      </h5>
+
+      {/* Available (Unassigned) Checklists */}
+      <div className="mb-3 w-50">
+        <h5 style={{ color: '#0094B6' }}>Available Checklist Items</h5>
+        <select
+          className="form-select"
+          multiple
+          value={selectedChecklists.map(String)}
+          onChange={(e) => {
+            const selectedOptions = Array.from(e.target.selectedOptions).map(
+              (opt) => Number(opt.value)
+            )
+            setSelectedChecklists(selectedOptions)
+          }}
+        >
+          {unassignedChecklists.length > 0 ? (
+            unassignedChecklists.map((checklist) => (
+              <option key={checklist.id} value={checklist.id}>
+                {checklist.description}
+              </option>
+            ))
+          ) : (
+            <option disabled>No available checklist items</option>
+          )}
+        </select>
+
+        <button
+          className="btn btn-primary btn-sm mt-2"
+          style={{ backgroundColor: '#0094B6' }}
+          onClick={handleAddChecklists}
+          disabled={selectedChecklists.length === 0}
+        >
+          Add Selected Checklists
+        </button>
       </div>
+
+      {/* Already Assigned Checklists */}
+      <table
+        className="table table-striped table-hover btn-sm"
+        style={{ width: '80%' }}
+      >
+        <thead>
+          <tr>
+            <th>Description</th>
+            <th>Action</th>
+          </tr>
+        </thead>
+        <tbody>
+          {projectChecklists.map((c) => (
+            <tr key={c.id}>
+              <td>{c.description}</td>
+              <td>
+                <button
+                  className="btn btn-danger btn-sm"
+                  onClick={() => handleRemoveChecklist(c.id)}
+                >
+                  Remove
+                </button>
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
     </div>
   )
 }

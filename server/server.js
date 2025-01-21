@@ -15,7 +15,8 @@ import projectsRouter from './projects.js'
 import objectivesRouter from './objectives.js'
 import hazardRiskRoutes from './hazard.js'
 import riskRouter from './risk.js'
-import projectRiskRoutes from './projectrisk.js'
+import projectRiskRouter from './projectrisk.js'
+import checklistRouter from './checklist.js'
 
 dotenv.config()
 // For find __dirname in ES Modules---------------
@@ -36,7 +37,8 @@ app.use('/api', volunteerRoutes)
 
 app.use('/api', hazardRiskRoutes)
 app.use('/api', riskRouter)
-app.use('/api/projectrisk', projectRiskRoutes)
+app.use('/api', projectRiskRouter)
+app.use('/api', checklistRouter)
 
 // test route
 app.get('/api/ping', (req, res) => {

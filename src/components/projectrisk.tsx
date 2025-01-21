@@ -24,9 +24,8 @@ interface RiskTitle {
 }
 
 interface RiskRow {
-  projectRiskId: number // from project_risks
-  riskId: number // from risks
-  risk_title_id: number
+  projectRiskId: number // from project_risks.id AS projectRiskId
+  riskId: number // from risks.id
   risk_title_label: string
   likelihood: string
   consequences: string
@@ -35,8 +34,6 @@ interface RiskRow {
 
 interface ProjectRiskControl {
   id: number
-  project_id: number
-  risk_control_id: number
   control_text: string
 }
 
@@ -93,8 +90,12 @@ export const ProjectRisk: React.FC<ProjectRiskProps> = ({
     loadProjectHazards()
   }, [])
 
+  // =========================== LOAD DATA ============================
+
+  // 1) Load all read-only risk titles
   const loadAllRiskTitles = async () => {
     try {
+      // Example GET: /api/risks => returns an array of risk_titles
       const res = await axios.get('/api/risks')
       setAllRiskTitles(res.data)
     } catch (err) {
@@ -103,9 +104,10 @@ export const ProjectRisk: React.FC<ProjectRiskProps> = ({
     }
   }
 
+  // 2) Load project's existing chosen risks
   const loadProjectRisks = async () => {
     try {
-      // e.g. /api/project_risks?projectId=...
+      // /api/project_risks?projectId=...
       const res = await axios.get(`/api/project_risks?projectId=${projectId}`)
       setProjectRisks(res.data)
     } catch (err) {
@@ -114,6 +116,7 @@ export const ProjectRisk: React.FC<ProjectRiskProps> = ({
     }
   }
 
+  // 3) Load project-level risk controls (you may use or display them)
   const loadProjectRiskControls = async () => {
     try {
       const res = await axios.get(
@@ -121,22 +124,51 @@ export const ProjectRisk: React.FC<ProjectRiskProps> = ({
       )
       setProjectRiskControls(res.data)
     } catch (err) {
-      // optional
+      console.error('Error loadProjectRiskControls:', err)
+      // optional setMessage
     }
   }
 
-  //================= Local risk rating logic ================
+  // 4) Load hazards (site + activity)
+  const loadAllHazards = async () => {
+    try {
+      const siteRes = await axios.get('/api/site_hazards')
+      setSiteHazards(siteRes.data)
+
+      const actRes = await axios.get('/api/activity_people_hazards')
+      setActivityHazards(actRes.data)
+    } catch (err) {
+      console.error('Error loadAllHazards:', err)
+      setMessage('Failed to load hazards.')
+    }
+  }
+
+  // 5) Load which hazards are chosen for this project
+  const loadProjectHazards = async () => {
+    try {
+      const shRes = await axios.get(
+        `/api/project_site_hazards?projectId=${projectId}`
+      )
+      setProjectSiteHazards(shRes.data)
+
+      const ahRes = await axios.get(
+        `/api/project_activity_people_hazards?projectId=${projectId}`
+      )
+      setProjectActivityHazards(ahRes.data)
+    } catch (err) {
+      console.error('Error loadProjectHazards:', err)
+      setMessage('Failed to load project hazards.')
+    }
+  }
+
+  // ================== Local risk rating logic ==================
   useEffect(() => {
-    // whenever user changes "likelihood" or "consequences",
-    // compute a local rating (matching your MySQL logic as closely as possible)
     setLocalRiskRating(computeLocalRiskRating(likelihood, consequences))
   }, [likelihood, consequences])
 
-  // This function replicates your MySQL CASE logic
-  // so the user sees the same rating label in the modal
+  // same logic as your MySQL case statements
   function computeLocalRiskRating(like: string, cons: string): string {
     if (!like || !cons) return ''
-    // make them lower for matching
     const l = like.toLowerCase().trim()
     const c = cons.toLowerCase().trim()
 
@@ -170,35 +202,9 @@ export const ProjectRisk: React.FC<ProjectRiskProps> = ({
     return 'Unknown'
   }
 
-  //================= Hazards
-  const loadAllHazards = async () => {
-    try {
-      const siteRes = await axios.get('/api/site_hazards')
-      setSiteHazards(siteRes.data)
-      const actRes = await axios.get('/api/activity_people_hazards')
-      setActivityHazards(actRes.data)
-    } catch (err) {
-      console.error('Error loadAllHazards:', err)
-      setMessage('Failed to load hazards.')
-    }
-  }
-  const loadProjectHazards = async () => {
-    try {
-      const shRes = await axios.get(
-        `/api/project_site_hazards?projectId=${projectId}`
-      )
-      setProjectSiteHazards(shRes.data)
-      const ahRes = await axios.get(
-        `/api/project_activity_people_hazards?projectId=${projectId}`
-      )
-      setProjectActivityHazards(ahRes.data)
-    } catch (err) {
-      console.error('Error loadProjectHazards:', err)
-      setMessage('Failed to load project hazards.')
-    }
-  }
-
-  //================= Add Risk Modal
+  // =============================================================
+  // ======================= ADD RISK MODAL =======================
+  // =============================================================
   const openAddRiskModal = () => {
     setShowAddRiskModal(true)
     setSelectedRiskTitleId(null)
@@ -213,11 +219,13 @@ export const ProjectRisk: React.FC<ProjectRiskProps> = ({
     setShowAddRiskModal(false)
   }
 
+  // user chooses a risk title => load all controls for that title
   const handlePickRiskTitle = async (riskTitleId: number) => {
     setSelectedRiskTitleId(riskTitleId)
     try {
+      // example route: /api/risks/:riskTitleId/controls => returns all controls for that title
       const res = await axios.get(`/api/risks/${riskTitleId}/controls`)
-      setRiskControlsForTitle(res.data) // array of {id, control_text}
+      setRiskControlsForTitle(res.data)
       setChosenControlIds([])
     } catch (err) {
       console.error('Error handlePickRiskTitle:', err)
@@ -233,7 +241,7 @@ export const ProjectRisk: React.FC<ProjectRiskProps> = ({
     )
   }
 
-  // Add a new control text to the chosen risk title
+  // add new control text to the DB, then reload that risk title's controls
   const handleAddNewControl = async () => {
     if (!selectedRiskTitleId || !newControlText.trim()) return
     try {
@@ -241,7 +249,7 @@ export const ProjectRisk: React.FC<ProjectRiskProps> = ({
         control_text: newControlText.trim(),
       })
       setNewControlText('')
-      // reload that risk title’s controls
+      // reload
       const res = await axios.get(`/api/risks/${selectedRiskTitleId}/controls`)
       setRiskControlsForTitle(res.data)
     } catch (err) {
@@ -250,29 +258,27 @@ export const ProjectRisk: React.FC<ProjectRiskProps> = ({
     }
   }
 
-  // Actually save the newly chosen risk to the project
   const handleSaveNewProjectRisk = async () => {
     if (!selectedRiskTitleId || !likelihood || !consequences) {
       setMessage('Please pick a risk title, likelihood, and consequence.')
       return
     }
     try {
-      // 1) create row in `risks`
+      // (1) Insert a new row in `risks` table
       const createRes = await axios.post('/api/risks-create-row', {
         risk_title_id: selectedRiskTitleId,
         likelihood,
         consequences,
-        // The DB will compute actual risk_rating using your MySQL column
       })
       const newRiskId = createRes.data.riskId
 
-      // 2) link to project
+      // (2) Insert into `project_risks`
       await axios.post('/api/project_risks', {
         project_id: projectId,
         risk_id: newRiskId,
       })
 
-      // 3) link chosen controls => project_risk_controls
+      // (3) For each chosen control, insert into `project_risk_controls`
       for (const cid of chosenControlIds) {
         await axios.post('/api/project_risk_controls', {
           project_id: projectId,
@@ -291,7 +297,9 @@ export const ProjectRisk: React.FC<ProjectRiskProps> = ({
     }
   }
 
-  //================= Remove Risk
+  // =============================================================
+  // ========================= REMOVE RISK ========================
+  // =============================================================
   const handleRemoveRisk = async (risk: RiskRow) => {
     if (
       !window.confirm(`Remove risk "${risk.risk_title_label}" from project?`)
@@ -299,11 +307,11 @@ export const ProjectRisk: React.FC<ProjectRiskProps> = ({
       return
     }
     try {
-      // 1) remove from project_risk_controls
+      // remove from project_risk_controls
       await axios.delete(
         `/api/project_risk_controls?projectId=${projectId}&riskId=${risk.riskId}`
       )
-      // 2) remove from project_risks
+      // remove from project_risks
       await axios.delete(
         `/api/project_risks?projectId=${projectId}&riskId=${risk.riskId}`
       )
@@ -317,11 +325,12 @@ export const ProjectRisk: React.FC<ProjectRiskProps> = ({
   }
 
   const handleEditRisk = (risk: RiskRow) => {
-    // you’d open an “Edit Risk” modal, etc.
     setMessage('Edit risk not yet implemented.')
   }
 
-  //================= Hazards
+  // =============================================================
+  // ========================= HAZARDS ============================
+  // =============================================================
   const openHazardModal = (type: 'site' | 'activity') => {
     setHazardTab(type)
     setSelectedHazardIds([])
@@ -330,11 +339,14 @@ export const ProjectRisk: React.FC<ProjectRiskProps> = ({
   const closeHazardModal = () => {
     setShowHazardModal(false)
   }
+
   const toggleHazardSelected = (hid: number) => {
     setSelectedHazardIds((prev) =>
       prev.includes(hid) ? prev.filter((x) => x !== hid) : [...prev, hid]
     )
   }
+
+  // Save chosen hazards to the project
   const handleSaveHazards = async () => {
     try {
       if (hazardTab === 'site') {
@@ -361,6 +373,7 @@ export const ProjectRisk: React.FC<ProjectRiskProps> = ({
       setMessage('Failed to save hazards.')
     }
   }
+
   const handleRemoveSiteHazard = async (haz: Hazard) => {
     if (!window.confirm(`Remove site hazard "${haz.hazard_description}"?`))
       return
@@ -375,6 +388,7 @@ export const ProjectRisk: React.FC<ProjectRiskProps> = ({
       setMessage('Failed to remove site hazard.')
     }
   }
+
   const handleRemoveActivityHazard = async (haz: Hazard) => {
     if (!window.confirm(`Remove activity hazard "${haz.hazard_description}"?`))
       return
@@ -390,7 +404,7 @@ export const ProjectRisk: React.FC<ProjectRiskProps> = ({
     }
   }
 
-  //================= auto-clear any <Alert> after 5s
+  // auto-hide any alert after 5s
   useEffect(() => {
     if (message) {
       const t = setTimeout(() => setMessage(null), 5000)
@@ -401,6 +415,10 @@ export const ProjectRisk: React.FC<ProjectRiskProps> = ({
   return (
     <div
       className={` ${isSidebarOpen ? 'content-expanded' : 'content-collapsed'}`}
+      style={{
+        transition: 'margin 0.3s ease',
+        paddingTop: '1rem',
+      }}
     >
       {message && (
         <Alert
@@ -421,17 +439,23 @@ export const ProjectRisk: React.FC<ProjectRiskProps> = ({
         <span style={{ color: '#0094B6' }}>{projectName}</span>
       </h5>
 
+      {/* ==================== RISKS TABLE ==================== */}
       <div className="d-flex justify-content-between align-items-center mb-2">
         <h4>Risks</h4>
         <Button variant="primary" onClick={openAddRiskModal}>
           + Add Risk
         </Button>
       </div>
+
       <Table bordered hover responsive>
         <thead>
           <tr>
-            <th>Risk Title</th>
-            <th>Selected Controls</th>
+            <th style={{ whiteSpace: 'normal', wordBreak: 'break-word' }}>
+              Risk Title
+            </th>
+            <th style={{ whiteSpace: 'normal', wordBreak: 'break-word' }}>
+              Selected Controls
+            </th>
             <th>Likelihood</th>
             <th>Consequence</th>
             <th>Risk Rating</th>
@@ -441,7 +465,9 @@ export const ProjectRisk: React.FC<ProjectRiskProps> = ({
         <tbody>
           {projectRisks.map((r) => (
             <tr key={r.riskId}>
-              <td>{r.risk_title_label}</td>
+              <td style={{ whiteSpace: 'normal', wordBreak: 'break-word' }}>
+                {r.risk_title_label}
+              </td>
               <td>(Placeholder for chosen controls)</td>
               <td>{r.likelihood}</td>
               <td>{r.consequences}</td>
@@ -469,6 +495,7 @@ export const ProjectRisk: React.FC<ProjectRiskProps> = ({
         </tbody>
       </Table>
 
+      {/* ==================== HAZARDS TABLES ==================== */}
       <h4 className="mt-4">Hazards</h4>
       <Tabs
         activeKey={hazardTab}
@@ -489,14 +516,18 @@ export const ProjectRisk: React.FC<ProjectRiskProps> = ({
           <Table bordered hover responsive>
             <thead>
               <tr>
-                <th>Hazard Description</th>
+                <th style={{ whiteSpace: 'normal', wordBreak: 'break-word' }}>
+                  Hazard Description
+                </th>
                 <th>Actions</th>
               </tr>
             </thead>
             <tbody>
               {projectSiteHazards.map((h) => (
                 <tr key={h.id}>
-                  <td>{h.hazard_description}</td>
+                  <td style={{ whiteSpace: 'normal', wordBreak: 'break-word' }}>
+                    {h.hazard_description}
+                  </td>
                   <td>
                     <ButtonGroup>
                       <Button
@@ -513,6 +544,7 @@ export const ProjectRisk: React.FC<ProjectRiskProps> = ({
             </tbody>
           </Table>
         </Tab>
+
         <Tab eventKey="activity" title="Activity/People Hazards">
           <Button
             variant="secondary"
@@ -525,14 +557,23 @@ export const ProjectRisk: React.FC<ProjectRiskProps> = ({
           <Table bordered hover responsive>
             <thead>
               <tr>
-                <th>Hazard Description</th>
+                <th style={{ whiteSpace: 'normal', wordBreak: 'break-word' }}>
+                  Hazard Description
+                </th>
                 <th>Actions</th>
               </tr>
             </thead>
             <tbody>
               {projectActivityHazards.map((h) => (
                 <tr key={h.id}>
-                  <td>{h.hazard_description}</td>
+                  <td
+                    style={{
+                      whiteSpace: 'normal',
+                      wordBreak: 'break-word',
+                    }}
+                  >
+                    {h.hazard_description}
+                  </td>
                   <td>
                     <ButtonGroup>
                       <Button
@@ -556,45 +597,30 @@ export const ProjectRisk: React.FC<ProjectRiskProps> = ({
         <Modal.Header closeButton>
           <Modal.Title>Project Risk Assessment</Modal.Title>
         </Modal.Header>
-        <Modal.Body>
-          {/* “Select risk” (risk title) */}
-          <Form.Group
-            className="mb-3"
-            style={{
-              whiteSpace: 'pre-wrap',
-              wordWrap: 'break-word',
-              overflowWrap: 'break-word',
-              overflowX: 'hidden',
-              maxWidth: '100%',
-            }}
-            controlId="riskTitleSelect"
-          >
+        <Modal.Body
+          style={{
+            maxHeight: '300px',
+            overflowY: 'auto',
+            whiteSpace: 'normal',
+            wordBreak: 'break-word',
+          }}
+        >
+          {/* Select risk (risk title) */}
+          <Form.Group controlId="riskTitleSelect" className="mb-3">
             <Form.Label>Select Risk Title</Form.Label>
             <Form.Select
+              style={{ whiteSpace: 'normal', wordBreak: 'break-word' }}
               value={selectedRiskTitleId ?? ''}
               onChange={(e) => handlePickRiskTitle(Number(e.target.value))}
-              style={{
-                maxHeight: '150px',
-                overflowY: 'auto',
-                whiteSpace: 'normal',
-                wordWrap: 'break-word',
-                overflowWrap: 'break-word',
-              }}
             >
-              <option value="" style={{ whiteSpace: 'normal' }}>
-                -- Select Risk --
-              </option>
+              <option value="">-- Select Risk --</option>
               {allRiskTitles.map((rt) => (
                 <option
                   key={rt.id}
                   value={rt.id}
                   style={{
-                    maxHeight: '150px',
-                    maxWidth: '50%',
-                    overflowY: 'auto',
                     whiteSpace: 'normal',
-                    wordWrap: 'break-word',
-                    overflowWrap: 'break-word',
+                    wordBreak: 'break-word',
                   }}
                 >
                   {rt.title}
@@ -603,34 +629,45 @@ export const ProjectRisk: React.FC<ProjectRiskProps> = ({
             </Form.Select>
           </Form.Group>
 
-          <Form.Group className="mb-3 flex-fill">
-            <Form.Label>Consequences</Form.Label>
-            <Form.Select
-              value={consequences}
-              onChange={(e) => setConsequences(e.target.value)}
-            >
-              <option value="">-- Select Consequence --</option>
-              <option>insignificant</option>
-              <option>minor</option>
-              <option>moderate</option>
-              <option>major</option>
-              <option>catastrophic</option>
-            </Form.Select>
-          </Form.Group>
+          {/* Likelihood / Consequence */}
+          <div className="d-flex gap-3">
+            <Form.Group className="mb-3 flex-fill">
+              <Form.Label>Likelihood</Form.Label>
+              <Form.Select
+                value={likelihood}
+                onChange={(e) => setLikelihood(e.target.value)}
+              >
+                <option value="">-- Select Likelihood --</option>
+                <option>highly unlikely</option>
+                <option>unlikely</option>
+                <option>quite possible</option>
+                <option>likely</option>
+                <option>almost certain</option>
+              </Form.Select>
+            </Form.Group>
+            <Form.Group className="mb-3 flex-fill">
+              <Form.Label>Consequence</Form.Label>
+              <Form.Select
+                value={consequences}
+                onChange={(e) => setConsequences(e.target.value)}
+              >
+                <option value="">-- Select Consequence --</option>
+                <option>insignificant</option>
+                <option>minor</option>
+                <option>moderate</option>
+                <option>major</option>
+                <option>catastrophic</option>
+              </Form.Select>
+            </Form.Group>
+          </div>
 
-          {/* Risk Rating (read‐only) */}
+          {/* Risk Rating (read-only) */}
           <Form.Group className="mb-3">
             <Form.Label>Risk Rating</Form.Label>
-            <Form.Control
-              type="text"
-              placeholder=""
-              readOnly
-              value={localRiskRating}
-            />
-            <Form.Text className="text-muted"></Form.Text>
+            <Form.Control type="text" readOnly value={localRiskRating} />
           </Form.Group>
 
-          {/* Additional Risk Controls → show existing controls for chosen risk + let user pick or add */}
+          {/* Risk Controls */}
           {selectedRiskTitleId && (
             <div className="mb-3">
               <h5>Additional Risk Controls</h5>
@@ -641,29 +678,25 @@ export const ProjectRisk: React.FC<ProjectRiskProps> = ({
                   border: '1px solid #ccc',
                   padding: '6px',
                   marginBottom: '0.5rem',
-                  whiteSpace: 'pre-wrap',
-                  wordWrap: 'break-word',
-                  overflowWrap: 'break-word',
+                  whiteSpace: 'normal',
+                  wordBreak: 'break-word',
                 }}
               >
                 {riskControlsForTitle.map((ctrl) => (
                   <Form.Check
                     key={ctrl.id}
                     type="checkbox"
+                    id={`ctrl-${ctrl.id}`}
                     label={ctrl.control_text}
                     checked={chosenControlIds.includes(ctrl.id)}
                     onChange={() => toggleChooseControl(ctrl.id)}
+                    style={{ cursor: 'pointer' }}
                   />
                 ))}
               </div>
               <div className="d-flex gap-2">
                 <Form.Control
                   type="text"
-                  style={{
-                    whiteSpace: 'pre-wrap',
-                    wordWrap: 'break-word',
-                    overflowWrap: 'break-word',
-                  }}
                   placeholder="Add new control text..."
                   value={newControlText}
                   onChange={(e) => setNewControlText(e.target.value)}
@@ -698,9 +731,8 @@ export const ProjectRisk: React.FC<ProjectRiskProps> = ({
           style={{
             maxHeight: '300px',
             overflowY: 'auto',
-            whiteSpace: 'pre-wrap',
-            wordWrap: 'break-word',
-            overflowWrap: 'break-word',
+            whiteSpace: 'normal',
+            wordBreak: 'break-word',
           }}
         >
           {hazardTab === 'site'
@@ -708,18 +740,22 @@ export const ProjectRisk: React.FC<ProjectRiskProps> = ({
                 <Form.Check
                   key={h.id}
                   type="checkbox"
+                  id={`site-hazard-${h.id}`}
                   label={h.hazard_description}
                   checked={selectedHazardIds.includes(h.id)}
                   onChange={() => toggleHazardSelected(h.id)}
+                  style={{ cursor: 'pointer' }}
                 />
               ))
             : activityHazards.map((h) => (
                 <Form.Check
                   key={h.id}
                   type="checkbox"
+                  id={`act-hazard-${h.id}`}
                   label={h.hazard_description}
                   checked={selectedHazardIds.includes(h.id)}
                   onChange={() => toggleHazardSelected(h.id)}
+                  style={{ cursor: 'pointer' }}
                 />
               ))}
         </Modal.Body>

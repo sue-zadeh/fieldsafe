@@ -101,8 +101,11 @@ const VolunteerTab: React.FC<VolunteerTabProps> = ({
       <h3 className="fw-bold p-2 fs-4" style={{ color: '#0094B6' }}>
         Assign Volunteers to Project
       </h3>
+      <h5 style={{ marginBottom: '1rem' }}>
+        Hold the Ctrl key (or Cmd key on Mac) to select multiple options.
+      </h5>
 
-      <div className="mb-3" style={{ width: '50%' }}>
+      <div className="mb-3 w-50">
         <h5 style={{ color: '#0094B6' }}>Available Volunteers</h5>
         <select
           className="form-select"
@@ -127,6 +130,7 @@ const VolunteerTab: React.FC<VolunteerTabProps> = ({
         </select>
 
         <button
+          style={{ backgroundColor: '#0094B6' }}
           className="btn btn-primary btn-sm mt-2"
           onClick={handleAddVolunteers}
           disabled={selectedVolunteers.length === 0}

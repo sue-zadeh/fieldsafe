@@ -12,7 +12,7 @@ WHERE role = 'Volunteer';
 --INSERT INTO risk_titles (title, isReadOnly)
 SELECT DISTINCT title, 1 FROM risks;
 --DELETE FROM risk_titles WHERE id IN (41, 42);
-
+--RENAME TABLE old_table_name TO new_table_name
 =============================================
 
 -- Schema fieldbase
@@ -237,18 +237,18 @@ CREATE TABLE project_risk_controls (
 
 ---====Checklist =====----
 
-// Checklist Table Structure in MySQL
-CREATE TABLE Checklist (
+/* Checklist Table */
+CREATE TABLE checklist (
     id INT AUTO_INCREMENT PRIMARY KEY,
     description VARCHAR(255) NOT NULL
 );
 
-// Project_Checklist Table Structure in MySQL
-CREATE TABLE Project_Checklist (
+/* Project_Checklist Table */
+CREATE TABLE project_checklist (
     id INT AUTO_INCREMENT PRIMARY KEY,
     project_id INT NOT NULL,
     checklist_id INT NOT NULL,
     is_checked BOOLEAN DEFAULT FALSE,
-    FOREIGN KEY (project_id) REFERENCES Projects(id) ON DELETE CASCADE,
-    FOREIGN KEY (checklist_id) REFERENCES Checklist(id) ON DELETE CASCADE
+    FOREIGN KEY (project_id) REFERENCES projects(id) ON DELETE CASCADE,
+    FOREIGN KEY (checklist_id) REFERENCES checklist(id) ON DELETE CASCADE
 );

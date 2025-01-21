@@ -242,6 +242,24 @@ volunteerRouter.get('/unassigned_volunteer/:project_id', async (req, res) => {
   }
 })
 
+// ----=====Delete Volunteers=====----
+
+// DELETE /api/project_volunteer/:id
+volunteerRouter.delete('/project_volunteer/:id', async (req, res) => {
+  const { id } = req.params
+  try {
+    const sql = `
+      DELETE FROM project_volunteer
+      WHERE id = ?
+    `
+    await pool.execute(sql, [id])
+    res.json({ message: 'Volunteer removed from project' })
+  } catch (error) {
+    console.error('Error removing volunteer:', error)
+    res.status(500).json({ message: 'Error removing volunteer from project' })
+  }
+})
+
 // POST /api/project_volunteer
 // volunteerRouter.post('/project_volunteer', async (req, res) => {
 //   const { project_id, volunteer_ids } = req.body
@@ -259,24 +277,5 @@ volunteerRouter.get('/unassigned_volunteer/:project_id', async (req, res) => {
 //   }
 // })
 
-// ----=====Delete Volunteers=====----
-
-// Show Only Unassigned Volunteers
-
-// DELETE /api/project_volunteer/:id
-volunteerRouter.delete('/project_volunteer/:id', async (req, res) => {
-  const { id } = req.params
-  try {
-    const sql = `
-      DELETE FROM project_volunteer
-      WHERE id = ?
-    `
-    await pool.execute(sql, [id])
-    res.json({ message: 'Volunteer removed from project' })
-  } catch (error) {
-    console.error('Error removing volunteer:', error)
-    res.status(500).json({ message: 'Error removing volunteer from project' })
-  }
-})
 
 export default volunteerRouter

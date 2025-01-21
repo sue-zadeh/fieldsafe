@@ -48,15 +48,15 @@ const projectdetails: React.FC<ProjectDetailProps> = ({
   const handleRowClick = (proj: Project, e: React.MouseEvent) => {
     e.stopPropagation()
 
-    // Example: if you want to navigate to the /projectrisk route:
+    // Example: if we want to navigate to the /projectrisk route:
     // navigate('/projectrisk', { state: { projectId: proj.id } })
 
-    // Tell the parent wizard which project was chosen:
+    //  which project was chosen:
     if (onProjectSelected) {
       onProjectSelected(proj.id, proj.name)
     }
 
-    // If you store in localStorage:
+    // If store in localStorage:
     localStorage.setItem('selectedProjectId', String(proj.id))
     localStorage.setItem('selectedProjectName', proj.name)
   }

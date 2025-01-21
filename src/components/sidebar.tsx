@@ -5,7 +5,7 @@ import {
   FaUsers,
   FaTasks,
   FaUserCog,
-  FaBullseye,
+  // FaBullseye,
 } from 'react-icons/fa'
 import { MdGroups, MdVolunteerActivism, MdLocalActivity } from 'react-icons/md'
 import {
