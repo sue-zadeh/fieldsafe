@@ -6,6 +6,7 @@ import ProjectRisk from './projectrisk'
 import ProjectStaffs from './projectstaffs'
 import ProjectVolunteers from './projectvolunteers'
 import ProjectCheckList from './projectchecklist'
+import ProjectOutcome from './projectoutcome'
 interface ActivityTabsProps {
   isSidebarOpen: boolean
 }
@@ -220,6 +221,29 @@ const ActivityTabs: React.FC<ActivityTabsProps> = ({ isSidebarOpen }) => {
               Selected Project: {selectedProjectName || '(none)'}
             </p>
             <ProjectCheckList
+              isSidebarOpen={isSidebarOpen}
+              projectId={selectedProjectId}
+              projectName={selectedProjectName}
+            />
+          </div>
+        )
+        case 5: // Outcome Tab
+        if (selectedProjectId === null) {
+          return (
+            <div>
+              <h5 className="text-danger">
+              Please select a project in the "Details" step before accessing
+                the "Outcome" tab.
+              </h5>
+            </div>
+          )
+        }
+        return (
+          <div>
+            <p className="fw-bold p-2 fs-4" style={{ color: '#0094B6' }}>
+              Selected Project: {selectedProjectName || '(none)'}
+            </p>
+            <ProjectOutcome
               isSidebarOpen={isSidebarOpen}
               projectId={selectedProjectId}
               projectName={selectedProjectName}

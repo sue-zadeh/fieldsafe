@@ -106,9 +106,7 @@ const ProjectChecklist: React.FC<ProjectChecklistProps> = ({
         Assign Checklists to Project
       </h3>
 
-      <h5 style={{ marginBottom: '1rem' }}>
-        (Hold Ctrl/Cmd to select multiple)
-      </h5>
+      <h5 style={{ marginBottom: '1rem' }}>Hold Ctrl/Cmd to select multiple</h5>
 
       {/* Available (Unassigned) Checklists */}
       <div className="mb-3 w-50">

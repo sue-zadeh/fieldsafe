@@ -99,4 +99,64 @@ router.delete('/:id', async (req, res) => {
     res.status(500).json({ message: 'Internal server error.' })
   }
 })
+
+// ================================================================
+//     NEW ENDPOINTS FOR THE "OUTCOME" / "PROJECT OBJECTIVES"
+// ================================================================
+
+//
+//  GET the chosen objectives for a specific project
+//    (JOIN project_objectives + objectives)
+//
+router.get('/project_objectives/:project_id', async (req, res) => {
+  const { project_id } = req.params
+  try {
+    const sql = `
+      SELECT 
+        po.id AS projectObjectiveId,
+        po.project_id,
+        po.objective_id,
+        po.amount,
+        po.dateStart,
+        po.dateEnd,
+        o.title,
+        o.measurement
+      FROM project_objectives po
+      JOIN objectives o ON po.objective_id = o.id
+      WHERE po.project_id = ?
+    `
+    const [rows] = await pool.query(sql, [project_id])
+    res.json(rows)
+  } catch (err) {
+    console.error('Error fetching project objectives:', err)
+    res.status(500).json({ message: 'Internal server error' })
+  }
+})
+
+//
+// UPDATE a single project_objectives row (dateStart, dateEnd, amount, etc.)
+//    PUT /api/project_objectives/:id
+//
+router.put('/project_objectives/:id', async (req, res) => {
+  const { id } = req.params
+  const { amount, dateStart, dateEnd } = req.body
+
+  try {
+    const sql = `
+      UPDATE project_objectives
+      SET amount = ?, dateStart = ?, dateEnd = ?
+      WHERE id = ?
+    `
+    const [result] = await pool.query(sql, [amount, dateStart, dateEnd, id])
+    if (result.affectedRows === 0) {
+      return res.status(404).json({ message: 'Project objective not found.' })
+    }
+
+    res.json({ message: 'Project objective updated successfully.' })
+  } catch (error) {
+    console.error('Error updating project objective:', error)
+    res.status(500).json({ message: 'Failed to update project objective.' })
+  }
+})
+
 export default router

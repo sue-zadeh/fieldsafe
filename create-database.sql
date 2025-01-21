@@ -96,7 +96,7 @@ CREATE TABLE IF NOT EXISTS projects (
 FOREIGN KEY (createdBy) REFERENCES login(id)
 );
 
-
+-------====Objectives TABLES=======-----
 --the objectives table
 CREATE TABLE IF NOT EXISTS objectives (
   id INT AUTO_INCREMENT PRIMARY KEY,
@@ -108,16 +108,18 @@ CREATE TABLE IF NOT EXISTS objectives (
   FOREIGN KEY (project_id) REFERENCES projects(id)
 );
 
-
 -- the project_objectives table
 CREATE TABLE IF NOT EXISTS project_objectives (
   id INT AUTO_INCREMENT PRIMARY KEY,
   project_id INT NOT NULL,
   objective_id INT NOT NULL,
   amount INT NOT NULL DEFAULT 1
+  dateStart DATE NULL,
+  dateEnd   DATE NULL,
   FOREIGN KEY (project_id) REFERENCES projects(id),
   FOREIGN KEY (objective_id) REFERENCES objectives(id)
 );
+
 
 -------====Hazards TABLES=======-----
 -- Site Hazards Table
