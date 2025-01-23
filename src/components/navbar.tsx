@@ -166,10 +166,10 @@ const Navbar: React.FC<NavbarProps> = ({
                 </li>
                 <li>
                   <Link
-                    to="/searchactivity"
+                   to="/activity-notes"
                     className="dropdown-item"
                     style={{
-                      fontWeight: isActive('/searchactivity')
+                      fontWeight: isActive('/activity-notes')
                         ? 'bold'
                         : 'normal',
                     }}

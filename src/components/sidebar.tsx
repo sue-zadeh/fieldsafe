@@ -215,10 +215,10 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, toggleSidebar }) => {
             </li>
             <li>
               <Link
-                to="/searchactivity"
+                 to="/activity-notes"
                 style={{
                   ...dropdownLinkStyle,
-                  ...(isActive('/searchactivity')
+                  ...(isActive('/activity-notes')
                     ? { fontWeight: 'bold', color: '#000' }
                     : {}),
                 }}

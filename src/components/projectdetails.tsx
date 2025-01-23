@@ -20,10 +20,10 @@ interface ProjectDetailProps {
 }
 
 const projectdetails: React.FC<ProjectDetailProps> = ({
-  isSidebarOpen,
+  // isSidebarOpen,
   onProjectSelected,
 }) => {
-  const navigate = useNavigate()
+  // const navigate = useNavigate()
   const [projects, setProjects] = useState<Project[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)

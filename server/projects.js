@@ -247,7 +247,7 @@ router.put(
       // partial update logic
       const updatedName = name ?? old.name
       const updatedLocation = location ?? old.location
-      const updatedStartDate = startDate ?? old.startDate
+      const updatedStartDate = new Date(Date.UTC(2025, 0, 0))
       const updatedStatus = status ?? old.status
       const updatedCreatedBy = createdBy ?? old.createdBy
       const updatedEmergency = emergencyServices ?? old.emergencyServices

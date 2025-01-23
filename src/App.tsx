@@ -32,9 +32,9 @@ const App: React.FC = () => {
   const navigate = useNavigate()
 
   // For inactivity:
-  const INACTIVITY_LIMIT = 20 * 60_000 // 20 minutes in ms
+  const INACTIVITY_LIMIT = 200 * 60_000 // 200 minutes in ms
   const [showSessionModal, setShowSessionModal] = useState(false)
-  const [countdown, setCountdown] = useState(60) // 60 seconds
+  const [countdown, setCountdown] = useState(120) // 2 minutes
   const [showSessionExpiredAlert, setShowSessionExpiredAlert] = useState(false)
 
   // references for timeouts so we can clear them
@@ -56,15 +56,15 @@ const App: React.FC = () => {
   useEffect(() => {
     // 1) Start or reset the inactivity timers
     const startTimers = () => {
-      // Timer #1: after (INACTIVITY_LIMIT - 60_000), show the modal
+      // Timer #1: after (INACTIVITY_LIMIT - 120_000), show the modal
       // For 20 min total, show the modal after 19 min.
       sessionTimerRef.current = setTimeout(() => {
         setShowSessionModal(true)
         // Now we also start the logout timer:
         logoutTimerRef.current = setTimeout(() => {
           handleAutoLogout()
-        }, 60_000) // 1 minute after the modal
-      }, INACTIVITY_LIMIT - 60_000) // 19 minutes
+        }, 120_000) // 1 minute after the modal
+      }, INACTIVITY_LIMIT - 120_000) // 200 minutes
     }
     // If the user does any mouse or key activity BEFORE the modal is shown,
     //    reset both timers. But if the modal is already visible,
@@ -97,10 +97,10 @@ const App: React.FC = () => {
     }
   }, [showSessionModal]) //depends on showSessionModal
 
-  // If the session modal is visible, start the 60-sec countdown
+  // If the session modal is visible, start the 120-sec countdown
   useEffect(() => {
     if (showSessionModal) {
-      setCountdown(60) // reset to 60
+      setCountdown(120) // reset to 120
       const intervalId = setInterval(() => {
         setCountdown((prev) => {
           if (prev <= 1) {

@@ -1,14 +1,10 @@
+// predator.js
 import express from 'express'
 import { pool } from './db.js'
 
 const router = express.Router()
 
-///----------------------------//
-//    Pradator Controls      ///
-//--------------------------///-
-
-//  GET /api/predator
-//    Returns the list of predator sub-types from the predator table
+// GET /api/predator
 router.get('/predator', async (req, res) => {
   try {
     const [rows] = await pool.query('SELECT * FROM predator')
@@ -19,10 +15,7 @@ router.get('/predator', async (req, res) => {
   }
 })
 
-//
 // GET /api/project_predator/:project_id
-//    Return all predator records for a given project, joined to the predator sub‐type
-//
 router.get('/project_predator/:project_id', async (req, res) => {
   const { project_id } = req.params
   try {
@@ -31,7 +24,7 @@ router.get('/project_predator/:project_id', async (req, res) => {
         pp.id,
         pp.project_id,
         pp.predator_id,
-        pr.sub_type,  -- from predator table
+        pr.sub_type,
         pp.measurement,
         pp.dateStart,
         pp.dateEnd,
@@ -40,6 +33,7 @@ router.get('/project_predator/:project_id', async (req, res) => {
         pp.mustelids,
         pp.hedgehogs,
         pp.others
+        pp.others_description 
       FROM project_predator pp
       JOIN predator pr ON pp.predator_id = pr.id
       WHERE pp.project_id = ?
@@ -52,15 +46,13 @@ router.get('/project_predator/:project_id', async (req, res) => {
   }
 })
 
-//
 // POST /api/project_predator
-//    Insert a new record linking project_id with predator_id
-//
 router.post('/project_predator', async (req, res) => {
+  
   try {
     const {
       project_id,
-      predator_id, // instead of sub_type
+      predator_id,
       measurement,
       dateStart,
       dateEnd,
@@ -69,14 +61,15 @@ router.post('/project_predator', async (req, res) => {
       mustelids,
       hedgehogs,
       others,
+      others_description,
     } = req.body
 
     const sql = `
       INSERT INTO project_predator
         (project_id, predator_id, measurement, dateStart, dateEnd,
          rats, possums, mustelids, hedgehogs, others)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-    `
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)    `
+
     await pool.query(sql, [
       project_id,
       predator_id,
@@ -88,6 +81,7 @@ router.post('/project_predator', async (req, res) => {
       mustelids ?? 0,
       hedgehogs ?? 0,
       others ?? 0,
+      others_description || null,
     ])
 
     res.status(201).json({ message: 'Predator record added successfully' })
@@ -97,10 +91,7 @@ router.post('/project_predator', async (req, res) => {
   }
 })
 
-//
-//  PUT /api/project_predator/:id
-//    Update an existing record
-//
+// PUT /api/project_predator/:id
 router.put('/project_predator/:id', async (req, res) => {
   const { id } = req.params
   try {
@@ -114,6 +105,7 @@ router.put('/project_predator/:id', async (req, res) => {
       mustelids,
       hedgehogs,
       others,
+      others_description,
     } = req.body
 
     const sql = `
@@ -128,8 +120,10 @@ router.put('/project_predator/:id', async (req, res) => {
         mustelids = ?,
         hedgehogs = ?,
         others = ?
+        others_description = ?
       WHERE id = ?
     `
+
     const [result] = await pool.query(sql, [
       predator_id,
       measurement ?? null,
@@ -140,6 +134,7 @@ router.put('/project_predator/:id', async (req, res) => {
       mustelids ?? 0,
       hedgehogs ?? 0,
       others ?? 0,
+      others_description || null,
       id,
     ])
 
@@ -154,10 +149,7 @@ router.put('/project_predator/:id', async (req, res) => {
   }
 })
 
-//
-//  DELETE /api/project_predator/:id
-//    Remove an existing predator record
-//
+// DELETE /api/project_predator/:id
 router.delete('/project_predator/:id', async (req, res) => {
   const { id } = req.params
   try {

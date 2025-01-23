@@ -3,7 +3,7 @@ import React, { useState, useEffect, useRef } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 import axios, { AxiosError } from 'axios'
 import { GoogleMap, Marker, Autocomplete } from '@react-google-maps/api'
-import AddObjectives from './addobjective' 
+import AddObjectives from './addobjective'
 import AddRisk from './addrisk'
 import AddHazard from './addhazard'
 import {
@@ -145,7 +145,7 @@ const AddProject: React.FC<AddProjectProps> = ({ isSidebarOpen }) => {
             setExistingInductionUrl(project.inductionFileUrl)
 
           setSelectedObjectives(objectiveIds || [])
-
+          // const startDate = new Date(Date.UTC(2025, 0, 23));
           // Original data
           setOriginalData({
             name: project.name,
@@ -215,20 +215,29 @@ const AddProject: React.FC<AddProjectProps> = ({ isSidebarOpen }) => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
 
+    const adjustedDate = new Date(startDate)
+    adjustedDate.setMinutes(
+      adjustedDate.getMinutes() + adjustedDate.getTimezoneOffset()
+    )
+
     // validations
     if (!name || !location || !startDate || !emergencyServices) {
       notify('All fields are required, including Emergency Services.')
       return
     }
-    if (!/^\d{10}$/.test(primaryContactPhone)) {
-      notify('Primary Contact Phone must be exactly 10 digits.')
-      return
-    }
-    if (!/^\d{10}$/.test(localMedicalCenterPhone)) {
-      notify('Local Medical Center Phone must be exactly 10 digits.')
+    if (!/^[+\d]+$/.test(primaryContactPhone)) {
+      notify(
+        'Primary Contact Phone must contain only numbers and may start with +.'
+      )
       return
     }
 
+    if (!/^[+\d]+$/.test(localMedicalCenterPhone)) {
+      notify(
+        'Local Medical Center Phone must contain only numbers and may start with +.'
+      )
+      return
+    }
     // check uniqueness if not editing
     if (!isEdit) {
       try {
@@ -386,12 +395,17 @@ const AddProject: React.FC<AddProjectProps> = ({ isSidebarOpen }) => {
       notify('All fields are required, including Emergency Services.')
       return
     }
-    if (!/^\d{10}$/.test(primaryContactPhone)) {
-      notify('Primary Contact Phone must be exactly 10 digits.')
+    if (!/^[+\d]+$/.test(primaryContactPhone)) {
+      notify(
+        'Primary Contact Phone must contain only numbers and may start with +.'
+      )
       return
     }
-    if (!/^\d{10}$/.test(localMedicalCenterPhone)) {
-      notify('Local Medical Center Phone must be exactly 10 digits.')
+
+    if (!/^[+\d]+$/.test(localMedicalCenterPhone)) {
+      notify(
+        'Local Medical Center Phone must contain only numbers and may start with +.'
+      )
       return
     }
 
@@ -452,10 +466,11 @@ const AddProject: React.FC<AddProjectProps> = ({ isSidebarOpen }) => {
         isSidebarOpen ? 'content-expanded' : 'content-collapsed'
       }`}
       style={{
-        marginLeft: isSidebarOpen ? '220px' : '20px',
+        marginLeft: isSidebarOpen ? '220px' : '30px',
         transition: 'margin 0.3s ease',
         paddingTop: '2px',
-        height: '100vh'
+        height: '100vh',
+        width: '95%',
       }}
     >
       {/* Nav bar for projects page */}
@@ -651,12 +666,12 @@ const AddProject: React.FC<AddProjectProps> = ({ isSidebarOpen }) => {
                     </Form.Label>
                     <Form.Control
                       required
-                      pattern="^\d{10}$"
                       type="text"
                       value={localMedicalCenterPhone}
                       onChange={(e) =>
                         setLocalMedicalCenterPhone(e.target.value)
                       }
+                      placeholder="phone number (+ allowed)"
                     />
                   </Form.Group>
                 </Col>
@@ -843,10 +858,10 @@ const AddProject: React.FC<AddProjectProps> = ({ isSidebarOpen }) => {
                       <Form.Label>Primary Contact Phone</Form.Label>
                       <Form.Control
                         required
-                        pattern="^\d{10}$"
                         type="text"
                         value={primaryContactPhone}
                         onChange={(e) => setPrimaryContactPhone(e.target.value)}
+                        placeholder="phone number (+ allowed)"
                       />
                     </Form.Group>
                   </Col>
@@ -941,7 +956,13 @@ const AddProject: React.FC<AddProjectProps> = ({ isSidebarOpen }) => {
             {allObjectives.map((obj) => (
               <ListGroup.Item
                 key={obj.id}
-                className="d-flex justify-content-between align-items-center"
+                className="d-flex justify-content-between align-items-center text-wrap"
+                style={{
+                  maxHeight: '400px',
+                  overflowY: 'auto',
+                  whiteSpace: 'normal',
+                  wordBreak: 'break-word',
+                }}
                 action
                 onClick={() => toggleObjective(obj.id)}
                 active={selectedObjectives.includes(obj.id)}

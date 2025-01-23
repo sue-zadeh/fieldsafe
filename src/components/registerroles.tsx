@@ -126,8 +126,8 @@ const RegisterRoles: React.FC<RegisterroleProps> = ({ isSidebarOpen }) => {
     if (!/\S+@\S+\.\S+/.test(email)) {
       return 'Invalid email format.'
     }
-    if (!/^\d{10}$/.test(phone)) {
-      return 'Phone must be exactly 10 digits.'
+    if (!/^[+\d]+$/.test(phone)) {
+      return 'Phone must contain only numbers and may start with +.'
     }
 
     // If this is a new staff or if user typed a new password
@@ -345,7 +345,7 @@ const RegisterRoles: React.FC<RegisterroleProps> = ({ isSidebarOpen }) => {
                         e as React.ChangeEvent<HTMLInputElement>
                       )
                     }
-                    placeholder="10-digit phone"
+                    placeholder="Enter phone number (digits and + allowed)"
                     required
                   />
                 </Form.Group>
@@ -400,6 +400,10 @@ const RegisterRoles: React.FC<RegisterroleProps> = ({ isSidebarOpen }) => {
                           {showPassword ? <FaEyeSlash /> : <FaEye />}
                         </Button>
                       </InputGroup>
+                      <small className="form-text">
+                        Password must be at least 8 characters, include
+                        uppercase letters, numbers, and special characters.
+                      </small>
                     </Form.Group>
                   </Col>
 

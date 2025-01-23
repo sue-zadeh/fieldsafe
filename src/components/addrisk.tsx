@@ -273,9 +273,9 @@ const AddRisk: React.FC<AddRiskProps> = ({ isSidebarOpen }) => {
 
   return (
     <div
-    className={`container-fluid ${
-      isSidebarOpen ? 'content-expanded' : 'content-collapsed'
-    }`}
+      className={`container-fluid ${
+        isSidebarOpen ? 'content-expanded' : 'content-collapsed'
+      }`}
     >
       <h2
         style={{ color: '#0094B6', fontWeight: 'bold', paddingBottom: '4rem' }}
@@ -286,84 +286,12 @@ const AddRisk: React.FC<AddRiskProps> = ({ isSidebarOpen }) => {
       {loading && <div>Loading...</div>}
 
       <Row>
-        {/* ================= Column for Creating a NEW Risk ================ */}
-        <Col
-          md={6}
-          style={{
-            whiteSpace: 'pre-wrap',
-            wordWrap: 'break-word',
-            overflowWrap: 'break-word',
-            maxWidth: '100%',
-          }}
-        >
-          <h4
-            style={{
-              color: '#0094B6',
-              fontWeight: 'bold',
-              paddingBottom: '2rem',
-            }}
-          >
-            Create a New Risk
-          </h4>
-          <Form.Group
-            className="mb-3"
-            style={{
-              whiteSpace: 'pre-wrap',
-              wordWrap: 'break-word',
-              overflowWrap: 'break-word',
-              maxWidth: '100%',
-            }}
-          >
-            <Form.Label className="fs-5 fw-bold">Risk Title</Form.Label>
-            <Form.Control
-              type="text"
-              value={newRiskTitle}
-              onChange={(e) => setNewRiskTitle(e.target.value)}
-              style={{
-                whiteSpace: 'pre-wrap',
-                wordWrap: 'break-word',
-                overflowWrap: 'break-word',
-                maxWidth: '100%',
-              }}
-            />
-          </Form.Group>
-          {newRiskControls.map((ctrl, i) => (
-            <Form.Group key={i} className="mb-2">
-              <Form.Label>Control #{i + 1}</Form.Label>
-              <Form.Control
-                type="text"
-                value={ctrl}
-                onChange={(e) => handleControlChange(e.target.value, i)}
-                style={{
-                  whiteSpace: 'pre-wrap',
-                  wordWrap: 'break-word',
-                  overflowWrap: 'break-word',
-                  maxWidth: '100%',
-                }}
-              />
-            </Form.Group>
-          ))}
-          <Button
-            className="w-25 fs-6"
-            onClick={addNewControlInput}
-            variant="secondary"
-            size="sm"
-          >
-            + Add Control
-          </Button>{' '}
-          <Button
-            className="w-25 fs-6"
-            onClick={handleCreateRisk}
-            variant="primary"
-            size="sm"
-          >
-            Create Risk
-          </Button>
-        </Col>
-
         {/* ================= Column for Managing EXISTING Risks ================ */}
-        <Col md={6}>
-          <h5 className="fs-5">Existing Risks</h5>
+
+        <Col className="ml-2" md={6}>
+          <h5 className="fs-5 fw-bold " style={{ color: '#0094B6' }}>
+            Existing Risks
+          </h5>
 
           <Select
             options={riskOptions}
@@ -605,6 +533,7 @@ const AddRisk: React.FC<AddRiskProps> = ({ isSidebarOpen }) => {
                 <div style={{ marginTop: '1rem' }}>
                   <Button
                     className="fs-6 px-3"
+                    style={{ backgroundColor: '#0094B6' }}
                     onClick={handleAddRiskControl}
                     size="sm"
                   >
@@ -620,7 +549,7 @@ const AddRisk: React.FC<AddRiskProps> = ({ isSidebarOpen }) => {
                         style={{ marginBottom: '0.5rem' }}
                       />
                       <Button
-                        className="fs-6 px-2"
+                        className="fs-6 px-2 m-2"
                         onClick={handleSaveNewRiskControl}
                         size="sm"
                         variant="primary"
@@ -633,6 +562,87 @@ const AddRisk: React.FC<AddRiskProps> = ({ isSidebarOpen }) => {
               )}
             </div>
           )}
+        </Col>
+        {/* ================= Column for Creating a NEW Risk ================ */}
+        <Col
+          md={6}
+          style={{
+            whiteSpace: 'pre-wrap',
+            wordWrap: 'break-word',
+            overflowWrap: 'break-word',
+            maxWidth: '100%',
+          }}
+        >
+          <h4
+            style={{
+              color: '#0094B6',
+              fontWeight: 'bold',
+              paddingBottom: '2rem',
+              textAlign: 'center',
+            }}
+          >
+            Create a New Risk
+          </h4>
+          <Form.Group
+            className="mb-3"
+            style={{
+              whiteSpace: 'pre-wrap',
+              wordWrap: 'break-word',
+              overflowWrap: 'break-word',
+              maxWidth: '100%',
+            }}
+          >
+            <Form.Label
+              className="fs-5 fw-bold px-5"
+              style={{ color: '#0094B6' }}
+            >
+              Risk Title
+            </Form.Label>
+            <Form.Control
+              type="text"
+              value={newRiskTitle}
+              onChange={(e) => setNewRiskTitle(e.target.value)}
+              style={{
+                whiteSpace: 'pre-wrap',
+                wordWrap: 'break-word',
+                overflowWrap: 'break-word',
+                maxWidth: '100%',
+              }}
+            />
+          </Form.Group>
+          {newRiskControls.map((ctrl, i) => (
+            <Form.Group key={i} className="mb-2">
+              <Form.Label>Control #{i + 1}</Form.Label>
+              <Form.Control
+                type="text"
+                value={ctrl}
+                onChange={(e) => handleControlChange(e.target.value, i)}
+                style={{
+                  whiteSpace: 'pre-wrap',
+                  wordWrap: 'break-word',
+                  overflowWrap: 'break-word',
+                  maxWidth: '100%',
+                }}
+              />
+            </Form.Group>
+          ))}
+          <Button
+            className="w-50 fs-6  mx-5 align-center justify-content-center"
+            onClick={addNewControlInput}
+            variant="secondary"
+            size="sm"
+          >
+            + Add Control
+          </Button>{' '}
+          <Button
+            className="w-50 fs-6 mt-2 mx-5"
+            style={{ backgroundColor: '#0094B6' }}
+            onClick={handleCreateRisk}
+            variant="primary"
+            size="sm"
+          >
+            Create Risk
+          </Button>
         </Col>
       </Row>
     </div>

@@ -144,6 +144,7 @@ CREATE TABLE IF NOT EXISTS project_predator (
   mustelids INT DEFAULT 0,
   hedgehogs INT DEFAULT 0,
   others INT DEFAULT 0,
+  others_description VARCHAR(255) NULL,
   FOREIGN KEY (project_id) REFERENCES projects(id) ON DELETE CASCADE,
   FOREIGN KEY (predator_id) REFERENCES predator(id) ON DELETE CASCADE
 );
@@ -282,4 +283,21 @@ CREATE TABLE project_checklist (
     is_checked BOOLEAN DEFAULT FALSE,
     FOREIGN KEY (project_id) REFERENCES projects(id) ON DELETE CASCADE,
     FOREIGN KEY (checklist_id) REFERENCES checklist(id) ON DELETE CASCADE
+);
+
+--==============================
+--====Activity Notes=====----
+--==============================
+
+/* Create an "activities" table */
+ -- Each row = 1 "Activity Note", linked to a single Project
+CREATE TABLE IF NOT EXISTS activities (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    project_id INT NOT NULL,
+    activity_date DATE NOT NULL,
+    location VARCHAR(255),
+    notes TEXT,
+    createdBy INT,
+    createdAt DATETIME DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (project_id) REFERENCES projects(id) ON DELETE CASCADE
 );

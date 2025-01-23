@@ -40,7 +40,7 @@ interface OutcomeTabProps {
 
 const OutcomeTab: React.FC<OutcomeTabProps> = ({
   projectId,
-  isSidebarOpen,
+  // isSidebarOpen,
 }) => {
   // ----- Project Objectives Data -----
   const [objectives, setObjectives] = useState<IProjectObjective[]>([])
@@ -70,6 +70,7 @@ const OutcomeTab: React.FC<OutcomeTabProps> = ({
   const [mustelids, setMustelids] = useState<number>(0)
   const [hedgehogs, setHedgehogs] = useState<number>(0)
   const [others, setOthers] = useState<number>(0)
+  const [othersDescription, setOthersDescription] = useState<string>('')
 
   // ---------------- Fetch Project Objectives ----------------
   useEffect(() => {
@@ -217,6 +218,7 @@ const OutcomeTab: React.FC<OutcomeTabProps> = ({
           hedgehogs,
           others,
         })
+        alert('Predator record updated successfully.')
       } else {
         // Create new
         await axios.post(`/api/project_predator`, {
@@ -232,6 +234,7 @@ const OutcomeTab: React.FC<OutcomeTabProps> = ({
           others,
         })
       }
+      alert('Predator record added successfully.')
 
       // Refresh
       const res = await axios.get<IPredatorRecord[]>(
@@ -247,6 +250,7 @@ const OutcomeTab: React.FC<OutcomeTabProps> = ({
       resetPredatorForm()
     } catch (err) {
       console.error('Error saving predator record:', err)
+      alert('Failed to save predator record.')
     }
   }
 
@@ -267,11 +271,7 @@ const OutcomeTab: React.FC<OutcomeTabProps> = ({
   }
 
   return (
-    <div
-      className={`${
-        isSidebarOpen ? 'content-expanded' : 'content-collapsed'
-      } d-flex flex-column`}
-    >
+    <div className="d-flex flex-column">
       <h3 className="fw-bold p-2 fs-4" style={{ color: '#0094B6' }}>
         Outcome (Objectives) for this Project
       </h3>
@@ -301,6 +301,7 @@ const OutcomeTab: React.FC<OutcomeTabProps> = ({
                     {isEditing ? (
                       <input
                         type="number"
+                        min="0"
                         className="form-control"
                         value={editAmount}
                         onChange={(e) => setEditAmount(e.target.value)}
@@ -406,6 +407,7 @@ const OutcomeTab: React.FC<OutcomeTabProps> = ({
                 <label>Measurement (if not "Catches")</label>
                 <input
                   type="number"
+                  min="0"
                   className="form-control"
                   value={measurement ?? ''}
                   onChange={(e) => {
@@ -441,6 +443,7 @@ const OutcomeTab: React.FC<OutcomeTabProps> = ({
                   <label>Rats</label>
                   <input
                     type="number"
+                    min="0"
                     className="form-control"
                     value={rats}
                     onChange={(e) => setRats(Number(e.target.value))}
@@ -450,6 +453,7 @@ const OutcomeTab: React.FC<OutcomeTabProps> = ({
                   <label>Possums</label>
                   <input
                     type="number"
+                    min="0"
                     className="form-control"
                     value={possums}
                     onChange={(e) => setPossums(Number(e.target.value))}
@@ -459,6 +463,7 @@ const OutcomeTab: React.FC<OutcomeTabProps> = ({
                   <label>Mustelids</label>
                   <input
                     type="number"
+                    min="0"
                     className="form-control"
                     value={mustelids}
                     onChange={(e) => setMustelids(Number(e.target.value))}
@@ -468,6 +473,7 @@ const OutcomeTab: React.FC<OutcomeTabProps> = ({
                   <label>Hedgehogs</label>
                   <input
                     type="number"
+                    min="0"
                     className="form-control"
                     value={hedgehogs}
                     onChange={(e) => setHedgehogs(Number(e.target.value))}
@@ -477,9 +483,19 @@ const OutcomeTab: React.FC<OutcomeTabProps> = ({
                   <label>Others</label>
                   <input
                     type="number"
+                    min="0"
                     className="form-control"
                     value={others}
                     onChange={(e) => setOthers(Number(e.target.value))}
+                  />
+                </div>
+                <div className="col">
+                  <label>Others (Species)</label>
+                  <input
+                    type="text"
+                    className="form-control"
+                    value={othersDescription}
+                    onChange={(e) => setOthersDescription(e.target.value)}
                   />
                 </div>
               </div>

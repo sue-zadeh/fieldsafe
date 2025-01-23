@@ -19,6 +19,7 @@ import projectRiskRouter from './projectrisk.js'
 import checklistRouter from './checklist.js'
 import ProjectObjectivesRouter from './projectobjectives.js'
 import predatorRouter from './Predator.js'
+import activityRouter from './activities.js'
 
 dotenv.config()
 // For find __dirname in ES Modules---------------
@@ -43,6 +44,7 @@ app.use('/api', projectRiskRouter)
 app.use('/api', checklistRouter)
 app.use('/api', ProjectObjectivesRouter)
 app.use('/api', predatorRouter)
+app.use('/api/activities', activityRouter)
 
 // test route
 app.get('/api/ping', (req, res) => {

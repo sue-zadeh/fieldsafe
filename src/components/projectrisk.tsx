@@ -94,7 +94,7 @@ const ProjectRisk: React.FC<ProjectRiskProps> = ({
 // so we can place <style> above easily.
 ////////////////////////////////////////////////////////////////
 const ProjectRiskInner: React.FC<ProjectRiskProps> = ({
-  isSidebarOpen,
+  // isSidebarOpen,
   projectId,
   projectName,
 }) => {
@@ -549,10 +549,7 @@ const ProjectRiskInner: React.FC<ProjectRiskProps> = ({
   }
 
   return (
-    <div
-      className={isSidebarOpen ? 'content-expanded' : 'content-collapsed'}
-      style={{ transition: 'margin 0.3s ease', paddingTop: '1rem' }}
-    >
+    <div>
       {message && (
         <Alert variant="info" dismissible onClose={() => setMessage(null)}>
           {message}
@@ -563,11 +560,105 @@ const ProjectRiskInner: React.FC<ProjectRiskProps> = ({
         Determine “Risk” & Hazards for Project: {projectName}
       </h3>
 
+      {/* ==================== HAZARDS TABLES ==================== */}
+      <h4 style={{ color: '#0094B6' }} className="mt-4 fw-bold">
+        Hazards
+      </h4>
+      <Tabs
+        activeKey={hazardTab}
+        onSelect={(k) => {
+          if (k === 'site' || k === 'activity') {
+            setHazardTab(k)
+          }
+        }}
+        className="mb-3 fw-bold"
+      >
+        <Tab eventKey="site" title="Site Hazards">
+          <Button
+            variant="secondary"
+            size="sm"
+            className="mb-2"
+            style={{ backgroundColor: '#0094B6' }}
+            onClick={() => openHazardModal('site')}
+          >
+            + Add Site Hazards
+          </Button>
+          <Table bordered hover responsive>
+            <thead>
+              <tr>
+                <th>Hazard Description</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {projectSiteHazards.map((h: any) => (
+                <tr key={h.pshId}>
+                  <td style={{ whiteSpace: 'normal', wordBreak: 'break-word' }}>
+                    {h.hazard_description}
+                  </td>
+                  <td>
+                    <ButtonGroup>
+                      <Button
+                        variant="danger"
+                        size="sm"
+                        onClick={() => handleRemoveSiteHazard(h)}
+                      >
+                        Remove
+                      </Button>
+                    </ButtonGroup>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </Table>
+        </Tab>
+        <Tab eventKey="activity" title="Activity/People Hazards">
+          <Button
+            style={{ backgroundColor: '#0094B6' }}
+            variant="secondary"
+            size="sm"
+            className="mb-2"
+            onClick={() => openHazardModal('activity')}
+          >
+            + Add Activity Hazards
+          </Button>
+          <Table bordered hover responsive>
+            <thead>
+              <tr>
+                <th>Hazard Description</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {projectActivityHazards.map((h: any) => (
+                <tr key={h.pahId}>
+                  <td style={{ whiteSpace: 'normal', wordBreak: 'break-word' }}>
+                    {h.hazard_description}
+                  </td>
+                  <td>
+                    <ButtonGroup>
+                      <Button
+                        variant="danger"
+                        size="sm"
+                        onClick={() => handleRemoveActivityHazard(h)}
+                      >
+                        Remove
+                      </Button>
+                    </ButtonGroup>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </Table>
+        </Tab>
+      </Tabs>
+
       {/* ==================== RISKS TABLE ==================== */}
       <div>
-        <h4 style={{ color: '#0094B6' }}>Risks</h4>
-        <Button className='px-4'
-          style={{ backgroundColor: '#0094B6'}}
+        <h4 className="m-2 fw-bold " style={{ color: '#0094B6' }}>Risks</h4>
+        <Button
+          className="px-4"
+          style={{ backgroundColor: '#0094B6' }}
           variant="primary"
           onClick={openAddRiskModal}
         >
@@ -631,97 +722,6 @@ const ProjectRiskInner: React.FC<ProjectRiskProps> = ({
         </tbody>
       </Table>
 
-      {/* ==================== HAZARDS TABLES ==================== */}
-      <h4 style={{ color: '#0094B6' }} className="mt-4">
-        Hazards
-      </h4>
-      <Tabs
-        activeKey={hazardTab}
-        onSelect={(k) => {
-          if (k === 'site' || k === 'activity') {
-            setHazardTab(k)
-          }
-        }}
-        className="mb-3 fw-bold"
-      >
-        <Tab eventKey="site" title="Site Hazards">
-          <Button
-            variant="secondary"
-            size="sm"
-            className="mb-2" style={{ backgroundColor: '#0094B6'}}
-            onClick={() => openHazardModal('site')}
-          >
-            + Add Site Hazards
-          </Button>
-          <Table bordered hover responsive>
-            <thead>
-              <tr>
-                <th>Hazard Description</th>
-                <th>Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {projectSiteHazards.map((h: any) => (
-                <tr key={h.pshId}>
-                  <td style={{ whiteSpace: 'normal', wordBreak: 'break-word' }}>
-                    {h.hazard_description}
-                  </td>
-                  <td>
-                    <ButtonGroup>
-                      <Button
-                        variant="danger"
-                        size="sm"
-                        onClick={() => handleRemoveSiteHazard(h)}
-                      >
-                        Remove
-                      </Button>
-                    </ButtonGroup>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </Table>
-        </Tab>
-        <Tab eventKey="activity" title="Activity/People Hazards">
-          <Button style={{ backgroundColor: '#0094B6'}}
-            variant="secondary"
-            size="sm"
-            className="mb-2"
-            onClick={() => openHazardModal('activity')}
-          >
-            + Add Activity Hazards
-          </Button>
-          <Table bordered hover responsive>
-            <thead>
-              <tr>
-                <th>Hazard Description</th>
-                <th>Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {projectActivityHazards.map((h: any) => (
-                <tr key={h.pahId}>
-                  <td style={{ whiteSpace: 'normal', wordBreak: 'break-word' }}>
-                    {h.hazard_description}
-                  </td>
-                  <td>
-                    <ButtonGroup>
-                      <Button
-                        variant="danger"
-                        size="sm"
-                        onClick={() => handleRemoveActivityHazard(h)}
-                      >
-                        Remove
-                      </Button>
-                    </ButtonGroup>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </Table>
-        </Tab>
-      </Tabs>
-
       {/* ===== ADD/EDIT RISK MODAL ===== */}
       <Modal show={showRiskModal} onHide={() => setShowRiskModal(false)}>
         <Modal.Header closeButton>
@@ -737,7 +737,7 @@ const ProjectRiskInner: React.FC<ProjectRiskProps> = ({
             wordBreak: 'break-word',
           }}
         >
-          {/* If not editing, let them pick a risk title */}
+          {/* If not editing, let pick a risk title */}
           {!isEditing && (
             <Form.Group className="mb-3">
               <Form.Label>Risk Title</Form.Label>

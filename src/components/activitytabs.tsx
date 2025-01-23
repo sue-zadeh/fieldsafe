@@ -2,11 +2,13 @@ import React, { useState, useEffect } from 'react'
 import { Button } from 'react-bootstrap'
 import { useLocation } from 'react-router-dom'
 import ProjectDetails from './projectdetails'
+import AddActivity from './addactivity'
 import ProjectRisk from './projectrisk'
 import ProjectStaffs from './projectstaffs'
 import ProjectVolunteers from './projectvolunteers'
 import ProjectCheckList from './projectchecklist'
 import ProjectOutcome from './projectoutcome'
+// import { GiFlexibleL } from 'react-icons/gi'
 interface ActivityTabsProps {
   isSidebarOpen: boolean
 }
@@ -119,7 +121,7 @@ const ActivityTabs: React.FC<ActivityTabsProps> = ({ isSidebarOpen }) => {
               </span>
               {index < steps.length - 1 && (
                 <div
-                  className="flex-grow-1 mx-1"
+                  className="flex-grow-1 mx-2"
                   style={{
                     height: '2px',
                     backgroundColor: isCompleted ? '#28a745' : '#ccc',
@@ -137,7 +139,11 @@ const ActivityTabs: React.FC<ActivityTabsProps> = ({ isSidebarOpen }) => {
     switch (currentStep) {
       case 0: ///// Projects Details tab
         return (
-          <div>
+          <div
+            className={`container-fluid ${
+              isSidebarOpen ? 'content-expanded' : 'content-collapsed'
+            }`}
+          >
             <h5>Choose a Project by pressing Arrow Key</h5>
             <ProjectDetails
               isSidebarOpen={isSidebarOpen}
@@ -152,8 +158,12 @@ const ActivityTabs: React.FC<ActivityTabsProps> = ({ isSidebarOpen }) => {
           )
         }
         return (
-          <div>
-            <p className="fw-bold fs-4" style={{ color: '#0094B6' }}>
+          <div
+            className={`container-fluid ${
+              isSidebarOpen ? 'content-expanded' : 'content-collapsed'
+            }`}
+          >
+            <p className="fw-bold p-2 fs-4" style={{ color: '#0094B6' }}>
               Selected Project: {selectedProjectName || '(none)'}
             </p>
             <ProjectRisk
@@ -166,14 +176,22 @@ const ActivityTabs: React.FC<ActivityTabsProps> = ({ isSidebarOpen }) => {
       case 2: //// Staffs Tab
         if (selectedProjectId === null) {
           return (
-            <div>
+            <div
+              className={`container-fluid ${
+                isSidebarOpen ? 'content-expanded' : 'content-collapsed'
+              }`}
+            >
               Please select a project before proceeding to "Staff" step.
             </div>
           )
         }
         return (
-          <div>
-            <p className="fw-bold fs-4" style={{ color: '#0094B6' }}>
+          <div
+            className={`container-fluid ${
+              isSidebarOpen ? 'content-expanded' : 'content-collapsed'
+            }`}
+          >
+            <p className="fw-bold p-2 fs-4" style={{ color: '#0094B6' }}>
               Selected Project: {selectedProjectName || '(none)'}
             </p>
             <ProjectStaffs
@@ -194,7 +212,7 @@ const ActivityTabs: React.FC<ActivityTabsProps> = ({ isSidebarOpen }) => {
         }
         return (
           <div>
-            <p className="fw-bold fs-4" style={{ color: '#0094B6' }}>
+            <p className="fw-bold p-2 fs-4" style={{ color: '#0094B6' }}>
               Selected Project: {selectedProjectName || '(none)'}
             </p>
             <ProjectVolunteers
@@ -217,7 +235,7 @@ const ActivityTabs: React.FC<ActivityTabsProps> = ({ isSidebarOpen }) => {
         }
         return (
           <div>
-            <p className="fw-bold fs-4" style={{ color: '#0094B6' }}>
+            <p className="fw-bold p-2 fs-4" style={{ color: '#0094B6' }}>
               Selected Project: {selectedProjectName || '(none)'}
             </p>
             <ProjectCheckList
@@ -240,7 +258,7 @@ const ActivityTabs: React.FC<ActivityTabsProps> = ({ isSidebarOpen }) => {
         }
         return (
           <div>
-            <p className="fw-bold fs-4" style={{ color: '#0094B6' }}>
+            <p className="fw-bold p-2 fs-4" style={{ color: '#0094B6' }}>
               Selected Project: {selectedProjectName || '(none)'}
             </p>
             <ProjectOutcome
@@ -257,21 +275,25 @@ const ActivityTabs: React.FC<ActivityTabsProps> = ({ isSidebarOpen }) => {
   }
   return (
     <div
-      className={` ${isSidebarOpen ? 'content-expanded' : 'content-collapsed'}`}
+      className={`container-fluid ${
+        isSidebarOpen ? 'content-expanded' : 'content-collapsed'
+      }`}
       style={{
-        marginLeft: isSidebarOpen ? '220px' : '20px',
-        minHeight: '1',
+        marginLeft: isSidebarOpen ? '220px' : '30px',
+        transition: 'margin 0.3s ease',
         paddingTop: '2rem',
+        height: '100vh',
+        width: '95%',
       }}
     >
       {renderStepNav()}
-      <div className="p-3 border rounded bg-white mx-0">
+      <div className="p-3 border rounded bg-white mx-2">
         {renderStepContent()}
       </div>
       <div className="d-flex justify-content-end mt-3">
         {currentStep > 0 && (
           <Button
-            className="px-0"
+            className="px-4"
             style={{ backgroundColor: '#0094B6', marginRight: '1rem' }}
             variant="secondary"
             onClick={handleBack}
@@ -281,7 +303,7 @@ const ActivityTabs: React.FC<ActivityTabsProps> = ({ isSidebarOpen }) => {
         )}
         {currentStep < steps.length - 1 && (
           <Button
-            className="px-0"
+            className="px-4"
             style={{ backgroundColor: '#0094B6' }}
             variant="primary"
             onClick={handleNext}
