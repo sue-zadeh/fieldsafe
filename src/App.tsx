@@ -5,7 +5,7 @@ import { Modal, Button } from 'react-bootstrap'
 
 import Navbar from './components/navbar'
 import Login from './components/login'
-import FirstPage from './components/firstpage'
+import FirstPage from './components/home'
 import Sidebar from './components/sidebar'
 import Registerroles from './components/registerroles'
 import Groupadmin from './components/groupadmin'

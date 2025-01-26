@@ -213,7 +213,7 @@ const AddActivity: React.FC = () => {
   }
 
   // Force date to be no earlier than 2024-01-01
-  const minDate = '2024-01-01'
+  const minDate = '2024-06-01'
 
   return (
     <div style={{ margin: '2rem' }}>

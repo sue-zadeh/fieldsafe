@@ -20,7 +20,7 @@ const FirstPage: React.FC<FirstPageProps> = ({ isSidebarOpen }) => {
       }`}
       style={{
         position: 'relative',
-        marginLeft: isSidebarOpen ? '240px' : '40px',
+        marginLeft: isSidebarOpen ? '220px' : '50px',
         transition: 'margin 0.3s ease',
         height: '100vh',
         width: '100%',
@@ -33,8 +33,9 @@ const FirstPage: React.FC<FirstPageProps> = ({ isSidebarOpen }) => {
         data-aos="fade-down"
         style={{
           position: 'fixed',
-          width: '100%',
+          width: '90%',
           height: '95%',
+          marginRight: '2rem',
           backgroundImage: `url(${Welcompage})`,
           backgroundSize: 'cover',
           backgroundPosition: 'center',

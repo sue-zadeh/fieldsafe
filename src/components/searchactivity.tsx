@@ -1,17 +1,17 @@
 // src/components/SearchActivity.tsx
-
 import React, { useState, useEffect } from 'react'
 import axios from 'axios'
-import { Table, Form, InputGroup, Button } from 'react-bootstrap'
+import { Table, Form, InputGroup, Button, Alert } from 'react-bootstrap'
 import { useNavigate } from 'react-router-dom'
 import { FaSearch, FaTrashAlt, FaArrowRight } from 'react-icons/fa'
 
 interface ActivityRow {
   id: number
+  activity_name: string
   activity_date: string
-  projectName: string
+  projectName?: string
   projectLocation: string
-  status: string // "InProgress" or "Completed", etc.
+  status: string // "InProgress", "onhold", "Completed", "archived"
   createdBy?: string
 }
 
@@ -43,8 +43,10 @@ const SearchActivity: React.FC<SearchActivityProps> = ({ isSidebarOpen }) => {
     })()
   }, [])
 
+  // Filter by date, activity name, (optional projectName), location, status, createdBy
   const filteredActivities = activities.filter((act) => {
     const dateStr = formatDate(act.activity_date).toLowerCase()
+    const aName = (act.activity_name || '').toLowerCase()
     const pName = (act.projectName || '').toLowerCase()
     const loc = (act.projectLocation || '').toLowerCase()
     const stat = (act.status || '').toLowerCase()
@@ -52,6 +54,7 @@ const SearchActivity: React.FC<SearchActivityProps> = ({ isSidebarOpen }) => {
     const term = searchTerm.toLowerCase()
     return (
       dateStr.includes(term) ||
+      aName.includes(term) ||
       pName.includes(term) ||
       loc.includes(term) ||
       stat.includes(term) ||
@@ -59,23 +62,22 @@ const SearchActivity: React.FC<SearchActivityProps> = ({ isSidebarOpen }) => {
     )
   })
 
-  /** If user clicks arrow => jump to ActivityTabs detail page */
+  /** If user clicks arrow => jump to your “wizard” or “AddActivity” page
+   *  but we pass { fromSearch: true } so that it won't show the modal.
+   */
   const handleGoToDetail = (act: ActivityRow, e: React.MouseEvent) => {
     e.stopPropagation()
     navigate('/activity-notes', {
-      state: {
-        activityId: act.id,
-        // pass fields for prefill
-      },
+      state: { activityId: act.id, fromSearch: true },
     })
   }
 
   const handleDelete = async (act: ActivityRow, e: React.MouseEvent) => {
     e.stopPropagation()
     const confirmed = window.confirm(
-      `Are you sure you want to delete activity dated ${formatDate(
-        act.activity_date
-      )}?`
+      `Are you sure you want to delete "${
+        act.activity_name
+      }" dated ${formatDate(act.activity_date)}?`
     )
     if (!confirmed) return
     try {
@@ -103,16 +105,15 @@ const SearchActivity: React.FC<SearchActivityProps> = ({ isSidebarOpen }) => {
         width: '95%',
       }}
     >
-   
       <h3 className="mb-4" style={{ color: '#0094B6', fontWeight: 'bold' }}>
-        Field Notes
+        Search Activities
       </h3>
 
       {/* Search bar */}
       <InputGroup className="mb-3" style={{ maxWidth: '300px' }}>
         <Form.Control
           type="text"
-          placeholder="Search field notes..."
+          placeholder="Search activities..."
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
         />
@@ -121,14 +122,19 @@ const SearchActivity: React.FC<SearchActivityProps> = ({ isSidebarOpen }) => {
         </Button>
       </InputGroup>
 
+      {filteredActivities.length === 0 && (
+        <Alert variant="warning">No results found for "{searchTerm}"</Alert>
+      )}
+
       <Table striped hover responsive>
         <thead>
           <tr>
-            <th>Field Note Date</th>
-            <th>Project</th>
+            <th>Activity Date</th>
+            <th>Activity Name</th>
+            {/* Optional column: <th>Project</th> */}
             <th>Location</th>
             <th>Status</th>
-            <th>User</th>
+            <th>Created By</th>
             <th className="text-end">Action</th>
           </tr>
         </thead>
@@ -136,7 +142,8 @@ const SearchActivity: React.FC<SearchActivityProps> = ({ isSidebarOpen }) => {
           {filteredActivities.map((act) => (
             <tr key={act.id} style={{ cursor: 'pointer' }}>
               <td>{formatDate(act.activity_date)}</td>
-              <td>{act.projectName}</td>
+              <td>{act.activity_name}</td>
+              {/* Optionally: <td>{act.projectName || ''}</td> */}
               <td>{act.projectLocation}</td>
               <td>{act.status}</td>
               <td>{act.createdBy || 'N/A'}</td>
@@ -152,7 +159,7 @@ const SearchActivity: React.FC<SearchActivityProps> = ({ isSidebarOpen }) => {
                 >
                   <FaTrashAlt />
                 </span>
-                {/* Arrow => go to ActivityTabs detail */}
+                {/* Arrow => go to wizard */}
                 <span
                   style={{ fontSize: '1.5rem', cursor: 'pointer' }}
                   onClick={(e) => handleGoToDetail(act, e)}
