@@ -110,22 +110,23 @@ const SearchActivity: React.FC<SearchActivityProps> = ({ isSidebarOpen }) => {
       </h3>
 
       {/* Search bar */}
-      <InputGroup className="mb-3" style={{ maxWidth: '300px' }}>
-        <Form.Control
-          type="text"
-          placeholder="Search activities..."
-          value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
-        />
-        <Button variant="secondary">
-          <FaSearch />
-        </Button>
-      </InputGroup>
+      <div className="d-flex justify-content-center">
+        <InputGroup className="mb-4" style={{ maxWidth: '450px' }}>
+          <Form.Control
+            type="text"
+            placeholder="Search activities..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+          />
+          <Button variant="secondary">
+            <FaSearch />
+          </Button>
+        </InputGroup>
 
-      {filteredActivities.length === 0 && (
-        <Alert variant="warning">No results found for "{searchTerm}"</Alert>
-      )}
-
+        {filteredActivities.length === 0 && (
+          <Alert variant="warning">No results found for "{searchTerm}"</Alert>
+        )}
+      </div>
       <Table striped hover responsive>
         <thead>
           <tr>
