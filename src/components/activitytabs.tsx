@@ -1,13 +1,13 @@
 import React, { useState, useEffect } from 'react'
 import { Button } from 'react-bootstrap'
 import { useLocation } from 'react-router-dom'
-import ProjectDetails from './projectdetails'
+// import ProjectDetails from './projectdetails'
 import AddActivity from './addactivity'
-import ProjectRisk from './projectrisk'
-import ProjectStaffs from './projectstaffs'
-import ProjectVolunteers from './projectvolunteers'
-import ProjectCheckList from './projectchecklist'
-import ProjectOutcome from './projectoutcome'
+import ProjectRisk from './activityrisk'
+import ProjectStaffs from './activitystaffs'
+import ProjectVolunteers from './activityvolunteers'
+import ProjectCheckList from './activitychecklist'
+import ProjectOutcome from './activityoutcome'
 // import { GiFlexibleL } from 'react-icons/gi'
 interface ActivityTabsProps {
   isSidebarOpen: boolean
@@ -145,7 +145,7 @@ const ActivityTabs: React.FC<ActivityTabsProps> = ({ isSidebarOpen }) => {
             }`}
           >
             <h5>Choose a Project by pressing Arrow Key</h5>
-            <ProjectDetails
+            <AddActivity
               isSidebarOpen={isSidebarOpen}
               onProjectSelected={handleProjectSelected}
             />

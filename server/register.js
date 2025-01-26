@@ -187,60 +187,58 @@ router.delete('/staff/:id', async (req, res) => {
     return res.status(500).json({ message: 'Error deleting staff.' })
   }
 })
+////////////////////////////////////////////
 
-///////////////////////////////////////////
-// ----====Project Staffs===-----
+// ----======ACTIVITY Staffs=====-----
 
-// GET /api/project_staff/:project_id
-router.get('/project_staff/:project_id', async (req, res) => {
-  const { project_id } = req.params
+// GET /api/activity_staff/:activity_id
+router.get('/activity_staff/:activity_id', async (req, res) => {
+  const { activity_id } = req.params
   try {
     const sql = `
-      SELECT ps.id, ps.project_id, s.firstname, s.lastname, s.phone, s.role
-      FROM project_staff ps
-      JOIN staffs s ON ps.staff_id = s.id
-      WHERE ps.project_id = ?
+      SELECT asf.id, asf.activity_id, s.firstname, s.lastname, s.phone, s.role
+      FROM activity_staff asf
+      JOIN staffs s ON asf.staff_id = s.id
+      WHERE asf.activity_id = ?
     `
-    const [rows] = await pool.query(sql, [project_id])
+    const [rows] = await pool.query(sql, [activity_id])
     res.json(rows)
   } catch (error) {
-    console.error('Error fetching project staff:', error)
-    res.status(500).json({ message: 'Error fetching project staff' })
+    console.error('Error fetching activity staff:', error)
+    res.status(500).json({ message: 'Error fetching activity staff' })
   }
 })
 
-// ----=== Add Staffs in Projects ===----
-// POST /api/project_staff
-router.post('/project_staff', async (req, res) => {
-  const { project_id, staff_id } = req.body
+// POST /api/activity_staff
+router.post('/activity_staff', async (req, res) => {
+  const { activity_id, staff_id } = req.body
   try {
     const sql = `
-      INSERT INTO project_staff (project_id, staff_id)
+      INSERT INTO activity_staff (activity_id, staff_id)
       VALUES (?, ?)
     `
-    await pool.execute(sql, [project_id, staff_id])
-    res.status(201).json({ message: 'Staff assigned to project successfully' })
+    await pool.execute(sql, [activity_id, staff_id])
+    res.status(201).json({ message: 'Staff assigned to activity successfully' })
   } catch (error) {
     console.error('Error assigning staff:', error)
-    res.status(500).json({ message: 'Error assigning staff to project' })
+    res.status(500).json({ message: 'Error assigning staff to activity' })
   }
 })
-// ----===== Remove from the List Unsigned Staffs from the Project =====----
 
-// Show Only Unassigned Staffs
-router.get('/unassigned_staff/:project_id', async (req, res) => {
-  const { project_id } = req.params
+// GET /api/unassigned_staff/:activity_id
+router.get('/unassigned_staff/:activity_id', async (req, res) => {
+  const { activity_id } = req.params
   try {
     const sql = `
       SELECT s.id, s.firstname, s.lastname, s.phone, s.role
       FROM staffs s
       WHERE s.id NOT IN (
-        SELECT ps.staff_id
-        FROM project_staff ps
-        WHERE ps.project_id = ?
+        SELECT asf.staff_id
+        FROM activity_staff asf
+        WHERE asf.activity_id = ?
       )
     `
-    const [rows] = await pool.query(sql, [project_id])
+    const [rows] = await pool.query(sql, [activity_id])
     res.json(rows)
   } catch (error) {
     console.error('Error fetching unassigned staff:', error)
@@ -248,19 +246,19 @@ router.get('/unassigned_staff/:project_id', async (req, res) => {
   }
 })
 
-// DELETE /api/project_staff/:id
-router.delete('/project_staff/:id', async (req, res) => {
+// DELETE /api/activity_staff/:id
+router.delete('/activity_staff/:id', async (req, res) => {
   const { id } = req.params
   try {
     const sql = `
-      DELETE FROM project_staff
+      DELETE FROM activity_staff
       WHERE id = ?
     `
     await pool.execute(sql, [id])
-    res.json({ message: 'Staff removed from project' })
+    res.json({ message: 'Staff removed from activity' })
   } catch (error) {
     console.error('Error removing staff:', error)
-    res.status(500).json({ message: 'Error removing staff from project' })
+    res.status(500).json({ message: 'Error removing staff from activity' })
   }
 })
 

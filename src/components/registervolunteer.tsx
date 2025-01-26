@@ -123,7 +123,7 @@ const Addvolunteer: React.FC<AddvolunteerProps> = ({ isSidebarOpen }) => {
         className="form-container bg-white p-4 rounded shadow mt-4 align-item-center"
         style={{ maxWidth: '600px', width: '100%' }}
       >
-        <h2 className="text-center" style={{color:'#0094b6'}}>
+        <h2 className="text-center" style={{ color: '#0094b6' }}>
           {formData.id ? 'Edit Volunteer' : 'Add Volunteer'}
         </h2>
         {notification && (

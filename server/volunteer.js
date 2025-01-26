@@ -181,101 +181,82 @@ volunteerRouter.delete('/volunteers/:id', async (req, res) => {
 
 ////////////////////////////////////////////////
 
-// ----=== Volunteers in Projects ====------
-
-// GET /api/project_staff/:project_id
-volunteerRouter.get('/project_volunteer/:project_id', async (req, res) => {
-  const { project_id } = req.params
+// ----=== Volunteers in Activity ===----
+// GET /api/activity_volunteer/:activity_id
+volunteerRouter.get('/activity_volunteer/:activity_id', async (req, res) => {
+  const { activity_id } = req.params
   try {
     const sql = `
-      SELECT pv.id, pv.project_id, v.firstname, v.lastname, v.phone, v.emergencyContact, v.emergencyContactNumber
-      FROM project_volunteer pv
-      JOIN volunteers v ON pv.volunteer_id = v.id
-      WHERE pv.project_id = ?
+      SELECT av.id, av.activity_id, v.firstname, v.lastname, v.phone, v.emergencyContact, v.emergencyContactNumber
+      FROM activity_volunteer av
+      JOIN volunteers v ON av.volunteer_id = v.id
+      WHERE av.activity_id = ?
     `
-    const [rows] = await pool.query(sql, [project_id])
+    const [rows] = await pool.query(sql, [activity_id])
     res.json(rows)
   } catch (error) {
-    console.error('Error fetching project volunteer:', error)
-    res.status(500).json({ message: 'Error fetching project volunteer' })
+    console.error('Error fetching activity volunteers:', error)
+    res.status(500).json({ message: 'Error fetching activity volunteers' })
   }
 })
 
-// ----=== Add volunteers in Projects ===----
-// POST /api/project_staff
-volunteerRouter.post('/project_volunteer', async (req, res) => {
-  const { project_id, volunteer_ids } = req.body
-  const values = volunteer_ids.map((id) => [project_id, id])
+// ----=== Add Volunteers to Activity ===----
+// POST /api/activity_volunteer
+volunteerRouter.post('/activity_volunteer', async (req, res) => {
+  const { activity_id, volunteer_ids } = req.body
+  const values = volunteer_ids.map((id) => [activity_id, id])
   try {
     const sql = `
-      INSERT INTO project_volunteer (project_id, volunteer_id)
+      INSERT INTO activity_volunteer (activity_id, volunteer_id)
       VALUES ?
     `
     await pool.query(sql, [values])
-    res.status(201).json({ message: 'Volunteers assigned successfully' })
+    res
+      .status(201)
+      .json({ message: 'Volunteers assigned to activity successfully' })
   } catch (error) {
     console.error('Error assigning volunteers:', error)
-    res.status(500).json({ message: 'Error assigning volunteers to project' })
+    res.status(500).json({ message: 'Error assigning volunteers to activity' })
   }
 })
 
-// ----===== Remove  Unsigned Volunteers the from Project =====----
-// GET /unassigned_volunteer/:project_id
-volunteerRouter.get('/unassigned_volunteer/:project_id', async (req, res) => {
-  const { project_id } = req.params
-
+// ----=== Get Unassigned Volunteers ===----
+// GET /api/unassigned_volunteer/:activity_id
+volunteerRouter.get('/unassigned_volunteer/:activity_id', async (req, res) => {
+  const { activity_id } = req.params
   try {
     const sql = `
       SELECT v.id, v.firstname, v.lastname, v.phone, v.emergencyContact, v.emergencyContactNumber
       FROM volunteers v
       WHERE v.id NOT IN (
-        SELECT pv.volunteer_id
-        FROM project_volunteer pv
-        WHERE pv.project_id = ?
+        SELECT av.volunteer_id
+        FROM activity_volunteer av
+        WHERE av.activity_id = ?
       )
     `
-    const [rows] = await pool.query(sql, [project_id])
+    const [rows] = await pool.query(sql, [activity_id])
     res.json(rows)
   } catch (error) {
     console.error('Error fetching unassigned volunteers:', error)
-    res.status(500).json({ message: 'Error fetching unassigned volunteers.' })
+    res.status(500).json({ message: 'Error fetching unassigned volunteers' })
   }
 })
 
-// ----=====Delete Volunteers=====----
-
-// DELETE /api/project_volunteer/:id
-volunteerRouter.delete('/project_volunteer/:id', async (req, res) => {
+// ----=== Delete Volunteer from Activity ===----
+// DELETE /api/activity_volunteer/:id
+volunteerRouter.delete('/activity_volunteer/:id', async (req, res) => {
   const { id } = req.params
   try {
     const sql = `
-      DELETE FROM project_volunteer
+      DELETE FROM activity_volunteer
       WHERE id = ?
     `
     await pool.execute(sql, [id])
-    res.json({ message: 'Volunteer removed from project' })
+    res.json({ message: 'Volunteer removed from activity' })
   } catch (error) {
     console.error('Error removing volunteer:', error)
-    res.status(500).json({ message: 'Error removing volunteer from project' })
+    res.status(500).json({ message: 'Error removing volunteer from activity' })
   }
 })
-
-// POST /api/project_volunteer
-// volunteerRouter.post('/project_volunteer', async (req, res) => {
-//   const { project_id, volunteer_ids } = req.body
-//   try {
-//     const values = volunteer_ids.map((id) => [project_id, id])
-//     const sql = `
-//       INSERT INTO project_volunteer (project_id, volunteer_id)
-//       VALUES ?
-//     `
-//     await pool.query(sql, [values])
-//     res.status(201).json({ message: 'Volunteers assigned successfully' })
-//   } catch (error) {
-//     console.error('Error assigning volunteers:', error)
-//     res.status(500).json({ message: 'Error assigning volunteers to project' })
-//   }
-// })
-
 
 export default volunteerRouter

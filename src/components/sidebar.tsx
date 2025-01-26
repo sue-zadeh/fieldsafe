@@ -197,14 +197,14 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, toggleSidebar }) => {
 
         {/* Activity notes */}
 
-        <NavItem label="Activity Notes" dropdownId="activity">
+        <NavItem label="activity-notes" dropdownId="activity">
           <ul style={dropdownListStyle}>
             <li>
               <Link
                 to="/activity-notes"
                 style={{
                   ...dropdownLinkStyle,
-                  ...(isActive('/activity-notes')
+                  ...(isActive('/addactivity')
                     ? { fontWeight: 'bold', color: '#000' }
                     : {}),
                 }}
@@ -215,10 +215,10 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, toggleSidebar }) => {
             </li>
             <li>
               <Link
-                 to="/activity-notes"
+                to="/searchactivity"
                 style={{
                   ...dropdownLinkStyle,
-                  ...(isActive('/activity-notes')
+                  ...(isActive('/searchactivity')
                     ? { fontWeight: 'bold', color: '#000' }
                     : {}),
                 }}

@@ -10,14 +10,16 @@ interface Staff {
 }
 
 interface StaffTabProps {
-  projectId: number
-  isSidebarOpen: boolean
-  projectName: string
+  activityId: number
+  activityName: string
 }
 
-const StaffTab: React.FC<StaffTabProps> = ({ projectId, isSidebarOpen }) => {
+const ActivityStaffsTab: React.FC<StaffTabProps> = ({
+  activityId,
+  activityName,
+}) => {
   const [unassignedStaff, setUnassignedStaff] = useState<Staff[]>([])
-  const [projectStaffs, setProjectStaffs] = useState<Staff[]>([])
+  const [activityStaffs, setActivityStaffs] = useState<Staff[]>([])
   const [selectedGroupAdmin, setSelectedGroupAdmin] = useState<number | null>(
     null
   )
@@ -28,11 +30,11 @@ const StaffTab: React.FC<StaffTabProps> = ({ projectId, isSidebarOpen }) => {
     null
   )
 
-  // Fetch unassigned staff for the project
+  // Fetch unassigned staff for the activity
   useEffect(() => {
     const fetchUnassignedStaff = async () => {
       try {
-        const res = await axios.get(`/api/unassigned_staff/${projectId}`)
+        const res = await axios.get(`/api/unassigned_staff/${activityId}`)
         setUnassignedStaff(res.data) // Unassigned staff for the dropdown
       } catch (err) {
         console.error('Error fetching unassigned staff:', err)
@@ -40,58 +42,58 @@ const StaffTab: React.FC<StaffTabProps> = ({ projectId, isSidebarOpen }) => {
     }
 
     fetchUnassignedStaff()
-  }, [projectId, projectStaffs]) // Re-fetch unassigned staff whenever projectStaffs change
+  }, [activityId, activityStaffs]) // Re-fetch unassigned staff whenever activityStaffs change
 
-  // Fetch staff already assigned to the project
+  // Fetch staff already assigned to the activity
   useEffect(() => {
-    const fetchProjectStaffs = async () => {
+    const fetchActivityStaffs = async () => {
       try {
-        const res = await axios.get(`/api/project_staff/${projectId}`)
-        setProjectStaffs(res.data) // Staff assigned to the project
+        const res = await axios.get(`/api/activity_staff/${activityId}`)
+        setActivityStaffs(res.data) // Staff assigned to the activity
       } catch (err) {
-        console.error('Error fetching project staffs:', err)
+        console.error('Error fetching activity staffs:', err)
       }
     }
 
-    fetchProjectStaffs()
-  }, [projectId])
+    fetchActivityStaffs()
+  }, [activityId])
 
-  // Add staff to the project
+  // Add staff to the activity
   const handleAddStaff = async (staffId: number | null) => {
     if (!staffId) return
 
     try {
-      await axios.post('/api/project_staff', {
-        project_id: projectId,
+      await axios.post('/api/activity_staff', {
+        activity_id: activityId,
         staff_id: staffId,
       })
-      // Refresh the project staff list
-      const res = await axios.get(`/api/project_staff/${projectId}`)
-      setProjectStaffs(res.data)
+      // Refresh the activity staff list
+      const res = await axios.get(`/api/activity_staff/${activityId}`)
+      setActivityStaffs(res.data)
       // Reset dropdowns
       setSelectedGroupAdmin(null)
       setSelectedFieldStaff(null)
       setSelectedTeamLeader(null)
     } catch (err) {
-      console.error('Error assigning staff to project:', err)
+      console.error('Error assigning staff to activity:', err)
     }
   }
 
-  // Remove staff from the project
+  // Remove staff from the activity
   const handleRemoveStaff = async (id: number) => {
-    const staffToRemove = projectStaffs.find((staff) => staff.id === id)
+    const staffToRemove = activityStaffs.find((staff) => staff.id === id)
     if (!staffToRemove) return
 
     const confirmRemoval = window.confirm(
-      `Are you sure you want to remove ${staffToRemove.firstname} ${staffToRemove.lastname} from this project?`
+      `Are you sure you want to remove ${staffToRemove.firstname} ${staffToRemove.lastname} from this activity?`
     )
     if (!confirmRemoval) return
 
     try {
-      await axios.delete(`/api/project_staff/${id}`)
-      setProjectStaffs((prev) => prev.filter((staff) => staff.id !== id))
+      await axios.delete(`/api/activity_staff/${id}`)
+      setActivityStaffs((prev) => prev.filter((staff) => staff.id !== id))
     } catch (err) {
-      console.error('Error removing staff from project:', err)
+      console.error('Error removing staff from activity:', err)
     }
   }
 
@@ -102,10 +104,9 @@ const StaffTab: React.FC<StaffTabProps> = ({ projectId, isSidebarOpen }) => {
 
   return (
     <div>
-      {' '}
-      <h3 style={{ color: '#0094B6' }}>Assign Staff to Project</h3>
+      <h3 style={{ color: '#0094B6' }}>Assign Staff to Activity</h3>
       <p className="fw-bold p-2 fs-4" style={{ color: '#0094B6' }}>
-        {/* Selected Project: {projectId} */}
+        Selected Activity: {activityName}
       </p>
       {/* Dropdowns for each staff type */}
       <div className="row mb-3">
@@ -195,7 +196,7 @@ const StaffTab: React.FC<StaffTabProps> = ({ projectId, isSidebarOpen }) => {
           </tr>
         </thead>
         <tbody>
-          {projectStaffs.map((staff) => (
+          {activityStaffs.map((staff) => (
             <tr key={staff.id}>
               <td>{`${staff.firstname} ${staff.lastname}`}</td>
               <td>{staff.phone}</td>
@@ -216,4 +217,4 @@ const StaffTab: React.FC<StaffTabProps> = ({ projectId, isSidebarOpen }) => {
   )
 }
 
-export default StaffTab
+export default ActivityStaffsTab

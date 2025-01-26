@@ -1,3 +1,4 @@
+// src/components/ActivityRisk.tsx
 import React, { useState, useEffect } from 'react'
 import Select from 'react-select'
 import {
@@ -12,107 +13,76 @@ import {
 } from 'react-bootstrap'
 import axios from 'axios'
 
-interface ProjectRiskProps {
-  isSidebarOpen: boolean
-  projectId: number
-  projectName: string
+/** Props for this component */
+interface ActivityRiskProps {
+  activityId: number // e.g. passed from ActivityTabs
+  activityName?: string // if want to display "for activityName"
 }
 
+// For the “risk_titles” table
 interface RiskTitle {
   id: number
   title: string
   isReadOnly?: boolean
 }
 
+// A row of bridging "activity_risks"
 interface RiskRow {
-  projectRiskId: number
+  activityRiskId: number
   riskId: number
-  riskTitleId: number // from the backend
+  riskTitleId: number
   risk_title_label: string
   likelihood: string
   consequences: string
   risk_rating: string
 }
 
+// Additional bridging for risk controls
 interface DetailedRiskControl {
-  projectRiskControlId: number
-  project_id: number
+  activityRiskControlId: number
+  activity_id: number
   risk_control_id: number
   control_text: string
   riskId: number
 }
 
+// The “risk_controls” rows for a given risk title
 interface RiskControlForTitle {
   id: number
   control_text: string
 }
 
+// Basic hazard type
 interface Hazard {
-  [key: string]: any
+  id: number
   hazard_description: string
 }
 
+/** For react-select usage with riskTitleOptions */
 interface OptionType {
   value: number
   label: string
 }
 
-const ProjectRisk: React.FC<ProjectRiskProps> = ({
-  isSidebarOpen,
-  projectId,
-  projectName,
-}) => {
-  // -------------------------------------------
-  // Inline <style> to override active tab color
-  // -------------------------------------------
-  return (
-    <>
-      <style>{`
-        /* Override .nav-link.active to have #0094B6 color */
-        .nav-tabs .nav-link.active {
-          color: #0094B6 !important;
-          font-weight: bold;
-          background-color: #eef8fb !important;
-          border-color: #0094B6 #0094B6 transparent !important;
-        }
-        .nav-tabs .nav-link {
-          color: #333;
-        }
-      `}</style>
-
-      <ProjectRiskInner
-        isSidebarOpen={isSidebarOpen}
-        projectId={projectId}
-        projectName={projectName}
-      />
-    </>
-  )
-}
-
-////////////////////////////////////////////////////////////////
-// We'll separate the logic into an inner component
-// so we can place <style> above easily.
-////////////////////////////////////////////////////////////////
-const ProjectRiskInner: React.FC<ProjectRiskProps> = ({
-  // isSidebarOpen,
-  projectId,
-  projectName,
+const ActivityRisk: React.FC<ActivityRiskProps> = ({
+  activityId,
+  activityName,
 }) => {
   const [message, setMessage] = useState<string | null>(null)
 
-  // ============ RISK DATA ============
+  // ---------- RISK DATA ----------
   const [allRiskTitles, setAllRiskTitles] = useState<RiskTitle[]>([])
-  const [projectRisks, setProjectRisks] = useState<RiskRow[]>([])
+  const [activityRisks, setActivityRisks] = useState<RiskRow[]>([])
   const [detailedRiskControls, setDetailedRiskControls] = useState<
     DetailedRiskControl[]
   >([])
 
-  // ============ MODAL STATES ============
+  // Modal states
   const [showRiskModal, setShowRiskModal] = useState(false)
   const [isEditing, setIsEditing] = useState(false)
   const [editingRisk, setEditingRisk] = useState<RiskRow | null>(null)
 
-  // For the form in the modal
+  // Form fields in the modal
   const [selectedRiskTitleId, setSelectedRiskTitleId] = useState<number | null>(
     null
   )
@@ -125,31 +95,30 @@ const ProjectRiskInner: React.FC<ProjectRiskProps> = ({
   const [localRiskRating, setLocalRiskRating] = useState('')
   const [newControlText, setNewControlText] = useState('')
 
-  // ============ HAZARDS ============
+  // ---------- HAZARDS ----------
   const [siteHazards, setSiteHazards] = useState<Hazard[]>([])
   const [activityHazards, setActivityHazards] = useState<Hazard[]>([])
-  const [projectSiteHazards, setProjectSiteHazards] = useState<Hazard[]>([])
-  const [projectActivityHazards, setProjectActivityHazards] = useState<
-    Hazard[]
-  >([])
+  const [activitySiteHazards, setActivitySiteHazards] = useState<Hazard[]>([])
+  const [activityPeopleHazards, setActivityPeopleHazards] = useState<Hazard[]>(
+    []
+  )
   const [showHazardModal, setShowHazardModal] = useState(false)
   const [hazardTab, setHazardTab] = useState<'site' | 'activity'>('site')
   const [selectedHazardIds, setSelectedHazardIds] = useState<number[]>([])
 
-  //=====================================
-  //           LOAD ON MOUNT
-  //=====================================
+  /** On mount: load all data. */
   useEffect(() => {
     loadAllRiskTitles()
-    loadProjectRisks()
+    loadActivityRisks()
     loadDetailedRiskControls()
     loadAllHazards()
-    loadProjectHazards()
-  }, [])
+    loadActivityHazards()
+  }, [activityId]) // re-load if activity changes
 
+  // ========== 1) Load risk titles ==========
   async function loadAllRiskTitles() {
     try {
-      const res = await axios.get('/api/risks')
+      const res = await axios.get('/api/risks') // or your endpoint for all risk_titles
       setAllRiskTitles(res.data)
     } catch (err) {
       console.error(err)
@@ -157,20 +126,26 @@ const ProjectRiskInner: React.FC<ProjectRiskProps> = ({
     }
   }
 
-  async function loadProjectRisks() {
+  // ========== 2) Load “activity_risks” bridging ==========
+  async function loadActivityRisks() {
     try {
-      const res = await axios.get(`/api/project_risks?projectId=${projectId}`)
-      setProjectRisks(res.data)
+      const res = await axios.get(
+        `/api/activity_risks?activityId=${activityId}`
+      )
+      setActivityRisks(res.data)
     } catch (err) {
       console.error(err)
-      setMessage('Failed to load project risks.')
+      setMessage('Failed to load activity risks.')
     }
   }
 
+  // ========== 3) Load risk controls bridging ==========
   async function loadDetailedRiskControls() {
     try {
+      // e.g. GET /api/activity_risk_controls/detailed?activityId=...
+      // or you might store them differently
       const res = await axios.get(
-        `/api/project_risk_controls/detailed?projectId=${projectId}`
+        `/api/activity_risk_controls/detailed?activityId=${activityId}`
       )
       setDetailedRiskControls(res.data)
     } catch (err) {
@@ -178,38 +153,40 @@ const ProjectRiskInner: React.FC<ProjectRiskProps> = ({
     }
   }
 
+  // ========== 4) Load “all hazards” and “activity hazards”  ==========
   async function loadAllHazards() {
     try {
       const siteRes = await axios.get('/api/site_hazards')
       setSiteHazards(siteRes.data)
+
       const actRes = await axios.get('/api/activity_people_hazards')
       setActivityHazards(actRes.data)
     } catch (err) {
       console.error(err)
-      setMessage('Failed to load hazards.')
+      setMessage('Failed to load hazard definitions.')
     }
   }
 
-  async function loadProjectHazards() {
+  async function loadActivityHazards() {
     try {
+      // e.g. GET /api/activity_site_hazards?activityId=...
       const shRes = await axios.get(
-        `/api/project_site_hazards?projectId=${projectId}`
+        `/api/activity_site_hazards?activityId=${activityId}`
       )
-      setProjectSiteHazards(shRes.data)
+      setActivitySiteHazards(shRes.data)
 
+      // e.g. GET /api/activity_activity_people_hazards?activityId=...
       const ahRes = await axios.get(
-        `/api/project_activity_people_hazards?projectId=${projectId}`
+        `/api/activity_activity_people_hazards?activityId=${activityId}`
       )
-      setProjectActivityHazards(ahRes.data)
+      setActivityPeopleHazards(ahRes.data)
     } catch (err) {
       console.error(err)
-      setMessage('Failed to load project hazards.')
+      setMessage('Failed to load hazards for this activity.')
     }
   }
 
-  //=====================================
-  //         RISK RATING
-  //=====================================
+  // ========== 5) Recompute local risk rating whenever likelihood/consequences changes ==========
   useEffect(() => {
     setLocalRiskRating(computeLocalRiskRating(likelihood, consequences))
   }, [likelihood, consequences])
@@ -249,15 +226,13 @@ const ProjectRiskInner: React.FC<ProjectRiskProps> = ({
     return 'Unknown'
   }
 
-  //=====================================
-  //        ADD RISK
-  //=====================================
+  // =====================================
+  //        ADD RISK  (Create new)
+  // =====================================
   function openAddRiskModal() {
     setShowRiskModal(true)
     setIsEditing(false)
     setEditingRisk(null)
-
-    // Clear the form
     setSelectedRiskTitleId(null)
     setRiskControlsForTitle([])
     setChosenControlIds([])
@@ -270,6 +245,7 @@ const ProjectRiskInner: React.FC<ProjectRiskProps> = ({
   async function handlePickRiskTitle(riskTitleId: number) {
     setSelectedRiskTitleId(riskTitleId)
     try {
+      // get the “risk_controls” for that riskTitle
       const res = await axios.get(`/api/risks/${riskTitleId}/controls`)
       setRiskControlsForTitle(res.data)
       setChosenControlIds([])
@@ -294,7 +270,7 @@ const ProjectRiskInner: React.FC<ProjectRiskProps> = ({
         control_text: newControlText.trim(),
       })
       setNewControlText('')
-      // re-fetch
+      // re-fetch the list
       const res = await axios.get(`/api/risks/${selectedRiskTitleId}/controls`)
       setRiskControlsForTitle(res.data)
     } catch (err) {
@@ -303,9 +279,9 @@ const ProjectRiskInner: React.FC<ProjectRiskProps> = ({
     }
   }
 
-  //=====================================
-  //        EDIT RISK (including controls)
-  //=====================================
+  // =====================================
+  //        EDIT RISK
+  // =====================================
   function openEditRiskModal(r: RiskRow) {
     setShowRiskModal(true)
     setIsEditing(true)
@@ -317,7 +293,6 @@ const ProjectRiskInner: React.FC<ProjectRiskProps> = ({
 
     // fetch that risk title’s controls
     setSelectedRiskTitleId(r.riskTitleId)
-
     if (r.riskTitleId) {
       axios
         .get(`/api/risks/${r.riskTitleId}/controls`)
@@ -337,31 +312,27 @@ const ProjectRiskInner: React.FC<ProjectRiskProps> = ({
     setNewControlText('')
   }
 
+  // =====================================
+  //        SAVE RISK (Add or Edit)
+  // =====================================
   async function handleSaveRisk() {
-    // Debug logging:
-    if (isEditing && editingRisk) {
-      console.log(
-        'Editing risk ID:',
-        editingRisk.riskId,
-        'with values => likelihood:',
-        likelihood,
-        'consequences:',
-        consequences
-      )
+    // Check if user selected at least one control
+    if (chosenControlIds.length === 0) {
+      setMessage('Please select at least one Control for this risk.')
+      return
     }
-
     if (!likelihood || !consequences) {
       setMessage('Please pick a likelihood and consequence.')
       return
     }
-
     try {
       if (!isEditing) {
-        // == ADD MODE ==
+        // ADD MODE
         if (!selectedRiskTitleId) {
           setMessage('Please pick a risk title first.')
           return
         }
+        // 1) create a “risks” row
         const createRes = await axios.post('/api/risks-create-row', {
           risk_title_id: selectedRiskTitleId,
           likelihood,
@@ -369,50 +340,48 @@ const ProjectRiskInner: React.FC<ProjectRiskProps> = ({
         })
         const newRiskId = createRes.data.riskId
 
-        await axios.post('/api/project_risks', {
-          project_id: projectId,
+        // 2) link it to this activity
+        await axios.post('/api/activity_risks', {
+          activity_id: activityId,
           risk_id: newRiskId,
         })
 
+        // 3) link controls
         for (const cid of chosenControlIds) {
-          await axios.post('/api/project_risk_controls', {
-            project_id: projectId,
+          await axios.post('/api/activity_risk_controls', {
+            activity_id: activityId,
             risk_control_id: cid,
             is_checked: true,
           })
         }
 
-        setMessage('Project risk added successfully.')
+        setMessage('Activity risk added successfully.')
       } else {
-        // == EDIT MODE ==
+        // EDIT MODE
         if (!editingRisk) return
-        // Log the ID to confirm it's not undefined
-        console.log('PUT /api/risks/', editingRisk.riskId)
-
-        // update the "risks" row
+        // update the "risks" row itself
         await axios.put(`/api/risks/${editingRisk.riskId}`, {
           likelihood,
           consequences,
         })
 
-        // remove old controls
+        // remove old bridging in activity_risk_controls for that risk
         await axios.delete(
-          `/api/project_risk_controls?projectId=${projectId}&riskId=${editingRisk.riskId}`
+          `/api/activity_risk_controls?activityId=${activityId}&riskId=${editingRisk.riskId}`
         )
 
-        // re-add newly chosen
+        // re-add newly chosen controls
         for (const cid of chosenControlIds) {
-          await axios.post('/api/project_risk_controls', {
-            project_id: projectId,
+          await axios.post('/api/activity_risk_controls', {
+            activity_id: activityId,
             risk_control_id: cid,
             is_checked: true,
           })
         }
-        setMessage('Project risk updated successfully.')
+        setMessage('Activity risk updated successfully.')
       }
-
       setShowRiskModal(false)
-      loadProjectRisks()
+      loadActivityRisks()
       loadDetailedRiskControls()
     } catch (err) {
       console.error(err)
@@ -420,20 +389,22 @@ const ProjectRiskInner: React.FC<ProjectRiskProps> = ({
     }
   }
 
-  //=====================================
-  //        REMOVE RISK
-  //=====================================
+  // =====================================
+  //   REMOVE RISK
+  // =====================================
   async function handleRemoveRisk(r: RiskRow) {
     if (!window.confirm(`Remove risk "${r.risk_title_label}"?`)) return
     try {
+      // remove bridging in activity_risk_controls
       await axios.delete(
-        `/api/project_risk_controls?projectId=${projectId}&riskId=${r.riskId}`
+        `/api/activity_risk_controls?activityId=${activityId}&riskId=${r.riskId}`
       )
+      // remove bridging in activity_risks
       await axios.delete(
-        `/api/project_risks?projectId=${projectId}&riskId=${r.riskId}`
+        `/api/activity_risks?activityId=${activityId}&riskId=${r.riskId}`
       )
-      setMessage('Removed risk from project.')
-      loadProjectRisks()
+      setMessage('Removed risk from activity.')
+      loadActivityRisks()
       loadDetailedRiskControls()
     } catch (err) {
       console.error(err)
@@ -441,9 +412,9 @@ const ProjectRiskInner: React.FC<ProjectRiskProps> = ({
     }
   }
 
-  //=====================================
-  //            HAZARDS
-  //=====================================
+  // =====================================
+  //   HAZARDS: site + activity/people
+  // =====================================
   function openHazardModal(type: 'site' | 'activity') {
     setHazardTab(type)
     setSelectedHazardIds([])
@@ -460,60 +431,64 @@ const ProjectRiskInner: React.FC<ProjectRiskProps> = ({
     )
   }
 
+  // Save hazards bridging
   async function handleSaveHazards() {
     try {
       if (hazardTab === 'site') {
+        // POST /api/activity_site_hazards
         for (const hid of selectedHazardIds) {
-          await axios.post('/api/project_site_hazards', {
-            project_id: projectId,
+          await axios.post('/api/activity_site_hazards', {
+            activity_id: activityId,
             site_hazard_id: hid,
           })
         }
       } else {
+        // POST /api/activity_activity_people_hazards
         for (const hid of selectedHazardIds) {
-          await axios.post('/api/project_activity_people_hazards', {
-            project_id: projectId,
+          await axios.post('/api/activity_activity_people_hazards', {
+            activity_id: activityId,
             activity_people_hazard_id: hid,
           })
         }
       }
       setMessage('Hazards added successfully.')
       closeHazardModal()
-      loadProjectHazards()
+      loadActivityHazards()
     } catch (err) {
       console.error(err)
       setMessage('Failed to save hazards.')
     }
   }
 
+  // Remove site hazard
   async function handleRemoveSiteHazard(h: any) {
     if (!window.confirm(`Remove site hazard "${h.hazard_description}"?`)) return
     try {
-      await axios.delete(`/api/project_site_hazards?id=${h.pshId}`)
+      // e.g. DELETE /api/activity_site_hazards?id=someId
+      await axios.delete(`/api/activity_site_hazards?id=${h.id}`)
       setMessage('Removed site hazard.')
-      loadProjectHazards()
+      loadActivityHazards()
     } catch (err) {
       console.error(err)
       setMessage('Failed to remove site hazard.')
     }
   }
 
+  // Remove activity/people hazard
   async function handleRemoveActivityHazard(h: any) {
     if (!window.confirm(`Remove activity hazard "${h.hazard_description}"?`))
       return
     try {
-      await axios.delete(`/api/project_activity_people_hazards?id=${h.pahId}`)
+      await axios.delete(`/api/activity_activity_people_hazards?id=${h.id}`)
       setMessage('Removed activity hazard.')
-      loadProjectHazards()
+      loadActivityHazards()
     } catch (err) {
       console.error(err)
       setMessage('Failed to remove activity hazard.')
     }
   }
 
-  //=====================================
-  //  AUTO-HIDE ALERT
-  //=====================================
+  // Auto-hide alert
   useEffect(() => {
     if (message) {
       const t = setTimeout(() => setMessage(null), 4000)
@@ -521,31 +496,16 @@ const ProjectRiskInner: React.FC<ProjectRiskProps> = ({
     }
   }, [message])
 
-  //=====================================
-  //  RISK TITLE OPTIONS (for react-select)
-  //=====================================
+  // react-select for RiskTitle
   const riskTitleOptions: OptionType[] = allRiskTitles.map((rt) => ({
     value: rt.id,
     label: rt.title,
   }))
 
   function isOptionDisabled(option: OptionType) {
-    const found = projectRisks.find(
-      (pr) => pr.risk_title_label === option.label
-    )
+    // if we already have that risk title in activityRisks, disable
+    const found = activityRisks.find((r) => r.risk_title_label === option.label)
     return !!found
-  }
-
-  //=====================================
-  //  HAZARD DISABLE CHECKS
-  //=====================================
-  function isSiteHazardUsed(hid: number) {
-    return projectSiteHazards.some((ph: any) => ph.site_hazard_id === hid)
-  }
-  function isActivityHazardUsed(hid: number) {
-    return projectActivityHazards.some(
-      (ph: any) => ph.activity_people_hazard_id === hid
-    )
   }
 
   return (
@@ -557,13 +517,14 @@ const ProjectRiskInner: React.FC<ProjectRiskProps> = ({
       )}
 
       <h3 style={{ fontWeight: 'bold', color: '#0094B6' }} className="mb-3">
-        Determine “Risk” & Hazards for Project: {projectName}
+        Determine “Risk” & Hazards for Activity: {activityName || '(Untitled)'}
       </h3>
 
-      {/* ==================== HAZARDS TABLES ==================== */}
+      {/* Hazards Section */}
       <h4 style={{ color: '#0094B6' }} className="mt-4 fw-bold">
         Hazards
       </h4>
+      <div style={{ color: 'red', marginLeft: '10px' }}></div>
       <Tabs
         activeKey={hazardTab}
         onSelect={(k) => {
@@ -591,8 +552,8 @@ const ProjectRiskInner: React.FC<ProjectRiskProps> = ({
               </tr>
             </thead>
             <tbody>
-              {projectSiteHazards.map((h: any) => (
-                <tr key={h.pshId}>
+              {activitySiteHazards.map((h: any) => (
+                <tr key={h.id}>
                   <td style={{ whiteSpace: 'normal', wordBreak: 'break-word' }}>
                     {h.hazard_description}
                   </td>
@@ -630,8 +591,8 @@ const ProjectRiskInner: React.FC<ProjectRiskProps> = ({
               </tr>
             </thead>
             <tbody>
-              {projectActivityHazards.map((h: any) => (
-                <tr key={h.pahId}>
+              {activityPeopleHazards.map((h: any) => (
+                <tr key={h.id}>
                   <td style={{ whiteSpace: 'normal', wordBreak: 'break-word' }}>
                     {h.hazard_description}
                   </td>
@@ -653,9 +614,11 @@ const ProjectRiskInner: React.FC<ProjectRiskProps> = ({
         </Tab>
       </Tabs>
 
-      {/* ==================== RISKS TABLE ==================== */}
+      {/* Risk Section */}
       <div>
-        <h4 className="m-2 fw-bold " style={{ color: '#0094B6' }}>Risks</h4>
+        <h4 className="m-2 fw-bold " style={{ color: '#0094B6' }}>
+          Risks
+        </h4>
         <Button
           className="px-4"
           style={{ backgroundColor: '#0094B6' }}
@@ -665,7 +628,6 @@ const ProjectRiskInner: React.FC<ProjectRiskProps> = ({
           + Add Risk
         </Button>
       </div>
-
       <Table bordered hover responsive>
         <thead>
           <tr>
@@ -678,7 +640,8 @@ const ProjectRiskInner: React.FC<ProjectRiskProps> = ({
           </tr>
         </thead>
         <tbody>
-          {projectRisks.map((r) => {
+          {activityRisks.map((r) => {
+            // gather relevant controls for this risk from detailedRiskControls
             const relevantControls = detailedRiskControls.filter(
               (dc) => dc.riskId === r.riskId
             )
@@ -722,11 +685,11 @@ const ProjectRiskInner: React.FC<ProjectRiskProps> = ({
         </tbody>
       </Table>
 
-      {/* ===== ADD/EDIT RISK MODAL ===== */}
+      {/* ADD/EDIT RISK MODAL */}
       <Modal show={showRiskModal} onHide={() => setShowRiskModal(false)}>
         <Modal.Header closeButton>
           <Modal.Title style={{ color: '#0094B6' }}>
-            {isEditing ? 'Edit Project Risk' : 'Add Project Risk'}
+            {isEditing ? 'Edit Activity Risk' : 'Add Activity Risk'}
           </Modal.Title>
         </Modal.Header>
         <Modal.Body
@@ -737,7 +700,7 @@ const ProjectRiskInner: React.FC<ProjectRiskProps> = ({
             wordBreak: 'break-word',
           }}
         >
-          {/* If not editing, let pick a risk title */}
+          {/* If not editing, pick a risk title */}
           {!isEditing && (
             <Form.Group className="mb-3">
               <Form.Label>Risk Title</Form.Label>
@@ -821,7 +784,7 @@ const ProjectRiskInner: React.FC<ProjectRiskProps> = ({
                   <Form.Check
                     key={ctrl.id}
                     type="checkbox"
-                    id={`ctrl-${ctrl.id}`} // unique ID for label toggling
+                    id={`ctrl-${ctrl.id}`}
                     label={ctrl.control_text}
                     checked={chosenControlIds.includes(ctrl.id)}
                     onChange={() => toggleChooseControl(ctrl.id)}
@@ -854,7 +817,7 @@ const ProjectRiskInner: React.FC<ProjectRiskProps> = ({
         </Modal.Footer>
       </Modal>
 
-      {/* ===== ADD HAZARDS MODAL ===== */}
+      {/* ADD HAZARDS MODAL */}
       <Modal show={showHazardModal} onHide={closeHazardModal}>
         <Modal.Header closeButton>
           <Modal.Title style={{ color: '#0094B6' }}>
@@ -873,13 +836,13 @@ const ProjectRiskInner: React.FC<ProjectRiskProps> = ({
         >
           {hazardTab === 'site'
             ? siteHazards.map((h) => {
-                const isUsed = projectSiteHazards.some(
-                  (ph: any) => ph.site_hazard_id === h.id
+                const isUsed = activitySiteHazards.some(
+                  (sh: any) => sh.site_hazard_id === h.id
                 )
                 return (
                   <Form.Check
                     key={h.id}
-                    id={`site-haz-${h.id}`} // unique ID
+                    id={`site-haz-${h.id}`}
                     type="checkbox"
                     label={
                       h.hazard_description + (isUsed ? ' (already added)' : '')
@@ -892,13 +855,13 @@ const ProjectRiskInner: React.FC<ProjectRiskProps> = ({
                 )
               })
             : activityHazards.map((h) => {
-                const isUsed = projectActivityHazards.some(
-                  (ph: any) => ph.activity_people_hazard_id === h.id
+                const isUsed = activityPeopleHazards.some(
+                  (ah: any) => ah.activity_people_hazard_id === h.id
                 )
                 return (
                   <Form.Check
                     key={h.id}
-                    id={`act-haz-${h.id}`} // unique ID
+                    id={`act-haz-${h.id}`}
                     type="checkbox"
                     label={
                       h.hazard_description + (isUsed ? ' (already added)' : '')
@@ -924,4 +887,4 @@ const ProjectRiskInner: React.FC<ProjectRiskProps> = ({
   )
 }
 
-export default ProjectRisk
+export default ActivityRisk

@@ -6,103 +6,117 @@ interface Checklist {
   description: string
 }
 
-interface ProjectChecklistProps {
-  projectId: number
+interface ActivityChecklistProps {
+  activityId: number
   isSidebarOpen: boolean
-  projectName: string
+  activityName: string
 }
 
-const ProjectChecklist: React.FC<ProjectChecklistProps> = ({
-  projectId,
+const ActivityChecklist: React.FC<ActivityChecklistProps> = ({
+  activityId,
   isSidebarOpen,
 }) => {
   const [unassignedChecklists, setUnassignedChecklists] = useState<Checklist[]>(
     []
   )
-  const [projectChecklists, setProjectChecklists] = useState<Checklist[]>([])
+  const [activityChecklists, setActivityChecklists] = useState<Checklist[]>([])
   const [selectedChecklists, setSelectedChecklists] = useState<number[]>([])
+
+  const [projectName, setProjectName] = useState<string>('') // Store project name
+
+  // Fetch the project name for the activity
+  useEffect(() => {
+    const fetchProjectName = async () => {
+      try {
+        const res = await axios.get(`/api/activity_project/${activityId}`)
+        setProjectName(res.data.projectName) // Assume the response includes projectName
+      } catch (err) {
+        console.error('Error fetching project name:', err)
+      }
+    }
+
+    fetchProjectName()
+  }, [activityId])
 
   // 1) Fetch unassigned checklists
   useEffect(() => {
     const fetchUnassignedChecklists = async () => {
       try {
-        const res = await axios.get(`/api/unassigned_checklist/${projectId}`)
+        const res = await axios.get(`/api/unassigned_checklist/${activityId}`)
         setUnassignedChecklists(res.data)
       } catch (err) {
         console.error('Error fetching unassigned checklists:', err)
       }
     }
 
-    // Only fetch if projectId is valid (non-zero)
-    if (projectId) {
+    if (activityId) {
       fetchUnassignedChecklists()
     }
-  }, [projectId, projectChecklists])
-  // We include 'projectChecklists' so that whenever we add or remove items,
-  // the "unassigned" list can re-update.
+  }, [activityId, activityChecklists])
 
   // 2) Fetch assigned checklists
   useEffect(() => {
-    const fetchProjectChecklists = async () => {
+    const fetchActivityChecklists = async () => {
       try {
-        const res = await axios.get(`/api/project_checklist/${projectId}`)
-        setProjectChecklists(res.data)
+        const res = await axios.get(`/api/activity_checklist/${activityId}`)
+        setActivityChecklists(res.data)
       } catch (err) {
-        console.error('Error fetching project checklists:', err)
+        console.error('Error fetching activity checklists:', err)
       }
     }
 
-    // Only fetch if projectId is valid
-    if (projectId) {
-      fetchProjectChecklists()
+    if (activityId) {
+      fetchActivityChecklists()
     }
-  }, [projectId])
+  }, [activityId])
 
-  // 3) Add selected checklists to the project
+  // 3) Add selected checklists to the activity
   const handleAddChecklists = async () => {
     if (selectedChecklists.length === 0) return
     try {
-      await axios.post('/api/project_checklist', {
-        project_id: projectId,
+      await axios.post('/api/activity_checklist', {
+        activity_id: activityId,
         checklist_ids: selectedChecklists,
       })
 
-      // refresh the assigned checklists
-      const assignedRes = await axios.get(`/api/project_checklist/${projectId}`)
-      setProjectChecklists(assignedRes.data)
+      const assignedRes = await axios.get(
+        `/api/activity_checklist/${activityId}`
+      )
+      setActivityChecklists(assignedRes.data)
 
-      // clear selected
       setSelectedChecklists([])
     } catch (err) {
-      console.error('Error assigning checklists to project:', err)
+      console.error('Error assigning checklists to activity:', err)
     }
   }
 
-  // 4) Remove a checklist from the project
-  const handleRemoveChecklist = async (pcId: number) => {
-    const checklistToRemove = projectChecklists.find((c) => c.id === pcId)
+  // 4) Remove a checklist from the activity
+  const handleRemoveChecklist = async (acId: number) => {
+    const checklistToRemove = activityChecklists.find((c) => c.id === acId)
     if (!checklistToRemove) return
 
     const confirmRemoval = window.confirm(
-      `Remove "${checklistToRemove.description}" from this project?`
+      `Remove "${checklistToRemove.description}" from this activity?`
     )
     if (!confirmRemoval) return
 
     try {
-      await axios.delete(`/api/project_checklist/${pcId}`)
-      // filter out from projectChecklists
-      setProjectChecklists((prev) => prev.filter((item) => item.id !== pcId))
+      await axios.delete(`/api/activity_checklist/${acId}`)
+      setActivityChecklists((prev) => prev.filter((item) => item.id !== acId))
     } catch (err) {
-      console.error('Error removing checklist from project:', err)
+      console.error('Error removing checklist from activity:', err)
     }
   }
 
   return (
-    <div className="d-flex flex-column align-items-center">
+    <div>
       <h3 className="fw-bold p-2 fs-4" style={{ color: '#0094B6' }}>
-        Assign Checklists to Project
+        Assign Checklists to Activity
       </h3>
-
+      <p className="fw-bold p-2 fs-4" style={{ color: '#0094B6' }}>
+        Selected Project: {projectName}
+      </p>
+<div className="d-flex flex-column align-items-center">
       <h5 style={{ marginBottom: '1rem' }}>Hold Ctrl/Cmd to select multiple</h5>
 
       {/* Available (Unassigned) Checklists */}
@@ -152,7 +166,7 @@ const ProjectChecklist: React.FC<ProjectChecklistProps> = ({
           </tr>
         </thead>
         <tbody>
-          {projectChecklists.map((c) => (
+          {activityChecklists.map((c) => (
             <tr key={c.id}>
               <td>{c.description}</td>
               <td>
@@ -168,7 +182,8 @@ const ProjectChecklist: React.FC<ProjectChecklistProps> = ({
         </tbody>
       </table>
     </div>
+    </div>
   )
 }
 
-export default ProjectChecklist
+export default ActivityChecklist

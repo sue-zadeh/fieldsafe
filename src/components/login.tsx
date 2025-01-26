@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react'
 import { FaEye, FaEyeSlash } from 'react-icons/fa'
 import axios, { AxiosError } from 'axios'
-
+import { useNavigate } from 'react-router-dom'
 interface LoginProps {
   onLoginSuccess: () => void
 }
@@ -14,6 +14,8 @@ const Login: React.FC<LoginProps> = ({ onLoginSuccess }) => {
   const [isLoading, setIsLoading] = useState<boolean>(false)
   const [isForgotPassword, setIsForgotPassword] = useState<boolean>(false)
   const [showPassword, setShowPassword] = useState<boolean>(false)
+
+  const navigate = useNavigate()
 
   useEffect(() => {
     const savedEmail = localStorage.getItem('email')
@@ -50,8 +52,9 @@ const Login: React.FC<LoginProps> = ({ onLoginSuccess }) => {
         } else {
           localStorage.removeItem('email')
         }
-
-        // Notify the parent component that login succeeded
+        // Navigate to firstpage
+        navigate('/firstpage')
+        // To tell App we’re logged in
         onLoginSuccess()
       } else {
         setError(response.data.message || 'Login failed. Please try again.')

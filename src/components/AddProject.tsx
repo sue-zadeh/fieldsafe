@@ -470,7 +470,7 @@ const AddProject: React.FC<AddProjectProps> = ({ isSidebarOpen }) => {
         transition: 'margin 0.3s ease',
         paddingTop: '2px',
         height: '100vh',
-        width: '95%',
+        width: '98%',
       }}
     >
       {/* Nav bar for projects page */}

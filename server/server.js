@@ -1,5 +1,7 @@
 // server/server.js
 import express from 'express'
+import logger from './logger.js'
+
 import path from 'path'
 import { fileURLToPath } from 'url'
 import mysql from 'mysql2/promise'
@@ -15,20 +17,26 @@ import projectsRouter from './projects.js'
 import objectivesRouter from './objectives.js'
 import hazardRiskRoutes from './hazard.js'
 import riskRouter from './risk.js'
-import projectRiskRouter from './projectrisk.js'
+import ActivityRiskRouter from './activityrisk.js'
 import checklistRouter from './checklist.js'
-import ProjectObjectivesRouter from './projectobjectives.js'
-import predatorRouter from './Predator.js'
-import activityRouter from './activities.js'
+import ActivityObjectivesRouter from './activityobjectives.js'
+import predatorRouter from './predator.js'
+import activitiesRouter from './activities.js'
+import completeRouter from './complete.js'
 
 dotenv.config()
+
 // For find __dirname in ES Modules---------------
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
 //------------------------------
 const app = express()
 app.use(express.json())
-
+// logging with Winston
+app.get('/', (req, res) => {
+  logger.info('GET request received at /')
+  res.send('Hello, Winston!')
+})
 // Serve "uploads" folder for images/docs
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')))
 // Use routers for pages---------------------------
@@ -40,11 +48,12 @@ app.use('/api', volunteerRoutes)
 
 app.use('/api', hazardRiskRoutes)
 app.use('/api', riskRouter)
-app.use('/api', projectRiskRouter)
+app.use('/api', ActivityRiskRouter)
 app.use('/api', checklistRouter)
-app.use('/api', ProjectObjectivesRouter)
+app.use('/api', ActivityObjectivesRouter)
 app.use('/api', predatorRouter)
-app.use('/api/activities', activityRouter)
+app.use('/api/activities', activitiesRouter)
+app.use('/api/activities', completeRouter);
 
 // test route
 app.get('/api/ping', (req, res) => {
@@ -101,7 +110,7 @@ app.post('/api/login', async (req, res) => {
     const token = jwt.sign(
       { userId: user.id, role: user.role },
       process.env.JWT_SECRET,
-      { expiresIn: '1h' }
+      { expiresIn: '20h' }
     )
     //Return success notification
     return res.json({

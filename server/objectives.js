@@ -101,62 +101,60 @@ router.delete('/:id', async (req, res) => {
 })
 
 // ================================================================
-//     NEW ENDPOINTS FOR THE "OUTCOME" / "PROJECT OBJECTIVES"
+//     NEW ENDPOINTS FOR THE "OUTCOME" / "ACTIVITY OBJECTIVES"
 // ================================================================
+// GET objectives for a specific activity
+// router.get('/activity_objectives/:activity_id', async (req, res) => {
+//   const { activity_id } = req.params
+//   try {
+//     const sql = `
+//       SELECT 
+//         ao.id AS activityObjectiveId, 
+//         ao.activity_id, 
+//         ao.project_id
+//         ao.objective_id, 
+//         ao.amount, 
+//         ao.dateStart, 
+//         ao.dateEnd, 
+//         o.title, 
+//         o.measurement 
+//       FROM activity_objectives ao
+//       JOIN objectives o ON ao.objective_id = o.id
+//       WHERE ao.activity_id = ?;
+//     `
+//     const [rows] = await pool.query(sql, [activity_id])
+//     res.json(rows)
+//   } catch (err) {
+//     console.error('Error fetching activity objectives:', err)
+//     res.status(500).json({ message: 'Failed to fetch activity objectives.' })
+//   }
+// })
 
-//
-//  GET the chosen objectives for a specific project
-//    (JOIN project_objectives + objectives)
-//
-router.get('/project_objectives/:project_id', async (req, res) => {
-  const { project_id } = req.params
-  try {
-    const sql = `
-      SELECT 
-        po.id AS projectObjectiveId,
-        po.project_id,
-        po.objective_id,
-        po.amount,
-        po.dateStart,
-        po.dateEnd,
-        o.title,
-        o.measurement
-      FROM project_objectives po
-      JOIN objectives o ON po.objective_id = o.id
-      WHERE po.project_id = ?
-    `
-    const [rows] = await pool.query(sql, [project_id])
-    res.json(rows)
-  } catch (err) {
-    console.error('Error fetching project objectives:', err)
-    res.status(500).json({ message: 'Internal server error' })
-  }
-})
+// // POST a new objective for an activity
+// router.post('/activity_objectives', async (req, res) => {
+//   try {
+//     const { activity_id, objective_id, amount, dateStart, dateEnd } = req.body
 
-//
-// UPDATE a single project_objectives row (dateStart, dateEnd, amount, etc.)
-//    PUT /api/project_objectives/:id
-//
-router.put('/project_objectives/:id', async (req, res) => {
-  const { id } = req.params
-  const { amount, dateStart, dateEnd } = req.body
+//     const sql = `
+//       INSERT INTO activity_objectives 
+//       (activity_id, objective_id, amount, dateStart, dateEnd)
+//       VALUES (?, ?, ?, ?, ?)
+//     `
+//     await pool.query(sql, [
+//       activity_id,
+//       objective_id,
+//       amount ?? null,
+//       dateStart ?? null,
+//       dateEnd ?? null,
+//     ])
 
-  try {
-    const sql = `
-      UPDATE project_objectives
-      SET amount = ?, dateStart = ?, dateEnd = ?
-      WHERE id = ?
-    `
-    const [result] = await pool.query(sql, [amount, dateStart, dateEnd, id])
-    if (result.affectedRows === 0) {
-      return res.status(404).json({ message: 'Project objective not found.' })
-    }
-
-    res.json({ message: 'Project objective updated successfully.' })
-  } catch (error) {
-    console.error('Error updating project objective:', error)
-    res.status(500).json({ message: 'Failed to update project objective.' })
-  }
-})
+//     res
+//       .status(201)
+//       .json({ message: 'Objective added successfully to activity.' })
+//   } catch (error) {
+//     console.error('Error inserting activity objective:', error)
+//     res.status(500).json({ message: 'Failed to add objective to activity.' })
+//   }
+// })
 
 export default router

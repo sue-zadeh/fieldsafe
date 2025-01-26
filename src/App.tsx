@@ -5,6 +5,7 @@ import { Modal, Button } from 'react-bootstrap'
 
 import Navbar from './components/navbar'
 import Login from './components/login'
+import FirstPage from './components/firstpage'
 import Sidebar from './components/sidebar'
 import Registerroles from './components/registerroles'
 import Groupadmin from './components/groupadmin'
@@ -17,7 +18,7 @@ import SearchProject from './components/searchproject'
 import AddObjective from './components/addobjective'
 import AddRisk from './components/addrisk'
 import AddHazard from './components/addhazard'
-// import ProjectDetail from './components/projectdetails'
+import SearchActivity from './components/searchactivity'
 // import ProjectRisk from './components/projectrisk'
 import ActivityWizard from './components/activitytabs'
 
@@ -32,7 +33,7 @@ const App: React.FC = () => {
   const navigate = useNavigate()
 
   // For inactivity:
-  const INACTIVITY_LIMIT = 200 * 60_000 // 200 minutes in ms
+  const INACTIVITY_LIMIT = 1000 * 60_000 // 1000 minutes in ms
   const [showSessionModal, setShowSessionModal] = useState(false)
   const [countdown, setCountdown] = useState(120) // 2 minutes
   const [showSessionExpiredAlert, setShowSessionExpiredAlert] = useState(false)
@@ -123,7 +124,7 @@ const App: React.FC = () => {
   const handleStayLoggedIn = () => {
     // user clicked "Stay Logged In"
     setShowSessionModal(false)
-    setCountdown(60)
+    setCountdown(120)
     // reset the inactivity timers for another full 20 minutes
     if (sessionTimerRef.current) clearTimeout(sessionTimerRef.current)
     if (logoutTimerRef.current) clearTimeout(logoutTimerRef.current)
@@ -169,7 +170,7 @@ const App: React.FC = () => {
 
   const handleLoginSuccess = () => {
     setIsLoggedIn(true)
-    navigate('/')
+    navigate('/firstpage')
   }
 
   const handleLogout = () => {
@@ -234,6 +235,10 @@ const App: React.FC = () => {
               >
                 <Routes>
                   <Route
+                    path="/firstpage"
+                    element={<FirstPage isSidebarOpen={isSidebarOpen} />}
+                  />
+                  <Route
                     path="/registerroles"
                     element={<Registerroles isSidebarOpen={isSidebarOpen} />}
                   />
@@ -285,11 +290,11 @@ const App: React.FC = () => {
                     element={<ActivityWizard isSidebarOpen={true} />}
                   />
 
-                  {/* <Route
-                    path="/projectdetail"
-                    element={<ProjectDetail isSidebarOpen={isSidebarOpen} />}
-                  />
                   <Route
+                    path="/searchactivity"
+                    element={<SearchActivity isSidebarOpen={isSidebarOpen} />}
+                  />
+                  {/* <Route
                     path="/projectrisk"
                     element={<ProjectRisk isSidebarOpen={isSidebarOpen} />}
                   /> */}
