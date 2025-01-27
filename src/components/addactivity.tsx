@@ -4,6 +4,9 @@ import { useLocation, useNavigate } from 'react-router-dom'
 import axios from 'axios'
 import { Form, Button, Row, Col, Card, Modal } from 'react-bootstrap'
 
+// Google Maps
+import { GoogleMap, Marker } from '@react-google-maps/api'
+
 interface ProjectOption {
   id: number
   name: string
@@ -16,11 +19,22 @@ interface ActivityData {
   project_id: number
   activity_date: string
   notes: string
-  createdBy?: string
+  createdBy: string
   status: string
   projectLocation?: string
   projectName?: string
 }
+
+const containerStyle = {
+  width: '100%',
+  height: '220px',
+}
+
+// Default center: e.g. Auckland
+const defaultCenter = { lat: -36.8485, lng: 174.7633 }
+
+// If you have the key in an .env, do something like:
+// const GOOGLE_MAPS_API_KEY = process.env.REACT_APP_MAPS_API_KEY || ''
 
 const AddActivity: React.FC = () => {
   const navigate = useNavigate()
@@ -42,29 +56,33 @@ const AddActivity: React.FC = () => {
   // For the “already in progress” modal
   const [showModal, setShowModal] = useState(false)
 
-  // Are we editing an existing activity?
+  // Are we editing?
   const activityId = location.state?.activityId
+  // If we came from search => no “in-progress” modal
+  const fromSearch = location.state?.fromSearch
 
-  // If user didn’t come from search => show modal
+  // For the map
+  const [mapCenter, setMapCenter] = useState(defaultCenter)
+  const [markerPos, setMarkerPos] = useState(defaultCenter)
+
+  // 1) Show in-progress modal only if:
+  // - we do NOT have an activityId
+  // - we did NOT come from search
   useEffect(() => {
-    if (!location.state?.fromSearch) {
+    if (!activityId && !fromSearch) {
       setShowModal(true)
     }
-  }, [location])
+  }, [activityId, fromSearch])
 
-  // Fetch all projects for the dropdown
+  // 2) Fetch all projects => for dropdown
   useEffect(() => {
     axios
       .get<ProjectOption[]>('/api/projects')
-      .then((res) => {
-        setProjects(res.data)
-      })
-      .catch((err) => {
-        console.error('Error fetching projects', err)
-      })
+      .then((res) => setProjects(res.data))
+      .catch((err) => console.error('Error fetching projects', err))
   }, [])
 
-  // If we have an activityId => fetch & show read‐only
+  // 3) If we have an activityId => fetch that activity, read-only
   useEffect(() => {
     if (activityId) {
       axios
@@ -91,6 +109,42 @@ const AddActivity: React.FC = () => {
     }
   }, [activityId])
 
+  // 4) Whenever projectLocation changes, geocode it => update mapCenter & marker
+  useEffect(() => {
+    if (activity.projectLocation) {
+      geocodeAddress(activity.projectLocation)
+    }
+  }, [activity.projectLocation])
+
+  // Quick function to geocode a string:
+  async function geocodeAddress(address: string) {
+    try {
+      // If you keep an environment variable:
+      // const url = `https://maps.googleapis.com/maps/api/geocode/json?address=${encodeURIComponent(
+      //   address
+      // )}&key=${GOOGLE_MAPS_API_KEY}`
+      // For demo, removing the key param so it might require a dev key:
+      const url = `https://maps.googleapis.com/maps/api/geocode/json?address=${encodeURIComponent(
+        address
+      )}`
+      const resp = await fetch(url)
+      const json = await resp.json()
+      if (json.status === 'OK' && json.results[0]?.geometry?.location) {
+        const { lat, lng } = json.results[0].geometry.location
+        setMapCenter({ lat, lng })
+        setMarkerPos({ lat, lng })
+      } else {
+        console.warn('Geocode failed or no results for:', address)
+        setMapCenter(defaultCenter)
+        setMarkerPos(defaultCenter)
+      }
+    } catch (err) {
+      console.error('Geocoding error:', err)
+      setMapCenter(defaultCenter)
+      setMarkerPos(defaultCenter)
+    }
+  }
+
   /** Handle changes in form fields */
   const handleChange = (
     e: React.ChangeEvent<
@@ -104,7 +158,7 @@ const AddActivity: React.FC = () => {
     }))
   }
 
-  /** If project changes, auto‐fill that project’s location */
+  /** If project changes => auto-fill location from that project. */
   const handleProjectChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const projId = Number(e.target.value)
     const proj = projects.find((p) => p.id === projId)
@@ -115,7 +169,7 @@ const AddActivity: React.FC = () => {
     }))
   }
 
-  /** Save new or update existing */
+  // 5) Save new or update existing
   const handleSave = async () => {
     try {
       if (
@@ -127,7 +181,7 @@ const AddActivity: React.FC = () => {
         return
       }
 
-      // CREATE NEW
+      // CREATE
       if (!activityId) {
         await axios.post('/api/activities', {
           activity_name: activity.activity_name,
@@ -138,7 +192,7 @@ const AddActivity: React.FC = () => {
           status: activity.status,
         })
         alert('Activity created successfully!')
-        navigate('/searchactivity') // ensure route matches your actual route
+        navigate('/searchactivity')
       }
       // UPDATE
       else if (activityId && !readOnly) {
@@ -212,12 +266,12 @@ const AddActivity: React.FC = () => {
     setShowModal(false)
   }
 
-  // Force date to be no earlier than 2024-01-01
-  const minDate = '2024-06-01'
+  // Minimum date is 2024-01-01
+  const minDate = '2024-01-01'
 
   return (
     <div style={{ margin: '2rem' }}>
-      {/* "In progress" modal if user didn't come from search */}
+      {/* "In progress" modal if user didn't come from search and no activityId */}
       <Modal show={showModal} onHide={handleCancelModal}>
         <Modal.Header closeButton>
           <Modal.Title>Field Note In Progress</Modal.Title>
@@ -309,11 +363,14 @@ const AddActivity: React.FC = () => {
                     min={minDate}
                     disabled={readOnly}
                   />
+                  <Form.Text className="text-muted">
+                    Date cannot be earlier than 2024.
+                  </Form.Text>
                 </Form.Group>
               </Col>
             </Row>
 
-            {/* Show location read-only after project selection */}
+            {/* Show location read-only & Google Map */}
             <Row className="mb-3">
               <Col md={6}>
                 <Form.Group controlId="location">
@@ -332,7 +389,7 @@ const AddActivity: React.FC = () => {
                   <Form.Control
                     type="text"
                     name="createdBy"
-                    value={activity.createdBy || ''}
+                    value={activity.createdBy}
                     onChange={handleChange}
                     disabled={readOnly}
                     placeholder="Who is creating this note?"
@@ -340,6 +397,17 @@ const AddActivity: React.FC = () => {
                 </Form.Group>
               </Col>
             </Row>
+
+            {/* Show a small map with marker */}
+            <div className="mb-3">
+              <GoogleMap
+                mapContainerStyle={containerStyle}
+                center={mapCenter}
+                zoom={12}
+              >
+                <Marker position={markerPos} />
+              </GoogleMap>
+            </div>
 
             <Form.Group controlId="notes" className="mb-3">
               <Form.Label>Notes</Form.Label>

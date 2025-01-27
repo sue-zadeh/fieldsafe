@@ -166,7 +166,7 @@ const Navbar: React.FC<NavbarProps> = ({
                 </li>
                 <li>
                   <Link
-                   to="/searchactivity"
+                    to="/searchactivity"
                     className="dropdown-item"
                     style={{
                       fontWeight: isActive('/searchactivity')
@@ -203,7 +203,7 @@ const Navbar: React.FC<NavbarProps> = ({
                 }}
               >
                 <MdGroups style={{ marginRight: '5px' }} />
-                Organization Profile
+                Organisation Profile
               </a>
               <ul
                 className="dropdown-menu"

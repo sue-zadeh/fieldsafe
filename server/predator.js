@@ -34,7 +34,7 @@ router.get('/activity_predator/:activity_id', async (req, res) => {
         ap.mustelids,
         ap.hedgehogs,
         ap.others,
-        ap.othersDescription
+        ap.others_description
       FROM activity_predator ap
       JOIN predator p ON ap.predator_id = p.id
       WHERE ap.activity_id = ?
@@ -61,7 +61,7 @@ router.post('/activity_predator', async (req, res) => {
       mustelids,
       hedgehogs,
       others,
-      othersDescription,
+      others_description,
     } = req.body
 
     const sql = `

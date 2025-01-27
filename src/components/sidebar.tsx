@@ -197,7 +197,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, toggleSidebar }) => {
 
         {/* Activity notes */}
 
-        <NavItem label="activity-notes" dropdownId="activity">
+        <NavItem label="Activity Notes" dropdownId="activity">
           <ul style={dropdownListStyle}>
             <li>
               <Link
@@ -231,7 +231,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, toggleSidebar }) => {
         </NavItem>
 
         {/* All USERS */}
-        <NavItem label="Organization Profile" dropdownId="organization">
+        <NavItem label="Organisation Profile" dropdownId="organization">
           <ul style={dropdownListStyle}>
             {role === 'Group Admin' && (
               <li>

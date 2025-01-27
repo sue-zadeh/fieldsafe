@@ -5,7 +5,7 @@ import axios from 'axios'
 interface ActivityOutcomeProps {
   activityId: number
   isSidebarOpen: boolean
-  activityName: string  //
+  activityName: string //
 }
 
 interface IActivityObjective {
@@ -77,7 +77,7 @@ const ActivityOutcome: React.FC<ActivityOutcomeProps> = ({
   const [othersDescription, setOthersDescription] = useState<string>('')
 
   //================================================
-  //   Fetch Objectives for THIS activity
+  //   1) Fetch Objectives for THIS activity
   //================================================
   useEffect(() => {
     if (!activityId) return
@@ -296,7 +296,11 @@ const ActivityOutcome: React.FC<ActivityOutcomeProps> = ({
   }
 
   return (
-    <div className={`d-flex flex-column px-3 ${isSidebarOpen ? 'content-expanded' : 'content-collapsed'}`}>
+    <div
+      className={`d-flex flex-column px-3 ${
+        isSidebarOpen ? 'content-expanded' : 'content-collapsed'
+      }`}
+    >
       <h3 className="fw-bold p-2 fs-4" style={{ color: '#0094B6' }}>
         Activity Outcome for: {activityName}
       </h3>
@@ -316,7 +320,8 @@ const ActivityOutcome: React.FC<ActivityOutcomeProps> = ({
           </thead>
           <tbody>
             {objectives.map((obj) => {
-              const isRowEditing = editingObjectiveId === obj.activityObjectiveId
+              const isRowEditing =
+                editingObjectiveId === obj.activityObjectiveId
               return (
                 <tr key={obj.activityObjectiveId}>
                   <td>{obj.title}</td>
@@ -418,7 +423,9 @@ const ActivityOutcome: React.FC<ActivityOutcomeProps> = ({
                   className="form-select"
                   value={selectedPredatorId ?? ''}
                   onChange={(e) =>
-                    setSelectedPredatorId(e.target.value ? Number(e.target.value) : null)
+                    setSelectedPredatorId(
+                      e.target.value ? Number(e.target.value) : null
+                    )
                   }
                 >
                   <option value="">-- select one --</option>
@@ -527,11 +534,17 @@ const ActivityOutcome: React.FC<ActivityOutcomeProps> = ({
             )}
 
             <div>
-              <button className="btn btn-primary me-2" onClick={handleSavePredator}>
+              <button
+                className="btn btn-primary me-2"
+                onClick={handleSavePredator}
+              >
                 {editingPredatorId ? 'Update' : 'Add'}
               </button>
               {editingPredatorId && (
-                <button className="btn btn-secondary" onClick={resetPredatorForm}>
+                <button
+                  className="btn btn-secondary"
+                  onClick={resetPredatorForm}
+                >
                   Cancel
                 </button>
               )}
@@ -559,7 +572,11 @@ const ActivityOutcome: React.FC<ActivityOutcomeProps> = ({
                 {predatorRecords.map((rec) => (
                   <tr key={rec.id}>
                     <td>{rec.sub_type}</td>
-                    <td>{rec.sub_type.toLowerCase() === 'catches' ? '-' : rec.measurement}</td>
+                    <td>
+                      {rec.sub_type.toLowerCase() === 'catches'
+                        ? '-'
+                        : rec.measurement}
+                    </td>
                     <td>{rec.dateStart || ''}</td>
                     <td>{rec.dateEnd || ''}</td>
                     <td>{rec.rats}</td>
@@ -567,6 +584,7 @@ const ActivityOutcome: React.FC<ActivityOutcomeProps> = ({
                     <td>{rec.mustelids}</td>
                     <td>{rec.hedgehogs}</td>
                     <td>{rec.others}</td>
+                    <td>{rec.othersDescription}</td>
                     <td>
                       <button
                         className="btn btn-primary btn-sm me-2"

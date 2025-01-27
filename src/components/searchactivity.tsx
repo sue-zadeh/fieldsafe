@@ -110,8 +110,8 @@ const SearchActivity: React.FC<SearchActivityProps> = ({ isSidebarOpen }) => {
       </h3>
 
       {/* Search bar */}
-      <div className="d-flex justify-content-center">
-        <InputGroup className="mb-4" style={{ maxWidth: '450px' }}>
+      <div className='d-flex justify-content-center'>
+        <InputGroup className="mb-3" style={{ maxWidth: '450px' }}>
           <Form.Control
             type="text"
             placeholder="Search activities..."
@@ -127,14 +127,19 @@ const SearchActivity: React.FC<SearchActivityProps> = ({ isSidebarOpen }) => {
           <Alert variant="warning">No results found for "{searchTerm}"</Alert>
         )}
       </div>
+      <h5 className="p-2" style={{ color: '#0094B6' }}>
+        Choose an activity by pressing Arrow Key
+      </h5>
+
       <Table striped hover responsive>
         <thead>
           <tr>
-            <th>Activity Date</th>
-            <th>Activity Name</th>
-            {/* Optional column: <th>Project</th> */}
-            <th>Location</th>
-            <th>Status</th>
+            <th className='text-center'>Activity Date</th>
+            <th className='text-center'>Activity Name</th>
+           {/* Optional column: */}
+             <th className='text-center'>Project Name</th> 
+            <th className='mx-2'>Location</th>
+            <th >Status</th>
             <th>Created By</th>
             <th className="text-end">Action</th>
           </tr>
@@ -144,9 +149,11 @@ const SearchActivity: React.FC<SearchActivityProps> = ({ isSidebarOpen }) => {
             <tr key={act.id} style={{ cursor: 'pointer' }}>
               <td>{formatDate(act.activity_date)}</td>
               <td>{act.activity_name}</td>
-              {/* Optionally: <td>{act.projectName || ''}</td> */}
+               {/* Optionally: */}
+                <td>{act.projectName || ''}</td>
+                
               <td>{act.projectLocation}</td>
-              <td>{act.status}</td>
+              <td className='mx-4'>{act.status}</td>
               <td>{act.createdBy || 'N/A'}</td>
               <td className="text-end">
                 {/* Delete */}
@@ -154,7 +161,7 @@ const SearchActivity: React.FC<SearchActivityProps> = ({ isSidebarOpen }) => {
                   style={{
                     fontSize: '1.25rem',
                     color: 'red',
-                    marginRight: '1rem',
+                    marginRight: '2rem',
                   }}
                   onClick={(e) => handleDelete(act, e)}
                 >

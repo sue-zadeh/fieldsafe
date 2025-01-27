@@ -131,7 +131,7 @@ const ActivityTabs: React.FC<ActivityTabsProps> = ({ isSidebarOpen }) => {
 
     switch (currentStep) {
       case 0:
-        return <AddActivity isSidebarOpen={isSidebarOpen} />
+        return <AddActivity  activityId={activityId!} />
       case 1:
         return <ActivityRisk activityId={activityId!} />
       case 2:

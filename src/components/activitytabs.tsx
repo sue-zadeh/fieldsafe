@@ -1,14 +1,17 @@
+// src/components/ActivityTabs.tsx
 import React, { useState, useEffect } from 'react'
 import { Button } from 'react-bootstrap'
 import { useLocation } from 'react-router-dom'
-// import ProjectDetails from './projectdetails'
-import AddActivity from './addactivity'
-import ProjectRisk from './activityrisk'
-import ProjectStaffs from './activitystaffs'
-import ProjectVolunteers from './activityvolunteers'
-import ProjectCheckList from './activitychecklist'
-import ProjectOutcome from './activityoutcome'
-// import { GiFlexibleL } from 'react-icons/gi'
+import axios from 'axios'
+
+import AddActivity from './addactivity' // Your detail/edit form
+import ActivityRisk from './activityrisk' // Next steps
+import ActivityStaffs from './activitystaffs'
+import ActivityVolunteers from './activityvolunteers'
+import ActivityCheckList from './activitychecklist'
+import ActivityOutcome from './activityoutcome'
+import ActivityComplete from './activitycomplete'
+
 interface ActivityTabsProps {
   isSidebarOpen: boolean
 }
@@ -24,26 +27,64 @@ const steps = [
 ]
 
 const ActivityTabs: React.FC<ActivityTabsProps> = ({ isSidebarOpen }) => {
-  const location = useLocation()
+  const location = useLocation() as {
+    state?: {
+      fromSearch?: boolean
+      activityId?: number
+      activityName?: string
+      projectId?: number
+      projectName?: string
+      startStep?: number
+    }
+  }
+
+  // States for the wizard
   const [currentStep, setCurrentStep] = useState(0)
+  const [selectedActivityId, setSelectedActivityId] = useState<number | null>(
+    null
+  )
+  const [selectedActivityName, setSelectedActivityName] = useState('')
   const [selectedProjectId, setSelectedProjectId] = useState<number | null>(
     null
   )
   const [selectedProjectName, setSelectedProjectName] = useState('')
 
+  // On mount, see if we have activity data from location.state
   useEffect(() => {
-    if (location.state) {
-      const st: any = location.state
-      if (st.projectId) setSelectedProjectId(st.projectId)
-      if (st.projectName) setSelectedProjectName(st.projectName)
-      if (typeof st.startStep === 'number') setCurrentStep(st.startStep)
+    if (location.state?.startStep !== undefined) {
+      setCurrentStep(location.state.startStep)
     }
-  }, [location])
+    if (location.state?.activityId) {
+      // fetch from /api/activities/:id to get fresh data
+      loadActivityDetails(location.state.activityId)
+    }
+  }, [location.state])
 
-  const handleProjectSelected = (projId: number, projName: string) => {
-    setSelectedProjectId(projId)
-    setSelectedProjectName(projName)
-    setCurrentStep(1)
+  async function loadActivityDetails(id: number) {
+    try {
+      const res = await axios.get(`/api/activities/${id}`)
+      const data = res.data
+      setSelectedActivityId(data.id)
+      setSelectedActivityName(data.activity_name || '')
+      setSelectedProjectId(data.project_id || null)
+      setSelectedProjectName(data.projectName || '')
+    } catch (err) {
+      console.error('Error fetching activity detail:', err)
+    }
+  }
+
+  // If user modifies the activity or picks a different project in AddActivity,
+  // we can pass a callback to update here:
+  const handleActivityUpdate = (
+    activityId: number,
+    activityName: string,
+    projectId: number,
+    projectName: string
+  ) => {
+    setSelectedActivityId(activityId)
+    setSelectedActivityName(activityName)
+    setSelectedProjectId(projectId)
+    setSelectedProjectName(projectName)
   }
 
   const handleStepClick = (index: number) => {
@@ -51,20 +92,25 @@ const ActivityTabs: React.FC<ActivityTabsProps> = ({ isSidebarOpen }) => {
   }
 
   const handleNext = () => {
-    if (currentStep < steps.length - 1) setCurrentStep(currentStep + 1)
+    if (currentStep < steps.length - 1) {
+      setCurrentStep(currentStep + 1)
+    }
   }
 
   const handleBack = () => {
-    if (currentStep > 0) setCurrentStep(currentStep - 1)
+    if (currentStep > 0) {
+      setCurrentStep(currentStep - 1)
+    }
   }
-
+// Tabs in small devices show with a Drop-Down List
   const renderStepNav = () => {
     const isSmallDevice = window.innerWidth < 768
 
     return isSmallDevice ? (
       // Dropdown for small devices
-      <div className="mb-4">
-        <label htmlFor="step-selector" className="form-label">
+      // <div className="mb-4">
+      <>
+        <label htmlFor="step-selector" className="form-label mb-4">
           Navigate Steps
         </label>
         <select
@@ -79,14 +125,14 @@ const ActivityTabs: React.FC<ActivityTabsProps> = ({ isSidebarOpen }) => {
             </option>
           ))}
         </select>
-      </div>
+        </>
+      // </div>
     ) : (
       // Horizontal tab navigation for larger devices
       <div className="d-flex flex-wrap align-items-center justify-content-center gap-3 mb-4">
         {steps.map((label, index) => {
           const isActive = index === currentStep
           const isCompleted = index < currentStep
-
           return (
             <div
               key={index}
@@ -137,142 +183,126 @@ const ActivityTabs: React.FC<ActivityTabsProps> = ({ isSidebarOpen }) => {
 
   const renderStepContent = () => {
     switch (currentStep) {
-      case 0: ///// Projects Details tab
+      case 0:
         return (
-          <div
-            className={`container-fluid ${
-              isSidebarOpen ? 'content-expanded' : 'content-collapsed'
-            }`}
-          >
-            <h5>Choose a Project by pressing Arrow Key</h5>
-            <AddActivity
-              isSidebarOpen={isSidebarOpen}
-              onProjectSelected={handleProjectSelected}
-            />
-          </div>
+          <AddActivity
+            // isSidebarOpen={isSidebarOpen}
+            // we pass the current activity/project data:
+            activityId={selectedActivityId}
+            initialActivityName={selectedActivityName}
+            initialProjectId={selectedProjectId}
+            initialProjectName={selectedProjectName}
+            onActivityUpdated={handleActivityUpdate}
+            // If no activityId => new activity
+          />
         )
-      case 1: //// Risks and Hazards tab
-        if (selectedProjectId === null) {
+
+      case 1:
+        // Risk tab: we need an existing activity + project
+        if (!selectedActivityId || !selectedProjectId) {
           return (
-            <div>Please select a project before proceeding to "Risk" step.</div>
+            <h5>
+              Please fill "Details" tab first (create or select activity).
+            </h5>
           )
         }
         return (
-          <div
-            className={`container-fluid ${
-              isSidebarOpen ? 'content-expanded' : 'content-collapsed'
-            }`}
-          >
-            <p className="fw-bold p-2 fs-4" style={{ color: '#0094B6' }}>
-              Selected Project: {selectedProjectName || '(none)'}
-            </p>
-            <ProjectRisk
-              isSidebarOpen={isSidebarOpen}
+          <>
+            <h5 className='my-3 fw-bold'>
+              Activity: {selectedActivityName || '(no name)'} — Project:{' '}
+              {selectedProjectName || '(none)'}
+            </h5>
+            <ActivityRisk
+              activityId={selectedActivityId}
               projectId={selectedProjectId}
-              projectName={selectedProjectName}
             />
-          </div>
+         </>
         )
-      case 2: //// Staffs Tab
-        if (selectedProjectId === null) {
-          return (
-            <div
-              className={`container-fluid ${
-                isSidebarOpen ? 'content-expanded' : 'content-collapsed'
-              }`}
-            >
-              Please select a project before proceeding to "Staff" step.
+
+      case 2:
+        // Staff tab
+        if (!selectedActivityId || !selectedProjectId) {
+          return <h5>Please complete the "Details" tab first.</h5>
+        }
+        return (
+          <>
+            <h5 className='my-3 fw-bold'>
+              Activity: {selectedActivityName || '(no name)'} — Project:{' '}
+              {selectedProjectName || '(none)'}
+            </h5>
+            <ActivityStaffs
+              activityId={selectedActivityId}
+              projectId={selectedProjectId}
+            />
+         </>
+        )
+
+      case 3:
+        // Volunteers tab
+        if (!selectedActivityId || !selectedProjectId) {
+          return <div>Please complete the "Details" tab first.</div>
+        }
+        return (
+          <>
+            <h5 className='my-3 fw-bold'>
+              Activity: {selectedActivityName || '(no name)'} — Project:{' '}
+              {selectedProjectName || '(none)'}
+            </h5>
+            <ActivityVolunteers
+              activityId={selectedActivityId}
+              projectId={selectedProjectId}
+            />
+          </>
+        )
+
+      case 4:
+        // CheckList tab
+        if (!selectedActivityId || !selectedProjectId) {
+          return <p>Please complete the "Details" tab first.</p>
+        }
+        return (
+          <>
+            <h5 className='my-3 fw-bold'>
+              Activity: {selectedActivityName || '(no name)'} — Project:{' '}
+              {selectedProjectName || '(none)'}
+            </h5>
+            <ActivityCheckList
+              activityId={selectedActivityId}
+              projectId={selectedProjectId}
+            />
+          
+          </>
+        )
+
+      case 5:
+        // Outcome tab
+        if (!selectedActivityId || !selectedProjectId) {
+          return <div>Please complete the "Details" tab first.</div>
+        }
+        return (
+          <div>
+            <div className="mb-3 fw-bold">
+              Activity: {selectedActivityName || '(no name)'} — Project:{' '}
+              {selectedProjectName || '(none)'}
             </div>
-          )
-        }
-        return (
-          <div
-            className={`container-fluid ${
-              isSidebarOpen ? 'content-expanded' : 'content-collapsed'
-            }`}
-          >
-            <p className="fw-bold p-2 fs-4" style={{ color: '#0094B6' }}>
-              Selected Project: {selectedProjectName || '(none)'}
-            </p>
-            <ProjectStaffs
-              isSidebarOpen={isSidebarOpen}
+            <ActivityOutcome
+              activityId={selectedActivityId}
               projectId={selectedProjectId}
-              projectName={selectedProjectName}
             />
           </div>
         )
 
-      case 3: //// Volunteers Tab
-        if (selectedProjectId === null) {
-          return (
-            <div>
-              Please select a project before proceeding to "Volunteer" step.
-            </div>
-          )
-        }
-        return (
-          <div>
-            <p className="fw-bold p-2 fs-4" style={{ color: '#0094B6' }}>
-              Selected Project: {selectedProjectName || '(none)'}
-            </p>
-            <ProjectVolunteers
-              isSidebarOpen={isSidebarOpen}
-              projectId={selectedProjectId}
-              projectName={selectedProjectName}
-            />
-          </div>
-        )
-      case 4: // Checklist Tab
-        if (selectedProjectId === null) {
-          return (
-            <div>
-              <h5 className="text-danger">
-                Please select a project in the "Details" step before accessing
-                the "Checklist" tab.
-              </h5>
-            </div>
-          )
-        }
-        return (
-          <div>
-            <p className="fw-bold p-2 fs-4" style={{ color: '#0094B6' }}>
-              Selected Project: {selectedProjectName || '(none)'}
-            </p>
-            <ProjectCheckList
-              isSidebarOpen={isSidebarOpen}
-              projectId={selectedProjectId}
-              projectName={selectedProjectName}
-            />
-          </div>
-        )
-      case 5: // Outcome Tab
-        if (selectedProjectId === null) {
-          return (
-            <div>
-              <h5 className="text-danger">
-                Please select a project in the "Details" step before accessing
-                the "Outcome" tab.
-              </h5>
-            </div>
-          )
-        }
-        return (
-          <div>
-            <p className="fw-bold p-2 fs-4" style={{ color: '#0094B6' }}>
-              Selected Project: {selectedProjectName || '(none)'}
-            </p>
-            <ProjectOutcome
-              isSidebarOpen={isSidebarOpen}
-              projectId={selectedProjectId}
-              projectName={selectedProjectName}
-            />
-          </div>
-        )
-
+      case 6:
       default:
-        return <div>Coming Soon...</div>
+        return (
+          <ActivityComplete
+            activityId={selectedActivityId}
+            projectId={selectedProjectId}
+          />
+        )
     }
   }
+
   return (
     <div
       className={`container-fluid ${
@@ -290,12 +320,12 @@ const ActivityTabs: React.FC<ActivityTabsProps> = ({ isSidebarOpen }) => {
       <div className="p-3 border rounded bg-white mx-2">
         {renderStepContent()}
       </div>
+
       <div className="d-flex justify-content-end mt-3">
         {currentStep > 0 && (
           <Button
-            className="px-4"
-            style={{ backgroundColor: '#0094B6', marginRight: '1rem' }}
-            variant="secondary"
+            className="px-4 me-3"
+            style={{ backgroundColor: '#0094B6', border: 'none' }}
             onClick={handleBack}
           >
             &laquo; Back
@@ -304,8 +334,7 @@ const ActivityTabs: React.FC<ActivityTabsProps> = ({ isSidebarOpen }) => {
         {currentStep < steps.length - 1 && (
           <Button
             className="px-4"
-            style={{ backgroundColor: '#0094B6' }}
-            variant="primary"
+            style={{ backgroundColor: '#0094B6', border: 'none' }}
             onClick={handleNext}
           >
             Next &raquo;
