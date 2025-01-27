@@ -4,8 +4,7 @@ import axios from 'axios'
 // ========== INTERFACES ==========
 interface ActivityOutcomeProps {
   activityId: number
-  isSidebarOpen: boolean
-  activityName: string //
+  activityName: string
 }
 
 interface IActivityObjective {
@@ -40,10 +39,10 @@ interface IPredatorOption {
   sub_type: string
 }
 
-// ========== COMPONENT ==========
+const minDate = '2024-01-01' // No date before 2024
+
 const ActivityOutcome: React.FC<ActivityOutcomeProps> = ({
   activityId,
-  isSidebarOpen,
   activityName,
 }) => {
   // ----- Objectives State -----
@@ -76,31 +75,39 @@ const ActivityOutcome: React.FC<ActivityOutcomeProps> = ({
   const [others, setOthers] = useState<number>(0)
   const [othersDescription, setOthersDescription] = useState<string>('')
 
-  //================================================
-  //   1) Fetch Objectives for THIS activity
-  //================================================
+  //----------------------------------------------------------------
+  // 1) Fetch activity objectives
+  //----------------------------------------------------------------
   useEffect(() => {
     if (!activityId) return
     const fetchObjectives = async () => {
       try {
-        // GET /api/activity_objectives/:activity_id
         const res = await axios.get<IActivityObjective[]>(
           `/api/activity_objectives/${activityId}`
         )
-
-        // strip time from dateStart/dateEnd
+        // strip time portion from dateStart/dateEnd if needed
         const transformed = res.data.map((obj) => ({
           ...obj,
-          dateStart: obj.dateStart ? obj.dateStart.slice(0, 10) : null,
-          dateEnd: obj.dateEnd ? obj.dateEnd.slice(0, 10) : null,
+          dateStart: obj.dateStart?.slice(0, 10) ?? null,
+          dateEnd: obj.dateEnd?.slice(0, 10) ?? null,
         }))
-        setObjectives(transformed)
 
-        // If among them is "Predator Control" objective => show predator section
-        const hasPredator = transformed.some(
+        // Hide "Establishing Predator Control" from top table
+        // That means we filter out objective_id === 11 or title includes "predator control"
+        const filtered = transformed.filter((o) => {
+          const titleLower = o.title?.toLowerCase() || ''
+          if (o.objective_id === 11) return false
+          if (titleLower.includes('predator control')) return false
+          return true
+        })
+
+        setObjectives(filtered)
+
+        // Check if we had the predator objective
+        const hasPredator = res.data.some(
           (o) =>
             o.objective_id === 11 ||
-            o.title?.toLowerCase().includes('predator control')
+            o.title.toLowerCase().includes('predator control')
         )
         setShowPredatorSection(hasPredator)
       } catch (err) {
@@ -110,13 +117,12 @@ const ActivityOutcome: React.FC<ActivityOutcomeProps> = ({
     fetchObjectives()
   }, [activityId])
 
-  //================================================
-  //   2) If Predator Control is present => fetch data
-  //================================================
+  //----------------------------------------------------------------
+  // 2) If “Predator Control” is present => fetch predator sub-types + records
+  //----------------------------------------------------------------
   useEffect(() => {
     const fetchPredatorList = async () => {
       try {
-        // e.g. GET /api/predator  (or /api/predators)
         const subtypesRes = await axios.get<IPredatorOption[]>(`/api/predator`)
         setPredatorList(subtypesRes.data)
       } catch (error) {
@@ -128,14 +134,13 @@ const ActivityOutcome: React.FC<ActivityOutcomeProps> = ({
     if (activityId && showPredatorSection) {
       const fetchPredatorRecords = async () => {
         try {
-          // GET /api/activity_predator/:activity_id
           const res = await axios.get<IPredatorRecord[]>(
             `/api/activity_predator/${activityId}`
           )
           const transformed = res.data.map((p) => ({
             ...p,
-            dateStart: p.dateStart ? p.dateStart.slice(0, 10) : null,
-            dateEnd: p.dateEnd ? p.dateEnd.slice(0, 10) : null,
+            dateStart: p.dateStart?.slice(0, 10) ?? null,
+            dateEnd: p.dateEnd?.slice(0, 10) ?? null,
           }))
           setPredatorRecords(transformed)
         } catch (error) {
@@ -146,12 +151,12 @@ const ActivityOutcome: React.FC<ActivityOutcomeProps> = ({
     }
   }, [activityId, showPredatorSection])
 
-  //================================================
-  //  Objectives Edit Handlers
-  //================================================
+  //----------------------------------------------------------------
+  // 3) Edit "normal" objectives (except Predator Control)
+  //----------------------------------------------------------------
   const startEditObjective = (obj: IActivityObjective) => {
     setEditingObjectiveId(obj.activityObjectiveId)
-    setEditAmount(obj.amount !== null ? String(obj.amount) : '')
+    setEditAmount(obj.amount != null ? String(obj.amount) : '')
     setEditDateStart(obj.dateStart || '')
     setEditDateEnd(obj.dateEnd || '')
   }
@@ -163,34 +168,42 @@ const ActivityOutcome: React.FC<ActivityOutcomeProps> = ({
     setEditDateEnd('')
   }
 
-  const saveObjective = async (id: number) => {
+  const saveObjective = async (objId: number) => {
     try {
-      // PUT /api/activity_objectives/:id  (We’ll define it in back-end)
-      await axios.put(`/api/activity_objectives/${id}`, {
+      // PUT /api/activity_objectives/:id
+      await axios.put(`/api/activity_objectives/${objId}`, {
         amount: editAmount ? Number(editAmount) : null,
         dateStart: editDateStart || null,
         dateEnd: editDateEnd || null,
       })
-
       // Refresh
       const newRes = await axios.get<IActivityObjective[]>(
         `/api/activity_objectives/${activityId}`
       )
       const transformed = newRes.data.map((obj) => ({
         ...obj,
-        dateStart: obj.dateStart ? obj.dateStart.slice(0, 10) : null,
-        dateEnd: obj.dateEnd ? obj.dateEnd.slice(0, 10) : null,
+        dateStart: obj.dateStart?.slice(0, 10) ?? null,
+        dateEnd: obj.dateEnd?.slice(0, 10) ?? null,
       }))
-      setObjectives(transformed)
+
+      // Re-filter out Predator objective from top table
+      const filtered = transformed.filter((o) => {
+        const t = o.title?.toLowerCase() || ''
+        if (o.objective_id === 11) return false
+        if (t.includes('predator control')) return false
+        return true
+      })
+
+      setObjectives(filtered)
       cancelEditObjective()
     } catch (error) {
       console.error('Error updating activity objective:', error)
     }
   }
 
-  //================================================
-  //  Predator Control Handlers
-  //================================================
+  //----------------------------------------------------------------
+  // 4) Predator Control logic
+  //----------------------------------------------------------------
   const resetPredatorForm = () => {
     setEditingPredatorId(null)
     setSelectedPredatorId(null)
@@ -216,9 +229,10 @@ const ActivityOutcome: React.FC<ActivityOutcomeProps> = ({
     setMustelids(rec.mustelids)
     setHedgehogs(rec.hedgehogs)
     setOthers(rec.others)
-    setOthersDescription(rec.othersDescription || '')
+    setOthersDescription(rec.othersDescription ?? '')
   }
 
+  // Save or Update Predator
   const handleSavePredator = async () => {
     if (!selectedPredatorId) {
       alert('Please select a predator sub-type.')
@@ -226,7 +240,7 @@ const ActivityOutcome: React.FC<ActivityOutcomeProps> = ({
     }
     try {
       if (editingPredatorId) {
-        // PUT /api/activity_predator/:id
+        // Update
         await axios.put(`/api/activity_predator/${editingPredatorId}`, {
           activity_id: activityId,
           predator_id: selectedPredatorId,
@@ -240,10 +254,10 @@ const ActivityOutcome: React.FC<ActivityOutcomeProps> = ({
           others,
           othersDescription,
         })
-        alert('Predator record updated successfully.')
+        alert('Predator record updated.')
       } else {
-        // POST /api/activity_predator
-        await axios.post(`/api/activity_predator`, {
+        // Create
+        await axios.post('/api/activity_predator', {
           activity_id: activityId,
           predator_id: selectedPredatorId,
           measurement: measurement ?? null,
@@ -256,17 +270,17 @@ const ActivityOutcome: React.FC<ActivityOutcomeProps> = ({
           others,
           othersDescription,
         })
-        alert('Predator record added successfully.')
+        alert('Predator record added.')
       }
 
-      // Refresh predator records
+      // Refresh
       const res = await axios.get<IPredatorRecord[]>(
         `/api/activity_predator/${activityId}`
       )
       const transformed = res.data.map((p) => ({
         ...p,
-        dateStart: p.dateStart ? p.dateStart.slice(0, 10) : null,
-        dateEnd: p.dateEnd ? p.dateEnd.slice(0, 10) : null,
+        dateStart: p.dateStart?.slice(0, 10) ?? null,
+        dateEnd: p.dateEnd?.slice(0, 10) ?? null,
       }))
       setPredatorRecords(transformed)
 
@@ -277,11 +291,15 @@ const ActivityOutcome: React.FC<ActivityOutcomeProps> = ({
     }
   }
 
+  // Delete Predator
   const handleDeletePredator = async (id: number) => {
-    if (!window.confirm('Are you sure to delete this record?')) return
+    if (
+      !window.confirm('Are you sure you want to delete this predator record?')
+    )
+      return
     try {
       await axios.delete(`/api/activity_predator/${id}`)
-      setPredatorRecords((prev) => prev.filter((item) => item.id !== id))
+      setPredatorRecords((prev) => prev.filter((x) => x.id !== id))
     } catch (err) {
       console.error('Error deleting predator record:', err)
       alert('Failed to remove predator record.')
@@ -295,17 +313,16 @@ const ActivityOutcome: React.FC<ActivityOutcomeProps> = ({
     return pred?.sub_type.toLowerCase() === 'catches'
   }
 
+  // ---------------------------------------------------------------------------
+  // RENDER
+  // ---------------------------------------------------------------------------
   return (
-    <div
-      className={`d-flex flex-column px-3 ${
-        isSidebarOpen ? 'content-expanded' : 'content-collapsed'
-      }`}
-    >
+    <div>
       <h3 className="fw-bold p-2 fs-4" style={{ color: '#0094B6' }}>
-        Activity Outcome for: {activityName}
+        Activity Outcome
       </h3>
 
-      {/* ========== OBJECTIVES ========== */}
+      {/* ========== OBJECTIVES TABLE (minus predator control) ========== */}
       <div className="table-responsive">
         <table className="table table-striped table-hover align-middle">
           <thead>
@@ -319,6 +336,11 @@ const ActivityOutcome: React.FC<ActivityOutcomeProps> = ({
             </tr>
           </thead>
           <tbody>
+            {objectives.length === 0 && (
+              <tr>
+                <td colSpan={6}>No objectives found for this activity.</td>
+              </tr>
+            )}
             {objectives.map((obj) => {
               const isRowEditing =
                 editingObjectiveId === obj.activityObjectiveId
@@ -332,6 +354,7 @@ const ActivityOutcome: React.FC<ActivityOutcomeProps> = ({
                         type="number"
                         className="form-control"
                         value={editAmount}
+                        min={0}
                         onChange={(e) => setEditAmount(e.target.value)}
                       />
                     ) : (
@@ -345,6 +368,7 @@ const ActivityOutcome: React.FC<ActivityOutcomeProps> = ({
                         className="form-control"
                         value={editDateStart}
                         onChange={(e) => setEditDateStart(e.target.value)}
+                        min={minDate} // disallow dates before 2024-01-01
                       />
                     ) : (
                       obj.dateStart || ''
@@ -357,6 +381,7 @@ const ActivityOutcome: React.FC<ActivityOutcomeProps> = ({
                         className="form-control"
                         value={editDateEnd}
                         onChange={(e) => setEditDateEnd(e.target.value)}
+                        min={minDate}
                       />
                     ) : (
                       obj.dateEnd || ''
@@ -390,11 +415,6 @@ const ActivityOutcome: React.FC<ActivityOutcomeProps> = ({
                 </tr>
               )
             })}
-            {objectives.length === 0 && (
-              <tr>
-                <td colSpan={6}>No objectives found for this activity.</td>
-              </tr>
-            )}
           </tbody>
         </table>
       </div>
@@ -422,11 +442,10 @@ const ActivityOutcome: React.FC<ActivityOutcomeProps> = ({
                 <select
                   className="form-select"
                   value={selectedPredatorId ?? ''}
-                  onChange={(e) =>
-                    setSelectedPredatorId(
-                      e.target.value ? Number(e.target.value) : null
-                    )
-                  }
+                  onChange={(e) => {
+                    const val = e.target.value
+                    setSelectedPredatorId(val ? Number(val) : null)
+                  }}
                 >
                   <option value="">-- select one --</option>
                   {predatorList.map((p) => (
@@ -447,6 +466,7 @@ const ActivityOutcome: React.FC<ActivityOutcomeProps> = ({
                     setMeasurement(val ? Number(val) : null)
                   }}
                   disabled={isSelectedCatches()}
+                  min={0}
                 />
               </div>
               <div className="col">
@@ -456,6 +476,7 @@ const ActivityOutcome: React.FC<ActivityOutcomeProps> = ({
                   className="form-control"
                   value={pDateStart}
                   onChange={(e) => setPDateStart(e.target.value)}
+                  min={minDate}
                 />
               </div>
               <div className="col">
@@ -465,10 +486,12 @@ const ActivityOutcome: React.FC<ActivityOutcomeProps> = ({
                   className="form-control"
                   value={pDateEnd}
                   onChange={(e) => setPDateEnd(e.target.value)}
+                  min={minDate}
                 />
               </div>
             </div>
 
+            {/* If sub_type is "catches", show species fields */}
             {isSelectedCatches() && (
               <div className="row mb-2">
                 <div className="col">
@@ -565,10 +588,16 @@ const ActivityOutcome: React.FC<ActivityOutcomeProps> = ({
                   <th>Mustelids</th>
                   <th>Hedgehogs</th>
                   <th>Others</th>
+                  <th>Others (Species)</th>
                   <th>Action</th>
                 </tr>
               </thead>
               <tbody>
+                {predatorRecords.length === 0 && (
+                  <tr>
+                    <td colSpan={11}>No predator records yet.</td>
+                  </tr>
+                )}
                 {predatorRecords.map((rec) => (
                   <tr key={rec.id}>
                     <td>{rec.sub_type}</td>
@@ -584,7 +613,7 @@ const ActivityOutcome: React.FC<ActivityOutcomeProps> = ({
                     <td>{rec.mustelids}</td>
                     <td>{rec.hedgehogs}</td>
                     <td>{rec.others}</td>
-                    <td>{rec.othersDescription}</td>
+                    <td>{rec.othersDescription ?? ''}</td>
                     <td>
                       <button
                         className="btn btn-primary btn-sm me-2"
@@ -601,11 +630,6 @@ const ActivityOutcome: React.FC<ActivityOutcomeProps> = ({
                     </td>
                   </tr>
                 ))}
-                {predatorRecords.length === 0 && (
-                  <tr>
-                    <td colSpan={10}>No predator records yet.</td>
-                  </tr>
-                )}
               </tbody>
             </table>
           </div>

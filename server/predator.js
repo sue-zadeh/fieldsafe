@@ -61,7 +61,6 @@ router.post('/activity_predator', async (req, res) => {
       mustelids,
       hedgehogs,
       others,
-      others_description,
     } = req.body
 
     const sql = `

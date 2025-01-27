@@ -270,7 +270,7 @@ const AddActivity: React.FC = () => {
   const minDate = '2024-01-01'
 
   return (
-    <div style={{ margin: '2rem' }}>
+    <div className='m-4 shadow'>
       {/* "In progress" modal if user didn't come from search and no activityId */}
       <Modal show={showModal} onHide={handleCancelModal}>
         <Modal.Header closeButton>

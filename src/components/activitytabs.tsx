@@ -183,10 +183,9 @@ const ActivityTabs: React.FC<ActivityTabsProps> = ({ isSidebarOpen }) => {
 
   const renderStepContent = () => {
     switch (currentStep) {
-      case 0:
+      case 0: //Detail Tab
         return (
           <AddActivity
-            // isSidebarOpen={isSidebarOpen}
             // we pass the current activity/project data:
             activityId={selectedActivityId}
             initialActivityName={selectedActivityName}
@@ -198,7 +197,7 @@ const ActivityTabs: React.FC<ActivityTabsProps> = ({ isSidebarOpen }) => {
         )
 
       case 1:
-        // Risk tab: we need an existing activity + project
+        // Risk Tab: we need an existing activity + project
         if (!selectedActivityId || !selectedProjectId) {
           return (
             <h5>
@@ -220,7 +219,7 @@ const ActivityTabs: React.FC<ActivityTabsProps> = ({ isSidebarOpen }) => {
         )
 
       case 2:
-        // Staff tab
+        // Staff Tab
         if (!selectedActivityId || !selectedProjectId) {
           return <h5>Please complete the "Details" tab first.</h5>
         }
@@ -238,7 +237,7 @@ const ActivityTabs: React.FC<ActivityTabsProps> = ({ isSidebarOpen }) => {
         )
 
       case 3:
-        // Volunteers tab
+        // Volunteers Tab
         if (!selectedActivityId || !selectedProjectId) {
           return <div>Please complete the "Details" tab first.</div>
         }
@@ -275,31 +274,41 @@ const ActivityTabs: React.FC<ActivityTabsProps> = ({ isSidebarOpen }) => {
         )
 
       case 5:
-        // Outcome tab
+        // Outcome Tab
         if (!selectedActivityId || !selectedProjectId) {
           return <div>Please complete the "Details" tab first.</div>
         }
         return (
-          <div>
-            <div className="mb-3 fw-bold">
+          <>
+            <h5 className='my-3 fw-bold'>
               Activity: {selectedActivityName || '(no name)'} — Project:{' '}
               {selectedProjectName || '(none)'}
-            </div>
+            </h5>
             <ActivityOutcome
               activityId={selectedActivityId}
               projectId={selectedProjectId}
             />
-          </div>
+          </>
         )
 
       case 6:
-      default:
+      
+        if (!selectedActivityId || !selectedProjectId) {
+          return <div>Please complete the "Details" tab first.</div>
+        }
         return (
+          <>
+            <h5 className='my-3 fw-bold'>
+              Activity: {selectedActivityName || '(no name)'} — Project:{' '}
+              {selectedProjectName || '(none)'}
+            </h5>
           <ActivityComplete
             activityId={selectedActivityId}
             projectId={selectedProjectId}
           />
+          </>
         )
+        default:return <h5>Coming Soon...</h5>
     }
   }
 

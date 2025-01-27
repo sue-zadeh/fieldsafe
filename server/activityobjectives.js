@@ -22,6 +22,7 @@ router.get('/activity_objectives/:activity_id', async (req, res) => {
       JOIN objectives o ON ao.objective_id = o.id
       WHERE ao.activity_id = ?
     `
+    
     const [rows] = await pool.query(sql, [activity_id])
     res.json(rows)
   } catch (err) {
@@ -35,6 +36,9 @@ router.get('/activity_objectives/:activity_id', async (req, res) => {
 router.post('/activity_objectives', async (req, res) => {
   const { activity_id, objective_id, amount, dateStart, dateEnd } = req.body
   try {
+    // Optional: if you want to block date < 2024:
+    // if (dateStart && dateStart < '2024-01-01') { return res.status(400).json({message:'No date before 2024'}) }
+
     const sql = `
       INSERT INTO activity_objectives
       (activity_id, objective_id, amount, dateStart, dateEnd)

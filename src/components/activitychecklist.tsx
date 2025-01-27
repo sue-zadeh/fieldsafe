@@ -8,13 +8,11 @@ interface Checklist {
 
 interface ActivityChecklistProps {
   activityId: number
-  isSidebarOpen: boolean
   activityName: string
 }
 
 const ActivityChecklist: React.FC<ActivityChecklistProps> = ({
   activityId,
-  isSidebarOpen,
 }) => {
   const [unassignedChecklists, setUnassignedChecklists] = useState<Checklist[]>(
     []
@@ -116,72 +114,74 @@ const ActivityChecklist: React.FC<ActivityChecklistProps> = ({
       <p className="fw-bold p-2 fs-4" style={{ color: '#0094B6' }}>
         Selected Project: {projectName}
       </p>
-<div className="d-flex flex-column align-items-center">
-      <h5 style={{ marginBottom: '1rem' }}>Hold Ctrl/Cmd to select multiple</h5>
+      <div className="d-flex flex-column align-items-center">
+        <h5 style={{ marginBottom: '1rem' }}>
+          Hold Ctrl/Cmd to select multiple
+        </h5>
 
-      {/* Available (Unassigned) Checklists */}
-      <div className="mb-3 w-50">
-        <h5 style={{ color: '#0094B6' }}>Available Checklist Items</h5>
-        <select
-          className="form-select"
-          multiple
-          value={selectedChecklists.map(String)}
-          onChange={(e) => {
-            const selectedOptions = Array.from(e.target.selectedOptions).map(
-              (opt) => Number(opt.value)
-            )
-            setSelectedChecklists(selectedOptions)
-          }}
+        {/* Available (Unassigned) Checklists */}
+        <div className="mb-3 w-50">
+          <h5 style={{ color: '#0094B6' }}>Available Checklist Items</h5>
+          <select
+            className="form-select"
+            multiple
+            value={selectedChecklists.map(String)}
+            onChange={(e) => {
+              const selectedOptions = Array.from(e.target.selectedOptions).map(
+                (opt) => Number(opt.value)
+              )
+              setSelectedChecklists(selectedOptions)
+            }}
+          >
+            {unassignedChecklists.length > 0 ? (
+              unassignedChecklists.map((checklist) => (
+                <option key={checklist.id} value={checklist.id}>
+                  {checklist.description}
+                </option>
+              ))
+            ) : (
+              <option disabled>No available checklist items</option>
+            )}
+          </select>
+
+          <button
+            className="btn btn-primary btn-sm mt-2"
+            style={{ backgroundColor: '#0094B6' }}
+            onClick={handleAddChecklists}
+            disabled={selectedChecklists.length === 0}
+          >
+            Add Selected Checklists
+          </button>
+        </div>
+
+        {/* Already Assigned Checklists */}
+        <table
+          className="table table-striped table-hover btn-sm"
+          style={{ width: '80%' }}
         >
-          {unassignedChecklists.length > 0 ? (
-            unassignedChecklists.map((checklist) => (
-              <option key={checklist.id} value={checklist.id}>
-                {checklist.description}
-              </option>
-            ))
-          ) : (
-            <option disabled>No available checklist items</option>
-          )}
-        </select>
-
-        <button
-          className="btn btn-primary btn-sm mt-2"
-          style={{ backgroundColor: '#0094B6' }}
-          onClick={handleAddChecklists}
-          disabled={selectedChecklists.length === 0}
-        >
-          Add Selected Checklists
-        </button>
-      </div>
-
-      {/* Already Assigned Checklists */}
-      <table
-        className="table table-striped table-hover btn-sm"
-        style={{ width: '80%' }}
-      >
-        <thead>
-          <tr>
-            <th>Description</th>
-            <th>Action</th>
-          </tr>
-        </thead>
-        <tbody>
-          {activityChecklists.map((c) => (
-            <tr key={c.id}>
-              <td>{c.description}</td>
-              <td>
-                <button
-                  className="btn btn-danger btn-sm"
-                  onClick={() => handleRemoveChecklist(c.id)}
-                >
-                  Remove
-                </button>
-              </td>
+          <thead>
+            <tr>
+              <th>Description</th>
+              <th>Action</th>
             </tr>
-          ))}
-        </tbody>
-      </table>
-    </div>
+          </thead>
+          <tbody>
+            {activityChecklists.map((c) => (
+              <tr key={c.id}>
+                <td>{c.description}</td>
+                <td>
+                  <button
+                    className="btn btn-danger btn-sm"
+                    onClick={() => handleRemoveChecklist(c.id)}
+                  >
+                    Remove
+                  </button>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
     </div>
   )
 }

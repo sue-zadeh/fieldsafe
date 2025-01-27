@@ -12,7 +12,6 @@ interface Volunteer {
 
 interface VolunteerTabProps {
   activityId: number
-  isSidebarOpen: boolean
 }
 
 const ActivityVolunteerTab: React.FC<VolunteerTabProps> = ({ activityId }) => {
