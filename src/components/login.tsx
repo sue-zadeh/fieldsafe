@@ -53,7 +53,7 @@ const Login: React.FC<LoginProps> = ({ onLoginSuccess }) => {
           localStorage.removeItem('email')
         }
         // Navigate to firstpage
-        navigate('/firstpage')
+        navigate('/home')
         // To tell App we’re logged in
         onLoginSuccess()
       } else {

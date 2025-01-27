@@ -9,10 +9,13 @@ interface Checklist {
 interface ActivityChecklistProps {
   activityId: number
   activityName: string
+  projectId: number
+
 }
 
 const ActivityChecklist: React.FC<ActivityChecklistProps> = ({
-  activityId,
+  activityId, projectId
+
 }) => {
   const [unassignedChecklists, setUnassignedChecklists] = useState<Checklist[]>(
     []
@@ -109,7 +112,10 @@ const ActivityChecklist: React.FC<ActivityChecklistProps> = ({
   return (
     <div>
       <h3 className="fw-bold p-2 fs-4" style={{ color: '#0094B6' }}>
-        Assign Checklists to Activity
+        
+      <h5 className="my-3 fw-bold">
+        Activity: {activityName || '(no name)'} — Project: {projectName || '(none)'}
+      </h5>
       </h3>
       <p className="fw-bold p-2 fs-4" style={{ color: '#0094B6' }}>
         Selected Project: {projectName}

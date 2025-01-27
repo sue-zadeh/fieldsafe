@@ -3,11 +3,11 @@ import Welcompage from '../assets/welcompage2.jpg'
 import AOS from 'aos'
 import 'aos/dist/aos.css'
 
-interface FirstPageProps {
+interface HomeProps {
   isSidebarOpen: boolean
 }
 
-const FirstPage: React.FC<FirstPageProps> = ({ isSidebarOpen }) => {
+const Home: React.FC<HomeProps> = ({ isSidebarOpen }) => {
   // Initialize AOS once
   useEffect(() => {
     AOS.init({ duration: 1200 })
@@ -23,6 +23,7 @@ const FirstPage: React.FC<FirstPageProps> = ({ isSidebarOpen }) => {
         marginLeft: isSidebarOpen ? '220px' : '50px',
         transition: 'margin 0.3s ease',
         height: '100vh',
+        // marginRight: '2rem',
         width: '100%',
         // overflow: 'hidden',
         padding: 0, // remove extra padding
@@ -76,4 +77,4 @@ const FirstPage: React.FC<FirstPageProps> = ({ isSidebarOpen }) => {
   )
 }
 
-export default FirstPage
+export default Home

@@ -316,15 +316,11 @@ const ActivityRisk: React.FC<ActivityRiskProps> = ({
   //        SAVE RISK (Add or Edit)
   // =====================================
   async function handleSaveRisk() {
-    // Check if user selected at least one control
-    if (chosenControlIds.length === 0) {
-      setMessage('Please select at least one Control for this risk.')
+    if (!selectedRiskTitleId || !likelihood || !consequences) {
+      setMessage('Please ensure all fields are filled.')
       return
     }
-    if (!likelihood || !consequences) {
-      setMessage('Please pick a likelihood and consequence.')
-      return
-    }
+
     try {
       if (!isEditing) {
         // ADD MODE
@@ -332,7 +328,18 @@ const ActivityRisk: React.FC<ActivityRiskProps> = ({
           setMessage('Please pick a risk title first.')
           return
         }
-        // 1) create a “risks” row
+
+        // Fetch the title based on the selected ID
+        const selectedTitle = allRiskTitles.find(
+          (title) => title.id === selectedRiskTitleId
+        )?.title
+
+        if (!selectedTitle) {
+          setMessage('Invalid risk title selected.')
+          return
+        }
+
+        // 1) Create a new risk row
         const createRes = await axios.post('/api/risks-create-row', {
           risk_title_id: selectedRiskTitleId,
           likelihood,
@@ -340,13 +347,13 @@ const ActivityRisk: React.FC<ActivityRiskProps> = ({
         })
         const newRiskId = createRes.data.riskId
 
-        // 2) link it to this activity
+        // 2) Link risk to activity
         await axios.post('/api/activity_risks', {
           activity_id: activityId,
           risk_id: newRiskId,
         })
 
-        // 3) link controls
+        // 3) Link all selected controls to activity
         for (const cid of chosenControlIds) {
           await axios.post('/api/activity_risk_controls', {
             activity_id: activityId,
@@ -359,18 +366,30 @@ const ActivityRisk: React.FC<ActivityRiskProps> = ({
       } else {
         // EDIT MODE
         if (!editingRisk) return
-        // update the "risks" row itself
+
+        // Fetch the title based on the selected ID
+        const selectedTitle = allRiskTitles.find(
+          (title) => title.id === selectedRiskTitleId
+        )?.title
+
+        if (!selectedTitle) {
+          setMessage('Invalid risk title selected.')
+          return
+        }
+
+        // 1) Update the risk row
         await axios.put(`/api/risks/${editingRisk.riskId}`, {
+          title: selectedTitle, // Pass the title here
           likelihood,
           consequences,
         })
 
-        // remove old bridging in activity_risk_controls for that risk
+        // 2) Remove old controls
         await axios.delete(
           `/api/activity_risk_controls?activityId=${activityId}&riskId=${editingRisk.riskId}`
         )
 
-        // re-add newly chosen controls
+        // 3) Link updated controls
         for (const cid of chosenControlIds) {
           await axios.post('/api/activity_risk_controls', {
             activity_id: activityId,
@@ -378,6 +397,7 @@ const ActivityRisk: React.FC<ActivityRiskProps> = ({
             is_checked: true,
           })
         }
+
         setMessage('Activity risk updated successfully.')
       }
       setShowRiskModal(false)

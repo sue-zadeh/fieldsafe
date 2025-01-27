@@ -5,7 +5,7 @@ import { Modal, Button } from 'react-bootstrap'
 
 import Navbar from './components/navbar'
 import Login from './components/login'
-import FirstPage from './components/home'
+import Home from './components/home'
 import Sidebar from './components/sidebar'
 import Registerroles from './components/registerroles'
 import Groupadmin from './components/groupadmin'
@@ -170,7 +170,7 @@ const App: React.FC = () => {
 
   const handleLoginSuccess = () => {
     setIsLoggedIn(true)
-    navigate('/firstpage')
+    navigate('/home')
   }
 
   const handleLogout = () => {
@@ -235,8 +235,8 @@ const App: React.FC = () => {
               >
                 <Routes>
                   <Route
-                    path="/firstpage"
-                    element={<FirstPage isSidebarOpen={isSidebarOpen} />}
+                    path="/home"
+                    element={<Home isSidebarOpen={isSidebarOpen} />}
                   />
                   <Route
                     path="/registerroles"

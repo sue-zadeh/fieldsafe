@@ -1,12 +1,54 @@
-import React, { useState, FormEvent } from 'react'
+import React, { useState, useEffect, FormEvent } from 'react'
 import axios from 'axios'
+import 'bootstrap/dist/css/bootstrap.min.css'
+
+// Just an example interface if you want to store or show existing reports
+interface ReportItem {
+  id: number
+  notes: string
+  createdAt: string
+  // etc. adapt to your real structure
+}
 
 const ActivityComplete: React.FC = () => {
-  // --- Simple states (we’re skipping project selection since it's from earlier tabs) ---
+  // -----------------------------------------------------------------------
+  //  A) State for which tab is active
+  // -----------------------------------------------------------------------
+  const [activeTab, setActiveTab] = useState<'complete' | 'reports'>('complete')
+
+  // -----------------------------------------------------------------------
+  //  B) If you need a valid projectId from earlier tabs:
+  // -----------------------------------------------------------------------
+  const [projectId, setProjectId] = useState<number>(0)
+  // ^ Set this properly. For now, we just default to 0 to illustrate usage.
+
+  // -----------------------------------------------------------------------
+  //  C) For the "View Reports" tab
+  // -----------------------------------------------------------------------
+  const [reports, setReports] = useState<ReportItem[]>([])
+
+  useEffect(() => {
+    if (activeTab === 'reports') {
+      // Example fetch, adapt endpoint to your actual route
+      // e.g. GET /api/activities/completed?projectId=...
+      axios
+        .get(`/api/activities/completed?projectId=${projectId}`)
+        .then((res) => {
+          setReports(res.data || [])
+        })
+        .catch((err) => {
+          console.error('Error fetching reports: ', err)
+        })
+    }
+  }, [activeTab, projectId])
+
+  // -----------------------------------------------------------------------
+  //  D) "Complete" form states
+  // -----------------------------------------------------------------------
   const [notes, setNotes] = useState('')
   const [anyIncident, setAnyIncident] = useState<'No' | 'Yes'>('No')
 
-  // --- Incident form fields ---
+  // Incident form fields:
   const [typeOfIncident, setTypeOfIncident] = useState('')
   const [medicalTreatmentObtained, setMedicalTreatmentObtained] = useState('')
   const [projectLocation, setProjectLocation] = useState('')
@@ -45,13 +87,41 @@ const ActivityComplete: React.FC = () => {
   const [chairpersonSignature, setChairpersonSignature] = useState('')
   const [chairpersonSignatureDate, setChairpersonSignatureDate] = useState('')
 
-  // --- Submit Handler ---
+  // -----------------------------------------------------------------------
+  //  E) Helper: Fix the "date off by one" issue
+  //     We'll parse the <input type="date"> value and store it as UTC
+  // -----------------------------------------------------------------------
+  function handleDateChange(
+    e: React.ChangeEvent<HTMLInputElement>,
+    setter: (val: string) => void
+  ) {
+    const val = e.target.value // e.g. "2025-01-15"
+    if (!val) {
+      setter('')
+      return
+    }
+    const [yyyy, mm, dd] = val.split('-')
+    const newDate = new Date(Date.UTC(+yyyy, +mm - 1, +dd))
+    // Store back in YYYY-MM-DD so that it's not offset by timezones
+    setter(newDate.toISOString().split('T')[0])
+  }
+
+  // -----------------------------------------------------------------------
+  //  F) Submit Handler
+  // -----------------------------------------------------------------------
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault()
     try {
+      // We must pass a valid projectId or DB will complain if it's NOT NULL
+      if (!projectId) {
+        alert(
+          'No valid projectId found. Please ensure project is selected earlier!'
+        )
+        return
+      }
+
       const payload = {
-        // If your backend already knows the projectId from earlier, you might not need this
-        // projectId: <some ID from state or props>,
+        projectId,
         notes,
         anyIncident,
         incidentDetails:
@@ -94,7 +164,8 @@ const ActivityComplete: React.FC = () => {
       const response = await axios.post('/api/activities/complete', payload)
       if (response.data.success) {
         alert('Activity completion saved successfully!')
-        // Optionally reset or navigate away
+        // Optionally reset some fields or switch to the "reports" tab
+        // setActiveTab('reports');
       } else {
         alert('Error: ' + response.data.message)
       }
@@ -104,436 +175,559 @@ const ActivityComplete: React.FC = () => {
     }
   }
 
-  // --- Some inline style objects to make the form more visually appealing ---
-  const containerStyle: React.CSSProperties = {
-    maxWidth: '900px',
-    margin: 'auto',
-    padding: '1rem',
-    fontFamily: 'Arial, sans-serif',
-  }
-
-  const cardStyle: React.CSSProperties = {
-    background: '#f9f9f9',
-    borderRadius: '8px',
-    boxShadow: '0 2px 5px rgba(0,0,0,0.2)',
-    padding: '20px',
-    marginTop: '1rem',
-  }
-
-  const headingStyle: React.CSSProperties = {
-    textAlign: 'center',
-    marginBottom: '1rem',
-    color: '#2c3e50',
-  }
-
-  const labelStyle: React.CSSProperties = {
-    display: 'block',
-    marginBottom: '0.25rem',
-    fontWeight: 'bold',
-    marginTop: '1rem',
-  }
-
-  const inputStyle: React.CSSProperties = {
-    width: '100%',
-    padding: '0.5rem',
-    marginBottom: '0.5rem',
-    borderRadius: '4px',
-    border: '1px solid #ccc',
-  }
-
-  const textAreaStyle: React.CSSProperties = {
-    ...inputStyle,
-    resize: 'vertical',
-  }
-
-  const radioContainer: React.CSSProperties = {
-    display: 'inline-block',
-    marginRight: '1rem',
-  }
-
-  const submitButtonStyle: React.CSSProperties = {
-    marginTop: '1.5rem',
-    padding: '0.75rem 2rem',
-    backgroundColor: '#27ae60',
-    color: '#fff',
-    border: 'none',
-    borderRadius: '4px',
-    cursor: 'pointer',
-    fontSize: '1rem',
-  }
-
-  // If you want better spacing or a grid, you might wrap fields in <div style={{ marginBottom: '0.5rem' }}>.
-
+  // -----------------------------------------------------------------------
+  //  G) Render
+  // -----------------------------------------------------------------------
   return (
-    <div style={containerStyle}>
-      {/* Outer Card */}
-      <div style={cardStyle}>
-        <h2 style={headingStyle}>Complete Activity</h2>
-        <form onSubmit={handleSubmit}>
-          {/* Notes text area (Message) */}
-          <label style={labelStyle}>Notes / Message:</label>
-          <textarea
-            placeholder="Write any final notes or comments here..."
-            rows={4}
-            style={textAreaStyle}
-            value={notes}
-            onChange={(e) => setNotes(e.target.value)}
-          />
+    <div className="container mt-4">
+      {/* Bootstrap Nav Tabs */}
+      <ul className="nav nav-tabs">
+        <li className="nav-item">
+          <button
+            className={`nav-link ${activeTab === 'complete' ? 'active' : ''}`}
+            onClick={() => setActiveTab('complete')}
+          >
+            Complete Form
+          </button>
+        </li>
+        <li className="nav-item">
+          <button
+            className={`nav-link ${activeTab === 'reports' ? 'active' : ''}`}
+            onClick={() => setActiveTab('reports')}
+          >
+            View Reports
+          </button>
+        </li>
+      </ul>
 
-          {/* Accident/Incident/Near Miss question */}
-          <label style={labelStyle}>Any Accidents/Incidents/Near misses?</label>
-          <div>
-            <label style={radioContainer}>
-              <input
-                type="radio"
-                value="No"
-                checked={anyIncident === 'No'}
-                onChange={() => setAnyIncident('No')}
-              />
-              &nbsp;No
-            </label>
-            <label style={radioContainer}>
-              <input
-                type="radio"
-                value="Yes"
-                checked={anyIncident === 'Yes'}
-                onChange={() => setAnyIncident('Yes')}
-              />
-              &nbsp;Yes
-            </label>
-          </div>
-
-          {/* Conditionally render the Incident Form if "Yes" */}
-          {anyIncident === 'Yes' && (
-            <div style={cardStyle}>
-              <h3 style={headingStyle}>Accident/Incident Report</h3>
-
-              {/* Type of Incident */}
-              <label style={labelStyle}>Type of Incident:</label>
-              <select
-                style={inputStyle}
-                value={typeOfIncident}
-                onChange={(e) => setTypeOfIncident(e.target.value)}
-              >
-                <option value="">--Select--</option>
-                <option value="Near Miss">Near Miss</option>
-                <option value="Medical Treatment">Medical Treatment</option>
-                <option value="Other Significant Event">
-                  Other Significant Event
-                </option>
-                <option value="First Aid">First Aid</option>
-              </select>
-
-              {typeOfIncident === 'Medical Treatment' && (
-                <>
-                  <label style={labelStyle}>
-                    If Medical Treatment, where was it obtained?
-                  </label>
-                  <input
-                    style={inputStyle}
-                    type="text"
-                    placeholder="e.g. Local clinic, hospital name..."
-                    value={medicalTreatmentObtained}
-                    onChange={(e) =>
-                      setMedicalTreatmentObtained(e.target.value)
-                    }
-                  />
-                </>
-              )}
-
-              <label style={labelStyle}>Project Location:</label>
-              <input
-                style={inputStyle}
-                type="text"
-                placeholder="e.g. North Auckland Reserve"
-                value={projectLocation}
-                onChange={(e) => setProjectLocation(e.target.value)}
-              />
-
-              <label style={labelStyle}>Project/Site Manager:</label>
-              <input
-                style={inputStyle}
-                type="text"
-                placeholder="Name of manager or supervisor"
-                value={projectSiteManager}
-                onChange={(e) => setProjectSiteManager(e.target.value)}
-              />
-
-              <label style={labelStyle}>Date of Incident:</label>
-              <input
-                style={inputStyle}
-                type="date"
-                value={dateOfIncident}
-                onChange={(e) => setDateOfIncident(e.target.value)}
-              />
-
-              <label style={labelStyle}>Time of Incident:</label>
-              <input
-                style={inputStyle}
-                type="time"
-                value={timeOfIncident}
-                onChange={(e) => setTimeOfIncident(e.target.value)}
-              />
-
-              <label style={labelStyle}>Injured Person:</label>
-              <input
-                style={inputStyle}
-                type="text"
-                placeholder="Full name"
-                value={injuredPerson}
-                onChange={(e) => setInjuredPerson(e.target.value)}
-              />
-
-              <label style={labelStyle}>Gender:</label>
-              <select
-                style={inputStyle}
-                value={injuredPersonGender}
-                onChange={(e) => setInjuredPersonGender(e.target.value)}
-              >
-                <option value="">--Select--</option>
-                <option value="Male">Male</option>
-                <option value="Female">Female</option>
-                <option value="Other">Other / Prefer not to say</option>
-              </select>
-
-              <label style={labelStyle}>Type of Injury:</label>
-              <input
-                style={inputStyle}
-                type="text"
-                placeholder="e.g. Sprain, cut, bruise..."
-                value={typeOfInjury}
-                onChange={(e) => setTypeOfInjury(e.target.value)}
-              />
-
-              <label style={labelStyle}>Body Part Injured:</label>
-              <input
-                style={inputStyle}
-                type="text"
-                placeholder="e.g. Left arm, right ankle..."
-                value={bodyPartInjured}
-                onChange={(e) => setBodyPartInjured(e.target.value)}
-              />
-
-              <label style={labelStyle}>Location of Accident/Incident:</label>
-              <input
-                style={inputStyle}
-                type="text"
-                placeholder="e.g. By the tool shed"
-                value={locationOfAccident}
-                onChange={(e) => setLocationOfAccident(e.target.value)}
-              />
-
-              <label style={labelStyle}>Witness(es):</label>
-              <input
-                style={inputStyle}
-                type="text"
-                placeholder="Separate names with commas"
-                value={witnesses}
-                onChange={(e) => setWitnesses(e.target.value)}
-              />
-
-              <label style={labelStyle}>
-                Task undertaken by injured party:
-              </label>
-              <input
-                style={inputStyle}
-                type="text"
-                placeholder="e.g. Clearing debris, planting trees..."
-                value={taskUndertaken}
-                onChange={(e) => setTaskUndertaken(e.target.value)}
-              />
-
-              <label style={labelStyle}>
-                What safety instructions/training were given prior?
-              </label>
+      {/* Tab Content */}
+      {activeTab === 'complete' && (
+        <div className="card card-body mt-3">
+          <h2 className="text-center">Complete Activity</h2>
+          <form onSubmit={handleSubmit}>
+            {/* NOTES */}
+            <div className="mb-3">
+              <label className="form-label fw-bold">Notes / Message:</label>
               <textarea
-                style={textAreaStyle}
-                rows={2}
-                placeholder="Describe any safety briefing..."
-                value={safetyInstructions}
-                onChange={(e) => setSafetyInstructions(e.target.value)}
-              />
-
-              <label style={labelStyle}>PPE worn:</label>
-              <textarea
-                style={textAreaStyle}
-                rows={1}
-                placeholder="e.g. Gloves, safety glasses..."
-                value={ppeWorn}
-                onChange={(e) => setPpeWorn(e.target.value)}
-              />
-
-              <label style={labelStyle}>Describe the Incident/Accident:</label>
-              <textarea
-                style={textAreaStyle}
+                className="form-control"
                 rows={3}
-                placeholder="Detailed description..."
-                value={incidentDescription}
-                onChange={(e) => setIncidentDescription(e.target.value)}
+                placeholder="Write any final notes here..."
+                value={notes}
+                onChange={(e) => setNotes(e.target.value)}
               />
+            </div>
 
-              <label style={labelStyle}>
-                What actions have been taken to prevent recurrence?
+            {/* ANY INCIDENT? */}
+            <div className="mb-3">
+              <label className="form-label fw-bold">
+                Any Accidents/Incidents/Near misses?
               </label>
-              <textarea
-                style={textAreaStyle}
-                rows={2}
-                placeholder="Describe corrective actions..."
-                value={actionTaken}
-                onChange={(e) => setActionTaken(e.target.value)}
-              />
-
-              <label style={labelStyle}>Date actions implemented:</label>
-              <input
-                style={inputStyle}
-                type="date"
-                value={dateActionImplemented}
-                onChange={(e) => setDateActionImplemented(e.target.value)}
-              />
-
-              <label style={labelStyle}>
-                Did the injury relate to a pre-existing condition?
-              </label>
-              <select
-                style={inputStyle}
-                value={preExistingInjury}
-                onChange={(e) =>
-                  setPreExistingInjury(e.target.value as 'No' | 'Yes')
-                }
-              >
-                <option value="No">No</option>
-                <option value="Yes">Yes</option>
-              </select>
-
-              {preExistingInjury === 'Yes' && (
-                <>
-                  <label style={labelStyle}>
-                    Was this condition disclosed to the group?
+              <div>
+                <div className="form-check form-check-inline">
+                  <input
+                    type="radio"
+                    id="incidentNo"
+                    className="form-check-input"
+                    value="No"
+                    checked={anyIncident === 'No'}
+                    onChange={() => setAnyIncident('No')}
+                  />
+                  <label htmlFor="incidentNo" className="form-check-label">
+                    No
                   </label>
-                  <select
-                    style={inputStyle}
-                    value={conditionDisclosed}
-                    onChange={(e) =>
-                      setConditionDisclosed(e.target.value as 'No' | 'Yes')
-                    }
-                  >
-                    <option value="No">No</option>
-                    <option value="Yes">Yes</option>
-                  </select>
-                </>
-              )}
-
-              <label style={labelStyle}>
-                Was an entry made in the Register of Injuries?
-              </label>
-              <select
-                style={inputStyle}
-                value={registerOfInjuries}
-                onChange={(e) =>
-                  setRegisterOfInjuries(e.target.value as 'No' | 'Yes')
-                }
-              >
-                <option value="No">No</option>
-                <option value="Yes">Yes</option>
-              </select>
-
-              <label style={labelStyle}>
-                Further action recommended by Project/Site Manager:
-              </label>
-              <textarea
-                style={textAreaStyle}
-                rows={2}
-                placeholder="Recommendations..."
-                value={furtherActionRecommended}
-                onChange={(e) => setFurtherActionRecommended(e.target.value)}
-              />
-
-              {/* Signatures */}
-              <div style={{ marginTop: '1rem' }}>
-                <label style={labelStyle}>Injured Person Signature:</label>
-                <input
-                  style={inputStyle}
-                  type="text"
-                  placeholder="Full name or digital signature"
-                  value={injuredPersonSignature}
-                  onChange={(e) => setInjuredPersonSignature(e.target.value)}
-                />
-                <label style={labelStyle}>Date:</label>
-                <input
-                  style={inputStyle}
-                  type="date"
-                  value={injuredPersonSignatureDate}
-                  onChange={(e) =>
-                    setInjuredPersonSignatureDate(e.target.value)
-                  }
-                />
-              </div>
-
-              <div style={{ marginTop: '1rem' }}>
-                <label style={labelStyle}>
-                  Project/Site Manager Signature:
-                </label>
-                <input
-                  style={inputStyle}
-                  type="text"
-                  placeholder="Manager's name or e-sign"
-                  value={managerSignature}
-                  onChange={(e) => setManagerSignature(e.target.value)}
-                />
-                <label style={labelStyle}>Date:</label>
-                <input
-                  style={inputStyle}
-                  type="date"
-                  value={managerSignatureDate}
-                  onChange={(e) => setManagerSignatureDate(e.target.value)}
-                />
-              </div>
-
-              <div style={{ marginTop: '1rem' }}>
-                <label style={labelStyle}>
-                  Reported to Committee Meeting on:
-                </label>
-                <input
-                  style={inputStyle}
-                  type="date"
-                  value={committeeMeetingDate}
-                  onChange={(e) => setCommitteeMeetingDate(e.target.value)}
-                />
-                <label style={labelStyle}>Comments:</label>
-                <textarea
-                  style={textAreaStyle}
-                  rows={2}
-                  placeholder="Any relevant committee notes"
-                  value={committeeMeetingComments}
-                  onChange={(e) => setCommitteeMeetingComments(e.target.value)}
-                />
-              </div>
-
-              <div style={{ marginTop: '1rem' }}>
-                <label style={labelStyle}>Chairperson Signature:</label>
-                <input
-                  style={inputStyle}
-                  type="text"
-                  placeholder="Chairperson's name or e-sign"
-                  value={chairpersonSignature}
-                  onChange={(e) => setChairpersonSignature(e.target.value)}
-                />
-                <label style={labelStyle}>Date:</label>
-                <input
-                  style={inputStyle}
-                  type="date"
-                  value={chairpersonSignatureDate}
-                  onChange={(e) => setChairpersonSignatureDate(e.target.value)}
-                />
+                </div>
+                <div className="form-check form-check-inline">
+                  <input
+                    type="radio"
+                    id="incidentYes"
+                    className="form-check-input"
+                    value="Yes"
+                    checked={anyIncident === 'Yes'}
+                    onChange={() => setAnyIncident('Yes')}
+                  />
+                  <label htmlFor="incidentYes" className="form-check-label">
+                    Yes
+                  </label>
+                </div>
               </div>
             </div>
-          )}
 
-          <button type="submit" style={submitButtonStyle}>
-            Submit
-          </button>
-        </form>
-      </div>
+            {/* IF YES, SHOW INCIDENT FORM */}
+            {anyIncident === 'Yes' && (
+              <div className="border p-3 rounded">
+                <h4 className="mb-3">Accident/Incident Report</h4>
+                <div className="row">
+                  {/* Type of Incident */}
+                  <div className="col-md-6 mb-3">
+                    <label className="form-label fw-bold">
+                      Type of Incident:
+                    </label>
+                    <select
+                      className="form-select"
+                      value={typeOfIncident}
+                      onChange={(e) => setTypeOfIncident(e.target.value)}
+                    >
+                      <option value="">--Select--</option>
+                      <option value="Near Miss">Near Miss</option>
+                      <option value="Medical Treatment">
+                        Medical Treatment
+                      </option>
+                      <option value="Other Significant Event">
+                        Other Significant Event
+                      </option>
+                      <option value="First Aid">First Aid</option>
+                    </select>
+                  </div>
+
+                  {/* If Medical Treatment */}
+                  {typeOfIncident === 'Medical Treatment' && (
+                    <div className="col-md-6 mb-3">
+                      <label className="form-label fw-bold">
+                        If Medical Treatment, where obtained?
+                      </label>
+                      <input
+                        className="form-control"
+                        type="text"
+                        placeholder="e.g. Local hospital"
+                        value={medicalTreatmentObtained}
+                        onChange={(e) =>
+                          setMedicalTreatmentObtained(e.target.value)
+                        }
+                      />
+                    </div>
+                  )}
+
+                  {/* Project Location */}
+                  <div className="col-md-6 mb-3">
+                    <label className="form-label fw-bold">
+                      Project Location:
+                    </label>
+                    <input
+                      className="form-control"
+                      type="text"
+                      placeholder="e.g. North Auckland Reserve"
+                      value={projectLocation}
+                      onChange={(e) => setProjectLocation(e.target.value)}
+                    />
+                  </div>
+
+ {/* Date of Incident */}
+ <div className="col-md-6 mb-3">
+                    <label className="form-label fw-bold">
+                      Date of Incident:
+                    </label>
+                    <input
+                      className="form-control"
+                      type="date"
+                      value={dateOfIncident}
+                      onChange={(e) => handleDateChange(e, setDateOfIncident)}
+                    />
+                  </div>
+
+                  {/* Project/Site Manager */}
+                  <div className="col-md-6 mb-3">
+                    <label className="form-label fw-bold">
+                      Project/Site Manager:
+                    </label>
+                    <input
+                      className="form-control"
+                      type="text"
+                      placeholder="Name of manager or supervisor"
+                      value={projectSiteManager}
+                      onChange={(e) => setProjectSiteManager(e.target.value)}
+                    />
+                  </div>
+
+                 
+                  {/* Time of Incident */}
+                  <div className="col-md-6 mb-3">
+                    <label className="form-label fw-bold">
+                      Time of Incident:
+                    </label>
+                    <input
+                      className="form-control"
+                      type="time"
+                      value={timeOfIncident}
+                      onChange={(e) => setTimeOfIncident(e.target.value)}
+                    />
+                  </div>
+
+                  {/* Injured Person */}
+                  <div className="col-md-6 mb-3">
+                    <label className="form-label fw-bold">
+                      Injured Person:
+                    </label>
+                    <input
+                      className="form-control"
+                      type="text"
+                      placeholder="Full name"
+                      value={injuredPerson}
+                      onChange={(e) => setInjuredPerson(e.target.value)}
+                    />
+                  </div>
+                  
+                   {/* Type of Injury */}
+                   <div className="col-md-6 mb-3">
+                    <label className="form-label fw-bold">
+                      Type of Injury:
+                    </label>
+                    <input
+                      className="form-control"
+                      type="text"
+                      placeholder="e.g. Sprain, cut, bruise..."
+                      value={typeOfInjury}
+                      onChange={(e) => setTypeOfInjury(e.target.value)}
+                    />
+                  </div>
+
+                  {/* Gender */}
+                  <div className="col-md-6 mb-3">
+                    <label className="form-label fw-bold">Gender:</label>
+                    <select
+                      className="form-select"
+                      value={injuredPersonGender}
+                      onChange={(e) => setInjuredPersonGender(e.target.value)}
+                    >
+                      <option value="">--Select--</option>
+                      <option value="Male">Male</option>
+                      <option value="Female">Female</option>
+                      <option value="Other">Other / Prefer not to say</option>
+                    </select>
+                  </div>
+
+                 
+
+                  {/* Body Part Injured */}
+                  <div className="col-md-6 mb-3">
+                    <label className="form-label fw-bold">
+                      Body Part Injured:
+                    </label>
+                    <input
+                      className="form-control"
+                      type="text"
+                      placeholder="e.g. Left arm, right ankle"
+                      value={bodyPartInjured}
+                      onChange={(e) => setBodyPartInjured(e.target.value)}
+                    />
+                  </div>
+
+                  {/* Location of Accident */}
+                  <div className="col-md-6 mb-3">
+                    <label className="form-label fw-bold">
+                      Location of Accident:
+                    </label>
+                    <input
+                      className="form-control"
+                      type="text"
+                      placeholder="e.g. By the tool shed"
+                      value={locationOfAccident}
+                      onChange={(e) => setLocationOfAccident(e.target.value)}
+                    />
+                  </div>
+
+                  {/* Witnesses */}
+                  <div className="col-md-6 mb-3">
+                    <label className="form-label fw-bold">Witness(es):</label>
+                    <input
+                      className="form-control"
+                      type="text"
+                      placeholder="Separate names with commas"
+                      value={witnesses}
+                      onChange={(e) => setWitnesses(e.target.value)}
+                    />
+                  </div>
+
+                  {/* Task Undertaken */}
+                  <div className="col-md-6 mb-3">
+                    <label className="form-label fw-bold">
+                      Task undertaken by injured party:
+                    </label>
+                    <input
+                      className="form-control"
+                      type="text"
+                      placeholder="e.g. Clearing debris..."
+                      value={taskUndertaken}
+                      onChange={(e) => setTaskUndertaken(e.target.value)}
+                    />
+                  </div>
+
+                  {/* Safety Instructions */}
+                  <div className="col-md-6 mb-3">
+                    <label className="form-label fw-bold">
+                      What safety instructions/training were given?
+                    </label>
+                    <textarea
+                      className="form-control"
+                      rows={2}
+                      placeholder="Describe any safety briefing..."
+                      value={safetyInstructions}
+                      onChange={(e) => setSafetyInstructions(e.target.value)}
+                    />
+                  </div>
+
+                  {/* PPE Worn */}
+                  <div className="col-md-6 mb-3">
+                    <label className="form-label fw-bold">PPE Worn:</label>
+                    <textarea
+                      className="form-control"
+                      rows={1}
+                      placeholder="e.g. Gloves, safety glasses..."
+                      value={ppeWorn}
+                      onChange={(e) => setPpeWorn(e.target.value)}
+                    />
+                  </div>
+
+                  {/* Incident Description */}
+                  <div className="col-md-6 mb-3">
+                    <label className="form-label fw-bold">
+                      Describe the Incident/Accident:
+                    </label>
+                    <textarea
+                      className="form-control"
+                      rows={3}
+                      placeholder="Detailed description..."
+                      value={incidentDescription}
+                      onChange={(e) => setIncidentDescription(e.target.value)}
+                    />
+                  </div>
+
+                  {/* Action Taken */}
+                  <div className="col-md-6 mb-3">
+                    <label className="form-label fw-bold">
+                      Actions taken to prevent recurrence:
+                    </label>
+                    <textarea
+                      className="form-control"
+                      rows={2}
+                      placeholder="Describe corrective actions..."
+                      value={actionTaken}
+                      onChange={(e) => setActionTaken(e.target.value)}
+                    />
+                  </div>
+
+                  {/* Date Action Implemented */}
+                  <div className="col-md-6 mb-3">
+                    <label className="form-label fw-bold">
+                      Date actions implemented:
+                    </label>
+                    <input
+                      className="form-control"
+                      type="date"
+                      value={dateActionImplemented}
+                      onChange={(e) =>
+                        handleDateChange(e, setDateActionImplemented)
+                      }
+                    />
+                  </div>
+
+                  {/* Pre-existing Injury */}
+                  <div className="col-md-6 mb-3">
+                    <label className="form-label fw-bold">
+                      Injury related to pre-existing condition?
+                    </label>
+                    <select
+                      className="form-select"
+                      value={preExistingInjury}
+                      onChange={(e) =>
+                        setPreExistingInjury(e.target.value as 'No' | 'Yes')
+                      }
+                    >
+                      <option value="No">No</option>
+                      <option value="Yes">Yes</option>
+                    </select>
+                  </div>
+
+                  {/* Condition Disclosed? */}
+                  {preExistingInjury === 'Yes' && (
+                    <div className="col-md-6 mb-3">
+                      <label className="form-label fw-bold">
+                        Was this condition disclosed to the group?
+                      </label>
+                      <select
+                        className="form-select"
+                        value={conditionDisclosed}
+                        onChange={(e) =>
+                          setConditionDisclosed(e.target.value as 'No' | 'Yes')
+                        }
+                      >
+                        <option value="No">No</option>
+                        <option value="Yes">Yes</option>
+                      </select>
+                    </div>
+                  )}
+
+                  {/* Register of Injuries */}
+                  <div className="col-md-6 mb-3">
+                    <label className="form-label fw-bold">
+                      Entry made in the Register of Injuries?
+                    </label>
+                    <select
+                      className="form-select"
+                      value={registerOfInjuries}
+                      onChange={(e) =>
+                        setRegisterOfInjuries(e.target.value as 'No' | 'Yes')
+                      }
+                    >
+                      <option value="No">No</option>
+                      <option value="Yes">Yes</option>
+                    </select>
+                  </div>
+
+                  {/* Further Action Recommended */}
+                  <div className="col-md-12 mb-3">
+                    <label className="form-label fw-bold">
+                      Further action recommended by Project/Site Manager:
+                    </label>
+                    <textarea
+                      className="form-control"
+                      rows={2}
+                      placeholder="Recommendations..."
+                      value={furtherActionRecommended}
+                      onChange={(e) =>
+                        setFurtherActionRecommended(e.target.value)
+                      }
+                    />
+                  </div>
+
+                  {/* Signatures / Dates */}
+                  <div className="col-md-6 mb-3">
+                    <label className="form-label fw-bold">
+                      Injured Person Signature:
+                    </label>
+                    <input
+                      className="form-control"
+                      type="text"
+                      placeholder="Full name or e-sign"
+                      value={injuredPersonSignature}
+                      onChange={(e) =>
+                        setInjuredPersonSignature(e.target.value)
+                      }
+                    />
+                  </div>
+                  <div className="col-md-6 mb-3">
+                    <label className="form-label fw-bold">Date:</label>
+                    <input
+                      className="form-control"
+                      type="date"
+                      value={injuredPersonSignatureDate}
+                      onChange={(e) =>
+                        handleDateChange(e, setInjuredPersonSignatureDate)
+                      }
+                    />
+                  </div>
+
+                  <div className="col-md-6 mb-3">
+                    <label className="form-label fw-bold">
+                      Project/Site Manager Signature:
+                    </label>
+                    <input
+                      className="form-control"
+                      type="text"
+                      placeholder="Manager's name or e-sign"
+                      value={managerSignature}
+                      onChange={(e) => setManagerSignature(e.target.value)}
+                    />
+                  </div>
+                  <div className="col-md-6 mb-3">
+                    <label className="form-label fw-bold">Date:</label>
+                    <input
+                      className="form-control"
+                      type="date"
+                      value={managerSignatureDate}
+                      onChange={(e) =>
+                        handleDateChange(e, setManagerSignatureDate)
+                      }
+                    />
+                  </div>
+
+                  <div className="col-md-6 mb-3">
+                    <label className="form-label fw-bold">
+                      Reported to Committee Meeting on:
+                    </label>
+                    <input
+                      className="form-control"
+                      type="date"
+                      value={committeeMeetingDate}
+                      onChange={(e) =>
+                        handleDateChange(e, setCommitteeMeetingDate)
+                      }
+                    />
+                  </div>
+                  <div className="col-md-6 mb-3">
+                    <label className="form-label fw-bold">Comments:</label>
+                    <textarea
+                      className="form-control"
+                      rows={2}
+                      placeholder="Any relevant committee notes"
+                      value={committeeMeetingComments}
+                      onChange={(e) =>
+                        setCommitteeMeetingComments(e.target.value)
+                      }
+                    />
+                  </div>
+
+                  <div className="col-md-6 mb-3">
+                    <label className="form-label fw-bold">
+                      Chairperson Signature:
+                    </label>
+                    <input
+                      className="form-control"
+                      type="text"
+                      placeholder="Chairperson's name or e-sign"
+                      value={chairpersonSignature}
+                      onChange={(e) => setChairpersonSignature(e.target.value)}
+                    />
+                  </div>
+                  <div className="col-md-6 mb-3">
+                    <label className="form-label fw-bold">Date:</label>
+                    <input
+                      className="form-control"
+                      type="date"
+                      value={chairpersonSignatureDate}
+                      onChange={(e) =>
+                        handleDateChange(e, setChairpersonSignatureDate)
+                      }
+                    />
+                  </div>
+                </div>
+              </div>
+            )}
+
+            <button type="submit" className="btn btn-success mt-3">
+              Submit
+            </button>
+          </form>
+        </div>
+      )}
+
+      {activeTab === 'reports' && (
+        <div className="mt-3">
+          <h3>Previously Completed Reports</h3>
+          {reports.length === 0 ? (
+            <p>No completed reports found.</p>
+          ) : (
+            <div className="row">
+              {reports.map((report) => (
+                <div className="col-md-4 mb-3" key={report.id}>
+                  <div className="card h-100">
+                    <div className="card-body">
+                      <h5 className="card-title">Report #{report.id}</h5>
+                      <p className="card-text">
+                        <strong>Notes:</strong> {report.notes}
+                      </p>
+                      <p className="card-text">
+                        <small className="text-muted">
+                          Created at: {report.createdAt}
+                        </small>
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
     </div>
   )
 }

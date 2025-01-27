@@ -29,16 +29,45 @@ router.post('/risks-create-row', async (req, res) => {
  */
 router.put('/risks/:riskId', async (req, res) => {
   const { riskId } = req.params
-  const { likelihood, consequences } = req.body
+  const { title, likelihood, consequences, chosenControlIds, activity_id } =
+    req.body
+
+  if (!title || title.trim() === '') {
+    return res.status(400).json({ error: 'Title cannot be null or empty.' }) // Moved inside the handler
+  }
+
   try {
+    // Update risk title
+    await pool.query(`UPDATE risk_titles SET title=? WHERE id=?`, [
+      title,
+      riskId,
+    ])
+
+    // Update risk details
     await pool.query(
       `UPDATE risks SET likelihood=?, consequences=? WHERE id=?`,
       [likelihood, consequences, riskId]
     )
-    return res.json({ message: 'Updated risk row.' })
+
+    // Remove old controls
+    await pool.query(
+      `DELETE FROM activity_risk_controls WHERE activity_id=? AND risk_id=?`,
+      [activity_id, riskId]
+    )
+
+    // Add new controls
+    for (const controlId of chosenControlIds) {
+      await pool.query(
+        `INSERT INTO activity_risk_controls (activity_id, risk_control_id, is_checked)
+         VALUES (?,?,?)`,
+        [activity_id, controlId, 1]
+      )
+    }
+
+    res.json({ message: 'Updated risk row and controls.' })
   } catch (err) {
     console.error(err)
-    return res.status(500).json({ error: 'Failed to update risk row.' })
+    res.status(500).json({ error: 'Failed to update risk row and controls.' })
   }
 })
 
@@ -95,7 +124,7 @@ router.post('/activity_risks', async (req, res) => {
 })
 
 /**
- *  5) DELETE /api/activity_risks?activityId=XXX&riskId=YYY
+ *  DELETE /api/activity_risks?activityId=XXX&riskId=YYY
  *  Remove bridging
  */
 router.delete('/activity_risks', async (req, res) => {
@@ -116,7 +145,7 @@ router.delete('/activity_risks', async (req, res) => {
 })
 
 /**
- *  6) GET /api/activity_risk_controls/detailed?activityId=...
+ *   GET /api/activity_risk_controls/detailed?activityId=...
  *  So you can see which controls are chosen for each risk
  */
 router.get('/activity_risk_controls/detailed', async (req, res) => {
@@ -125,27 +154,17 @@ router.get('/activity_risk_controls/detailed', async (req, res) => {
     return res.status(400).json({ message: 'No activityId provided' })
   }
   try {
-    // Example join
     const [rows] = await pool.query(
-      `
-      SELECT arc.id AS activityRiskControlId,
-             arc.activity_id,
-             arc.risk_control_id,
-             arc.is_checked,
-             rc.control_text,
-             r.id AS riskId
-      FROM activity_risk_controls arc
-      JOIN risk_controls rc ON arc.risk_control_id = rc.id
-      JOIN risks r ON r.id = (
-        SELECT rr.id FROM risks rr
-        WHERE rr.id = (
-          SELECT ar.risk_id FROM activity_risks ar
-           WHERE ar.activity_id = arc.activity_id
-           LIMIT 1
-        )
-      )
-      WHERE arc.activity_id = ?
-    `,
+      `SELECT arc.id AS activityRiskControlId,
+              arc.activity_id,
+              arc.risk_control_id,
+              arc.is_checked,
+              rc.control_text,
+              r.id AS riskId
+       FROM activity_risk_controls arc
+       JOIN risk_controls rc ON arc.risk_control_id = rc.id
+       JOIN activity_risks ar ON ar.activity_id = arc.activity_id
+       WHERE arc.activity_id = ?`,
       [activityId]
     )
     return res.json(rows)
@@ -186,7 +205,7 @@ router.post('/activity_risk_controls', async (req, res) => {
 })
 
 /**
- *  8) DELETE /api/activity_risk_controls?activityId=XXX&riskId=YYY
+ *   DELETE /api/activity_risk_controls?activityId=XXX&riskId=YYY
  *  Remove all bridging controls for that risk
  */
 router.delete('/activity_risk_controls', async (req, res) => {
@@ -195,25 +214,21 @@ router.delete('/activity_risk_controls', async (req, res) => {
     return res.status(400).json({ message: 'Missing activityId or riskId' })
   }
   try {
-    // We must figure out which controls belong to that risk.
-    // Typically you'd do a subselect or a join.
-    // For simplicity, let's just do a multi-step approach or simpler approach
-    // e.g. remove all controls bridging for that activity & risk.
-    // We'll do a join if needed, or (for brevity) we do something simpler:
-    const sql = `
-      DELETE arc
-      FROM activity_risk_controls arc
-      JOIN activity_risks ar ON ar.activity_id = arc.activity_id
-      WHERE arc.activity_id=? AND ar.risk_id=?`
-    await pool.query(sql, [activityId, riskId])
+    await pool.query(
+      `DELETE arc
+       FROM activity_risk_controls arc
+       JOIN risks r ON arc.risk_control_id = r.id
+       WHERE arc.activity_id = ? AND r.id = ?`,
+      [activityId, riskId]
+    )
     return res.json({
-      message: 'Removed risk controls for that risk from activity.',
+      message: 'Removed risk controls for the specified risk.',
     })
   } catch (err) {
     console.error('DELETE /activity_risk_controls error:', err)
-    return res
-      .status(500)
-      .json({ message: 'Failed to remove bridging controls.' })
+    return res.status(500).json({
+      message: 'Failed to remove bridging controls for the specified risk.',
+    })
   }
 })
 

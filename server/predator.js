@@ -4,10 +4,9 @@ import { pool } from './db.js'
 
 const router = express.Router()
 
-// 1) GET => /api/predator  (List of all possible predator sub_types)
+// 1) GET => /api/predator
 router.get('/predator', async (req, res) => {
   try {
-    // Suppose your "predator" table has: id INT PK, sub_type VARCHAR(100)
     const [rows] = await pool.query('SELECT * FROM predator')
     res.json(rows)
   } catch (err) {
@@ -61,20 +60,33 @@ router.post('/activity_predator', async (req, res) => {
       mustelids,
       hedgehogs,
       others,
+      othersDescription,
     } = req.body
+
+    // block date < 2024 if you want
+    let dStart = dateStart ?? null
+    let dEnd = dateEnd ?? null
+    if (dStart && dStart < '2024-01-01') dStart = '2024-01-01'
+    if (dEnd && dEnd < '2024-01-01') dEnd = '2024-01-01'
+
+    // fix "day behind" if needed:
+    if (dStart) {
+      let ds = new Date(dStart + 'T00:00:00')
+      dStart = ds.toISOString().split('T')[0]
+    }
 
     const sql = `
       INSERT INTO activity_predator
       (activity_id, predator_id, measurement, dateStart, dateEnd,
-       rats, possums, mustelids, hedgehogs, others, othersDescription)
+       rats, possums, mustelids, hedgehogs, others, others_description)
       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `
     await pool.query(sql, [
       activity_id,
       predator_id,
       measurement ?? null,
-      dateStart ?? null,
-      dateEnd ?? null,
+      dStart,
+      dEnd,
       rats ?? 0,
       possums ?? 0,
       mustelids ?? 0,
@@ -93,7 +105,7 @@ router.post('/activity_predator', async (req, res) => {
 router.put('/activity_predator/:id', async (req, res) => {
   try {
     const { id } = req.params
-    const {
+    let {
       activity_id,
       predator_id,
       measurement,
@@ -107,6 +119,9 @@ router.put('/activity_predator/:id', async (req, res) => {
       othersDescription,
     } = req.body
 
+    if (dateStart && dateStart < '2024-01-01') dateStart = '2024-01-01'
+    if (dateEnd && dateEnd < '2024-01-01') dateEnd = '2024-01-01'
+
     const sql = `
       UPDATE activity_predator
       SET activity_id = ?,
@@ -119,7 +134,7 @@ router.put('/activity_predator/:id', async (req, res) => {
           mustelids = ?,
           hedgehogs = ?,
           others = ?,
-          othersDescription = ?
+          others_description = ?
       WHERE id = ?
     `
     const [result] = await pool.query(sql, [
@@ -150,8 +165,10 @@ router.put('/activity_predator/:id', async (req, res) => {
 router.delete('/activity_predator/:id', async (req, res) => {
   try {
     const { id } = req.params
-    const sql = `DELETE FROM activity_predator WHERE id = ?`
-    const [result] = await pool.query(sql, [id])
+    const [result] = await pool.query(
+      'DELETE FROM activity_predator WHERE id = ?',
+      [id]
+    )
     if (result.affectedRows === 0) {
       return res.status(404).json({ message: 'Predator record not found.' })
     }

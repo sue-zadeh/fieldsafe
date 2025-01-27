@@ -22,7 +22,7 @@ router.get('/activity_objectives/:activity_id', async (req, res) => {
       JOIN objectives o ON ao.objective_id = o.id
       WHERE ao.activity_id = ?
     `
-    
+
     const [rows] = await pool.query(sql, [activity_id])
     res.json(rows)
   } catch (err) {
