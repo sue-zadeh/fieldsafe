@@ -8,14 +8,10 @@ interface Checklist {
 
 interface ActivityChecklistProps {
   activityId: number
-  activityName: string
-  projectId: number
-
 }
 
 const ActivityChecklist: React.FC<ActivityChecklistProps> = ({
-  activityId, projectId
-
+  activityId,
 }) => {
   const [unassignedChecklists, setUnassignedChecklists] = useState<Checklist[]>(
     []
@@ -55,7 +51,7 @@ const ActivityChecklist: React.FC<ActivityChecklistProps> = ({
     }
   }, [activityId, activityChecklists])
 
-  // 2) Fetch assigned checklists
+  // Fetch assigned checklists
   useEffect(() => {
     const fetchActivityChecklists = async () => {
       try {
@@ -71,7 +67,7 @@ const ActivityChecklist: React.FC<ActivityChecklistProps> = ({
     }
   }, [activityId])
 
-  // 3) Add selected checklists to the activity
+  // Add selected checklists to the activity
   const handleAddChecklists = async () => {
     if (selectedChecklists.length === 0) return
     try {
@@ -91,7 +87,7 @@ const ActivityChecklist: React.FC<ActivityChecklistProps> = ({
     }
   }
 
-  // 4) Remove a checklist from the activity
+  // Remove a checklist from the activity
   const handleRemoveChecklist = async (acId: number) => {
     const checklistToRemove = activityChecklists.find((c) => c.id === acId)
     if (!checklistToRemove) return
@@ -112,10 +108,7 @@ const ActivityChecklist: React.FC<ActivityChecklistProps> = ({
   return (
     <div>
       <h3 className="fw-bold p-2 fs-4" style={{ color: '#0094B6' }}>
-        
-      <h5 className="my-3 fw-bold">
-        Activity: {activityName || '(no name)'} — Project: {projectName || '(none)'}
-      </h5>
+        <h5 className="my-3 fw-bold"></h5>
       </h3>
       <p className="fw-bold p-2 fs-4" style={{ color: '#0094B6' }}>
         Selected Project: {projectName}

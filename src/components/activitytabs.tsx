@@ -4,15 +4,17 @@ import { Button } from 'react-bootstrap'
 import { useLocation } from 'react-router-dom'
 import axios from 'axios'
 
-import AddActivity from './addactivity' // Your detail/edit form
-import ActivityRisk from './activityrisk' // Next steps
+import AddActivity from './addactivity'
+import ActivityRisk from './activityrisk'
 import ActivityStaffs from './activitystaffs'
 import ActivityVolunteers from './activityvolunteers'
 import ActivityCheckList from './activitychecklist'
 import ActivityOutcome from './activityoutcome'
 import ActivityComplete from './activitycomplete'
 
+/** We no longer accept isSidebarOpen, nor do we keep projectId. */
 interface ActivityTabsProps {
+  activityName: string
   isSidebarOpen: boolean
 }
 
@@ -26,36 +28,36 @@ const steps = [
   'Complete',
 ]
 
-const ActivityTabs: React.FC<ActivityTabsProps> = ({ isSidebarOpen }) => {
+const ActivityTabs: React.FC<ActivityTabsProps> = ({isSidebarOpen}) => {
+  // We read some optional state if the caller used navigate('/activity-notes', { state: {...} });
   const location = useLocation() as {
     state?: {
-      fromSearch?: boolean
       activityId?: number
       activityName?: string
-      projectId?: number
       projectName?: string
       startStep?: number
+      fromSearch?: boolean
     }
   }
 
-  // States for the wizard
+  // Current step in the wizard (0..6)
   const [currentStep, setCurrentStep] = useState(0)
+
+  // Minimal required data: which activity are we working on?
   const [selectedActivityId, setSelectedActivityId] = useState<number | null>(
     null
   )
+  // And for display:
   const [selectedActivityName, setSelectedActivityName] = useState('')
-  const [selectedProjectId, setSelectedProjectId] = useState<number | null>(
-    null
-  )
   const [selectedProjectName, setSelectedProjectName] = useState('')
 
-  // On mount, see if we have activity data from location.state
+  /** On mount, see if we have a known activityId or starting step. */
   useEffect(() => {
     if (location.state?.startStep !== undefined) {
       setCurrentStep(location.state.startStep)
     }
     if (location.state?.activityId) {
-      // fetch from /api/activities/:id to get fresh data
+      // fetch the activity from DB to get fresh data (including its name, project name, etc.)
       loadActivityDetails(location.state.activityId)
     }
   }, [location.state])
@@ -64,268 +66,270 @@ const ActivityTabs: React.FC<ActivityTabsProps> = ({ isSidebarOpen }) => {
     try {
       const res = await axios.get(`/api/activities/${id}`)
       const data = res.data
+      // data might have: id, activity_name, projectName, ...
       setSelectedActivityId(data.id)
       setSelectedActivityName(data.activity_name || '')
-      setSelectedProjectId(data.project_id || null)
       setSelectedProjectName(data.projectName || '')
     } catch (err) {
       console.error('Error fetching activity detail:', err)
     }
   }
 
-  // If user modifies the activity or picks a different project in AddActivity,
-  // we can pass a callback to update here:
+  /**
+   * If user modifies the activity or picks a different project in the "Details" tab,
+   * we can update the wizard’s state so the new name(s) appear at the top of other tabs.
+   */
   const handleActivityUpdate = (
     activityId: number,
     activityName: string,
-    projectId: number,
     projectName: string
   ) => {
     setSelectedActivityId(activityId)
     setSelectedActivityName(activityName)
-    setSelectedProjectId(projectId)
     setSelectedProjectName(projectName)
   }
 
+  /** Step navigation */
   const handleStepClick = (index: number) => {
     setCurrentStep(index)
   }
-
   const handleNext = () => {
     if (currentStep < steps.length - 1) {
       setCurrentStep(currentStep + 1)
     }
   }
-
   const handleBack = () => {
     if (currentStep > 0) {
       setCurrentStep(currentStep - 1)
     }
   }
-// Tabs in small devices show with a Drop-Down List
+
+  /** Renders the top “wizard steps” either horizontally or as a dropdown (for small screens). */
   const renderStepNav = () => {
     const isSmallDevice = window.innerWidth < 768
 
-    return isSmallDevice ? (
-      // Dropdown for small devices
-      // <div className="mb-4">
-      <>
-        <label htmlFor="step-selector" className="form-label mb-4">
-          Navigate Steps
-        </label>
-        <select
-          id="step-selector"
-          className="form-select"
-          value={currentStep}
-          onChange={(e) => setCurrentStep(Number(e.target.value))}
-        >
-          {steps.map((label, index) => (
-            <option key={index} value={index}>
-              {`${index + 1}. ${label}`}
-            </option>
-          ))}
-        </select>
+    if (isSmallDevice) {
+      return (
+        <>
+          <label htmlFor="step-selector" className="form-label">
+            Navigate Steps
+          </label>
+          <select
+            id="step-selector"
+            className="form-select mb-4"
+            value={currentStep}
+            onChange={(e) => setCurrentStep(Number(e.target.value))}
+          >
+            {steps.map((label, index) => (
+              <option key={index} value={index}>
+                {`${index + 1}. ${label}`}
+              </option>
+            ))}
+          </select>
         </>
-      // </div>
-    ) : (
-      // Horizontal tab navigation for larger devices
-      <div className="d-flex flex-wrap align-items-center justify-content-center gap-3 mb-4">
-        {steps.map((label, index) => {
-          const isActive = index === currentStep
-          const isCompleted = index < currentStep
-          return (
-            <div
-              key={index}
-              className="d-flex align-items-center"
-              onClick={() => handleStepClick(index)}
-              style={{ cursor: 'pointer' }}
-            >
+      )
+    } else {
+      return (
+        <div className="d-flex flex-wrap align-items-center justify-content-center gap-3 mb-4">
+          {steps.map((label, index) => {
+            const isActive = index === currentStep
+            const isCompleted = index < currentStep
+            return (
               <div
-                className={`d-flex align-items-center justify-content-center rounded-circle ${
-                  isCompleted
-                    ? 'bg-success text-white'
-                    : isActive
-                    ? 'bg-primary text-white'
-                    : 'bg-secondary text-white'
-                }`}
-                style={{
-                  width: '2.15rem',
-                  height: '2.15rem',
-                  fontSize: '1.2rem',
-                }}
+                key={index}
+                onClick={() => handleStepClick(index)}
+                style={{ cursor: 'pointer' }}
+                className="d-flex align-items-center"
               >
-                {index + 1}
-              </div>
-              <span
-                className={`ms-2 ${isActive ? 'fw-bold' : ''}`}
-                style={{
-                  fontSize: '1rem',
-                  color: isActive ? '#0094B6' : '#555',
-                }}
-              >
-                {label}
-              </span>
-              {index < steps.length - 1 && (
                 <div
-                  className="flex-grow-1 mx-2"
+                  className={`d-flex align-items-center justify-content-center rounded-circle ${
+                    isCompleted
+                      ? 'bg-success text-white'
+                      : isActive
+                      ? 'bg-primary text-white'
+                      : 'bg-secondary text-white'
+                  }`}
                   style={{
-                    height: '2px',
-                    backgroundColor: isCompleted ? '#28a745' : '#ccc',
+                    width: '2.15rem',
+                    height: '2.15rem',
+                    fontSize: '1.2rem',
                   }}
-                ></div>
-              )}
-            </div>
-          )
-        })}
-      </div>
-    )
+                >
+                  {index + 1}
+                </div>
+                <span
+                  className={`ms-2 ${isActive ? 'fw-bold' : ''}`}
+                  style={{
+                    fontSize: '1rem',
+                    color: isActive ? '#0094B6' : '#555',
+                  }}
+                >
+                  {label}
+                </span>
+                {index < steps.length - 1 && (
+                  <div
+                    className="flex-grow-1 mx-2"
+                    style={{
+                      height: '2px',
+                      backgroundColor: isCompleted ? '#28a745' : '#ccc',
+                    }}
+                  ></div>
+                )}
+              </div>
+            )
+          })}
+        </div>
+      )
+    }
   }
 
+  /** Renders the content for each wizard step. */
   const renderStepContent = () => {
     switch (currentStep) {
-      case 0: //Detail Tab
+      case 0:
+        // The "Details" step => show AddActivity (edit form).
+        // We pass only activityId and the existing name(s).
         return (
           <AddActivity
-            // we pass the current activity/project data:
             activityId={selectedActivityId}
             initialActivityName={selectedActivityName}
-            initialProjectId={selectedProjectId}
             initialProjectName={selectedProjectName}
             onActivityUpdated={handleActivityUpdate}
-            // If no activityId => new activity
           />
         )
 
       case 1:
-        // Risk Tab: we need an existing activity + project
-        if (!selectedActivityId || !selectedProjectId) {
+        // "Risk" step. We expect an activity to exist. If not, prompt user to do step 0 first.
+        if (!selectedActivityId) {
           return (
             <h5>
-              Please fill "Details" tab first (create or select activity).
+              Please fill "Details" tab first (create or select an activity).
             </h5>
           )
         }
         return (
           <>
-            <h5 className='my-3 fw-bold'>
+            <h5 className="my-3 fw-bold">
               Activity: {selectedActivityName || '(no name)'} — Project:{' '}
               {selectedProjectName || '(none)'}
             </h5>
+            {/* Let your child component take `activityId`, `activityName`, etc. if needed */}
             <ActivityRisk
               activityId={selectedActivityId}
-              projectId={selectedProjectId}
+              activityName={selectedActivityName}
             />
-         </>
+          </>
         )
 
       case 2:
-        // Staff Tab
-        if (!selectedActivityId || !selectedProjectId) {
-          return <h5>Please complete the "Details" tab first.</h5>
+        // "Staff" step
+        if (!selectedActivityId) {
+          return <h5>Please complete "Details" tab first.</h5>
         }
         return (
           <>
-            <h5 className='my-3 fw-bold'>
+            <h5 className="my-3 fw-bold">
               Activity: {selectedActivityName || '(no name)'} — Project:{' '}
               {selectedProjectName || '(none)'}
             </h5>
             <ActivityStaffs
               activityId={selectedActivityId}
-              projectId={selectedProjectId}
+              activityName={selectedActivityName}
             />
-         </>
+          </>
         )
 
       case 3:
-        // Volunteers Tab
-        if (!selectedActivityId || !selectedProjectId) {
-          return <div>Please complete the "Details" tab first.</div>
+        // "Volunteer" step
+        if (!selectedActivityId) {
+          return <h5>Please complete the "Details" tab first.</h5>
         }
         return (
           <>
-            <h5 className='my-3 fw-bold'>
+            <h5 className="my-3 fw-bold">
               Activity: {selectedActivityName || '(no name)'} — Project:{' '}
               {selectedProjectName || '(none)'}
             </h5>
             <ActivityVolunteers
               activityId={selectedActivityId}
-              projectId={selectedProjectId}
+              activityName={selectedActivityName}
             />
           </>
         )
 
       case 4:
-        // CheckList tab
-        if (!selectedActivityId || !selectedProjectId) {
-          return <p>Please complete the "Details" tab first.</p>
+        // "Check List" step
+        if (!selectedActivityId) {
+          return <h5>Please complete the "Details" tab first.</h5>
         }
         return (
           <>
-            <h5 className='my-3 fw-bold'>
+            <h5 className="my-3 fw-bold">
               Activity: {selectedActivityName || '(no name)'} — Project:{' '}
               {selectedProjectName || '(none)'}
             </h5>
             <ActivityCheckList
               activityId={selectedActivityId}
-              projectId={selectedProjectId}
+              activityName={selectedActivityName}
             />
-          
           </>
         )
 
       case 5:
-        // Outcome Tab
-        if (!selectedActivityId || !selectedProjectId) {
-          return <div>Please complete the "Details" tab first.</div>
+        // "Outcome" step
+        if (!selectedActivityId) {
+          return <h5>Please complete the "Details" tab first.</h5>
         }
         return (
           <>
-            <h5 className='my-3 fw-bold'>
+            <h5 className="my-3 fw-bold">
               Activity: {selectedActivityName || '(no name)'} — Project:{' '}
               {selectedProjectName || '(none)'}
             </h5>
             <ActivityOutcome
               activityId={selectedActivityId}
-              projectId={selectedProjectId}
+              activityName={selectedActivityName}
             />
           </>
         )
 
       case 6:
-      
-        if (!selectedActivityId || !selectedProjectId) {
-          return <div>Please complete the "Details" tab first.</div>
+        // "Complete" step
+        if (!selectedActivityId) {
+          return <h5>Please complete the "Details" tab first.</h5>
         }
         return (
           <>
-            <h5 className='my-3 fw-bold'>
+            <h5 className="my-3 fw-bold">
               Activity: {selectedActivityName || '(no name)'} — Project:{' '}
               {selectedProjectName || '(none)'}
             </h5>
-          <ActivityComplete
-            activityId={selectedActivityId}
-            projectId={selectedProjectId}
-          />
+            <ActivityComplete
+              activityId={selectedActivityId}
+              activityName={selectedActivityName}
+            />
           </>
         )
-        default:return <h5>Coming Soon...</h5>
+
+      default:
+        return <h5>Coming Soon...</h5>
     }
   }
 
   return (
-    <div
+<div
       className={`container-fluid ${
         isSidebarOpen ? 'content-expanded' : 'content-collapsed'
       }`}
       style={{
-        marginLeft: isSidebarOpen ? '220px' : '30px',
+        marginLeft: isSidebarOpen ? '220px' : '20px',
         transition: 'margin 0.3s ease',
-        paddingTop: '2rem',
-        height: '100vh',
-        width: '95%',
+        paddingTop: '5px',
+        minHeight: '100vh',
       }}
     >
       {renderStepNav()}
+
       <div className="p-3 border rounded bg-white mx-2">
         {renderStepContent()}
       </div>

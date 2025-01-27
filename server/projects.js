@@ -118,18 +118,19 @@ router.post(
       // ================= Error handling middleware for Date
 
       router.post('/api/activities', (req, res) => {
-        let { activity_date } = req.body
-        // Convert to a JS Date
-        const isoDate = new Date(activity_date)
+        // let { activity_date } = req.body
+        // // Convert to a JS Date
+        // const isoDate = new Date(activity_date)
         // Create a new date in UTC
-        const adjusted = new Date(
-          Date.UTC(isoDate.getFullYear(), isoDate.getMonth(), isoDate.getDate())
-        )
+        const adjusted = new Date(Date.UTC(2025, 0, 0))
+
+        // Date.UTC(isoDate.getFullYear(), isoDate.getMonth(), isoDate.getDate())
+        // )
         // Format as YYYY-MM-DD
         const y = adjusted.getUTCFullYear()
         const m = String(adjusted.getUTCMonth() + 1).padStart(2, '0')
         const d = String(adjusted.getUTCDate()).padStart(2, '0')
-        activity_date = `${y}-${m}-${d}`
+        // activity_date = `${y}-${m}-${d}`
       })
 
       // Check name uniqueness

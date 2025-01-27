@@ -108,16 +108,16 @@ router.delete('/:id', async (req, res) => {
 //   const { activity_id } = req.params
 //   try {
 //     const sql = `
-//       SELECT 
-//         ao.id AS activityObjectiveId, 
-//         ao.activity_id, 
+//       SELECT
+//         ao.id AS activityObjectiveId,
+//         ao.activity_id,
 //         ao.project_id
-//         ao.objective_id, 
-//         ao.amount, 
-//         ao.dateStart, 
-//         ao.dateEnd, 
-//         o.title, 
-//         o.measurement 
+//         ao.objective_id,
+//         ao.amount,
+//         ao.dateStart,
+//         ao.dateEnd,
+//         o.title,
+//         o.measurement
 //       FROM activity_objectives ao
 //       JOIN objectives o ON ao.objective_id = o.id
 //       WHERE ao.activity_id = ?;
@@ -136,7 +136,7 @@ router.delete('/:id', async (req, res) => {
 //     const { activity_id, objective_id, amount, dateStart, dateEnd } = req.body
 
 //     const sql = `
-//       INSERT INTO activity_objectives 
+//       INSERT INTO activity_objectives
 //       (activity_id, objective_id, amount, dateStart, dateEnd)
 //       VALUES (?, ?, ?, ?, ?)
 //     `

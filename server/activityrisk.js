@@ -124,55 +124,52 @@ router.post('/activity_risks', async (req, res) => {
 })
 
 /**
+ *  4) Delete risk, title, and controls together
  *  DELETE /api/activity_risks?activityId=XXX&riskId=YYY
- *  Remove bridging
  */
 router.delete('/activity_risks', async (req, res) => {
   const { activityId, riskId } = req.query
+
   if (!activityId || !riskId) {
-    return res.status(400).json({ message: 'Missing activityId or riskId' })
+    return res.status(400).json({ message: 'Missing activityId or riskId.' })
   }
+
+  const connection = await pool.getConnection()
+
   try {
-    await pool.query(
-      'DELETE FROM activity_risks WHERE activity_id=? AND risk_id=?',
+    await connection.beginTransaction()
+
+    // Delete activity risk
+    await connection.query(
+      `DELETE FROM activity_risks WHERE activity_id = ? AND risk_id = ?`,
       [activityId, riskId]
     )
-    return res.json({ message: 'Removed risk from activity.' })
-  } catch (err) {
-    console.error('DELETE /activity_risks error:', err)
-    return res.status(500).json({ message: 'Failed to remove risk.' })
-  }
-})
 
-/**
- *   GET /api/activity_risk_controls/detailed?activityId=...
- *  So you can see which controls are chosen for each risk
- */
-router.get('/activity_risk_controls/detailed', async (req, res) => {
-  const { activityId } = req.query
-  if (!activityId) {
-    return res.status(400).json({ message: 'No activityId provided' })
-  }
-  try {
-    const [rows] = await pool.query(
-      `SELECT arc.id AS activityRiskControlId,
-              arc.activity_id,
-              arc.risk_control_id,
-              arc.is_checked,
-              rc.control_text,
-              r.id AS riskId
-       FROM activity_risk_controls arc
-       JOIN risk_controls rc ON arc.risk_control_id = rc.id
-       JOIN activity_risks ar ON ar.activity_id = arc.activity_id
-       WHERE arc.activity_id = ?`,
-      [activityId]
+    // Delete associated risk controls
+    await connection.query(
+      `DELETE FROM risk_controls WHERE risk_title_id = (SELECT risk_title_id FROM risks WHERE id = ?)`,
+      [riskId]
     )
-    return res.json(rows)
+
+    // Delete risk itself
+    await connection.query(`DELETE FROM risks WHERE id = ?`, [riskId])
+
+    // Delete risk title
+    await connection.query(
+      `DELETE FROM risk_titles WHERE id = (SELECT risk_title_id FROM risks WHERE id = ?)`,
+      [riskId]
+    )
+
+    await connection.commit()
+    res.json({ message: 'Risk and associated data removed successfully.' })
   } catch (err) {
-    console.error('GET /activity_risk_controls/detailed error:', err)
-    return res
+    await connection.rollback()
+    console.error(err)
+    res
       .status(500)
-      .json({ message: 'Failed to fetch risk controls bridging.' })
+      .json({ message: 'Failed to delete risk and associated data.' })
+  } finally {
+    connection.release()
   }
 })
 
@@ -233,6 +230,7 @@ router.delete('/activity_risk_controls', async (req, res) => {
 })
 
 // =========== HAZARDS endpoints ===========
+//             HAZARDS endpoints
 // ====== activity_site_hazards =========
 
 router.get('/activity_site_hazards', async (req, res) => {
