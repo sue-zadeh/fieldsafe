@@ -324,8 +324,9 @@ const ActivityTabs: React.FC<ActivityTabsProps> = ({isSidebarOpen}) => {
       style={{
         marginLeft: isSidebarOpen ? '220px' : '20px',
         transition: 'margin 0.3s ease',
-        paddingTop: '5px',
+        paddingTop: '2rem',
         minHeight: '100vh',
+        width: '100%',
       }}
     >
       {renderStepNav()}

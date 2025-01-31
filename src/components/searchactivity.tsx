@@ -1,9 +1,17 @@
 // src/components/SearchActivity.tsx
 import React, { useState, useEffect } from 'react'
 import axios from 'axios'
-import { Table, Form, InputGroup, Button, Alert } from 'react-bootstrap'
-import { useNavigate } from 'react-router-dom'
-import { FaSearch, FaTrashAlt, FaArrowRight } from 'react-icons/fa'
+import {
+  Table,
+  Form,
+  InputGroup,
+  Button,
+  Alert,
+  Navbar,
+  Nav,
+} from 'react-bootstrap'
+import { useNavigate, useLocation } from 'react-router-dom'
+import { FaSearch, FaArrowRight } from 'react-icons/fa' // <== removed FaTrashAlt
 
 interface ActivityRow {
   id: number
@@ -11,7 +19,7 @@ interface ActivityRow {
   activity_date: string
   projectName?: string
   projectLocation: string
-  status: string // "InProgress", "onhold", "Completed", "archived"
+  status: string // e.g. "InProgress", "onhold", "Completed", "archived"
   createdBy?: string
 }
 
@@ -21,19 +29,28 @@ interface SearchActivityProps {
 
 const SearchActivity: React.FC<SearchActivityProps> = ({ isSidebarOpen }) => {
   const navigate = useNavigate()
-  const [activities, setActivities] = useState<ActivityRow[]>([])
+  const location = useLocation()
+
+  // The master list of all activities
+  const [allActivities, setAllActivities] = useState<ActivityRow[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
-  // For searching:
+  // Current tab: "activeactivities" or "archivedactivities"
+  const [activeTab, setActiveTab] = useState<
+    'activeactivities' | 'archivedactivities'
+  >('activeactivities')
+
+  // Search term
   const [searchTerm, setSearchTerm] = useState('')
 
+  // On mount, fetch all activities
   useEffect(() => {
     ;(async () => {
       try {
         setLoading(true)
         const res = await axios.get<ActivityRow[]>('/api/activities')
-        setActivities(res.data)
+        setAllActivities(res.data)
       } catch (err) {
         console.error('Error fetching activities:', err)
         setError('Failed to load activity notes.')
@@ -43,8 +60,30 @@ const SearchActivity: React.FC<SearchActivityProps> = ({ isSidebarOpen }) => {
     })()
   }, [])
 
-  // Filter by date, activity name, (optional projectName), location, status, createdBy
-  const filteredActivities = activities.filter((act) => {
+  // If we came from AddActivity with { state: { redirectTo: 'archivedactivities' } }
+  // set that tab automatically
+  useEffect(() => {
+    const st = location.state as { redirectTo?: string }
+    if (st?.redirectTo === 'archivedactivities') {
+      setActiveTab('archivedactivities')
+    } else if (st?.redirectTo === 'activeactivities') {
+      setActiveTab('activeactivities')
+    }
+  }, [location.state])
+
+  // Split out “active” vs. “archived”
+  const activeActivities = allActivities.filter(
+    (act) => act.status !== 'archived'
+  )
+  const archivedActivities = allActivities.filter(
+    (act) => act.status === 'archived'
+  )
+
+  // Filter based on selected tab, then apply search
+  const displayedActivities =
+    activeTab === 'activeactivities' ? activeActivities : archivedActivities
+
+  const filteredActivities = displayedActivities.filter((act) => {
     const dateStr = formatDate(act.activity_date).toLowerCase()
     const aName = (act.activity_name || '').toLowerCase()
     const pName = (act.projectName || '').toLowerCase()
@@ -62,31 +101,18 @@ const SearchActivity: React.FC<SearchActivityProps> = ({ isSidebarOpen }) => {
     )
   })
 
-  /** If user clicks arrow => jump to your “wizard” or “AddActivity” page
-   *  but we pass { fromSearch: true } so that it won't show the modal.
-   */
+  // Switch tabs
+  const handleTabChange = (tab: 'activeactivities' | 'archivedactivities') => {
+    setActiveTab(tab)
+    setSearchTerm('') // optional: reset search each time
+  }
+
+  /** Arrow => go to AddActivity in read‐only mode */
   const handleGoToDetail = (act: ActivityRow, e: React.MouseEvent) => {
     e.stopPropagation()
     navigate('/activity-notes', {
       state: { activityId: act.id, fromSearch: true },
     })
-  }
-
-  const handleDelete = async (act: ActivityRow, e: React.MouseEvent) => {
-    e.stopPropagation()
-    const confirmed = window.confirm(
-      `Are you sure you want to delete "${
-        act.activity_name
-      }" dated ${formatDate(act.activity_date)}?`
-    )
-    if (!confirmed) return
-    try {
-      await axios.delete(`/api/activities/${act.id}`)
-      setActivities((prev) => prev.filter((a) => a.id !== act.id))
-    } catch (err) {
-      console.error('Error deleting activity:', err)
-      alert('Failed to delete activity.')
-    }
   }
 
   if (loading) return <div>Loading activity notes...</div>
@@ -100,18 +126,57 @@ const SearchActivity: React.FC<SearchActivityProps> = ({ isSidebarOpen }) => {
       style={{
         marginLeft: isSidebarOpen ? '220px' : '30px',
         transition: 'margin 0.3s ease',
-        paddingTop: '2rem',
-        height: '100vh',
-        width: '95%',
+        paddingTop: '0.5rem',
+        minHeight: '100vh',
+        width: '98%',
       }}
     >
+      {/* TABS (Active / Archived) */}
+      <Navbar
+        expand="lg"
+        style={{ backgroundColor: '#c4edf2' }}
+        className="py-2 mb-3"
+      >
+        <Navbar.Toggle
+          aria-controls="basic-navbar-nav"
+          style={{ backgroundColor: '#F4F7F1' }}
+        />
+        <Navbar.Collapse id="basic-navbar-nav">
+          <Nav className="mx-auto justify-content-center">
+            <Nav.Link
+              onClick={() => handleTabChange('activeactivities')}
+              style={{
+                fontWeight:
+                  activeTab === 'activeactivities' ? 'bold' : 'normal',
+                color: '#1A1A1A',
+                marginRight: '1rem',
+              }}
+            >
+              Active Activities
+            </Nav.Link>
+            <Nav.Link
+              onClick={() => handleTabChange('archivedactivities')}
+              style={{
+                fontWeight:
+                  activeTab === 'archivedactivities' ? 'bold' : 'normal',
+                color: '#1A1A1A',
+                marginRight: '1rem',
+              }}
+            >
+              Archived Activities
+            </Nav.Link>
+          </Nav>
+        </Navbar.Collapse>
+      </Navbar>
+
       <h3 className="mb-4" style={{ color: '#0094B6', fontWeight: 'bold' }}>
-        Search Activities
+        Search {activeTab === 'activeactivities' ? 'Active' : 'Archived'}{' '}
+        Activities
       </h3>
 
       {/* Search bar */}
-      <div className='d-flex justify-content-center'>
-        <InputGroup className="mb-3" style={{ maxWidth: '450px' }}>
+      <div className="d-flex justify-content-center mb-3">
+        <InputGroup style={{ maxWidth: '450px' }}>
           <Form.Control
             type="text"
             placeholder="Search activities..."
@@ -122,11 +187,15 @@ const SearchActivity: React.FC<SearchActivityProps> = ({ isSidebarOpen }) => {
             <FaSearch />
           </Button>
         </InputGroup>
-
-        {filteredActivities.length === 0 && (
-          <Alert variant="warning">No results found for "{searchTerm}"</Alert>
-        )}
       </div>
+
+      {/* If zero filtered results => show an alert */}
+      {filteredActivities.length === 0 && searchTerm && (
+        <Alert variant="warning" className="text-center">
+          No results found for "{searchTerm}"
+        </Alert>
+      )}
+
       <h5 className="p-2" style={{ color: '#0094B6' }}>
         Choose an activity by pressing Arrow Key
       </h5>
@@ -134,13 +203,12 @@ const SearchActivity: React.FC<SearchActivityProps> = ({ isSidebarOpen }) => {
       <Table striped hover responsive>
         <thead>
           <tr>
-            <th className='text-center'>Activity Date</th>
-            <th className='text-center'>Activity Name</th>
-           {/* Optional column: */}
-             <th className='text-center'>Project Name</th> 
-            <th className='mx-2'>Location</th>
-            <th >Status</th>
-            <th>Created By</th>
+            <th className="">Activity Date</th>
+            <th className="">Activity Name</th>
+            <th className="">Project Name</th>
+            <th className="mx-2">Location</th>
+            <th>Status</th>
+            <th className="text-start">Created By</th>
             <th className="text-end">Action</th>
           </tr>
         </thead>
@@ -149,25 +217,12 @@ const SearchActivity: React.FC<SearchActivityProps> = ({ isSidebarOpen }) => {
             <tr key={act.id} style={{ cursor: 'pointer' }}>
               <td>{formatDate(act.activity_date)}</td>
               <td>{act.activity_name}</td>
-               {/* Optionally: */}
-                <td>{act.projectName || ''}</td>
-                
+              <td>{act.projectName || ''}</td>
               <td>{act.projectLocation}</td>
-              <td className='mx-4'>{act.status}</td>
-              <td>{act.createdBy || 'N/A'}</td>
+              <td>{act.status}</td>
+              <td className='ml-2'>{act.createdBy || 'N/A'}</td>
               <td className="text-end">
-                {/* Delete */}
-                <span
-                  style={{
-                    fontSize: '1.25rem',
-                    color: 'red',
-                    marginRight: '2rem',
-                  }}
-                  onClick={(e) => handleDelete(act, e)}
-                >
-                  <FaTrashAlt />
-                </span>
-                {/* Arrow => go to wizard */}
+                {/* We removed the trash bin entirely */}
                 <span
                   style={{ fontSize: '1.5rem', cursor: 'pointer' }}
                   onClick={(e) => handleGoToDetail(act, e)}
@@ -183,7 +238,7 @@ const SearchActivity: React.FC<SearchActivityProps> = ({ isSidebarOpen }) => {
   )
 }
 
-// Simple date format
+// Same date formatter:
 function formatDate(isoString: string) {
   if (!isoString) return ''
   const d = new Date(isoString)

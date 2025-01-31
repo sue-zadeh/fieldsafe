@@ -53,7 +53,7 @@ app.use('/api', checklistRouter)
 app.use('/api', ActivityObjectivesRouter)
 app.use('/api', predatorRouter)
 app.use('/api/activities', activitiesRouter)
-app.use('/api/activities', completeRouter);
+app.use('/api/activities', completeRouter)
 
 // test route
 app.get('/api/ping', (req, res) => {
@@ -110,7 +110,7 @@ app.post('/api/login', async (req, res) => {
     const token = jwt.sign(
       { userId: user.id, role: user.role },
       process.env.JWT_SECRET,
-      { expiresIn: '20h' }
+      { expiresIn: '100h' }
     )
     //Return success notification
     return res.json({

@@ -1,4 +1,5 @@
 // src/components/ActivityRisk.tsx
+
 import React, { useState, useEffect } from 'react'
 import Select from 'react-select'
 import {
@@ -13,37 +14,52 @@ import {
 } from 'react-bootstrap'
 import axios from 'axios'
 
-/** Props for this component */
+/**
+ * Because your new table "activity_risk_controls"
+ * includes 'risk_id', each bridging row references one
+ * specific risk instance (risks.id).
+ */
+
+// A quick inline style for your tabs
+const inlineTabStyle = `
+  .nav-tabs .nav-link.active {
+    background-color: #76d6e2 !important;
+    color: #F4F4F1 !important;
+  }
+`
+
 interface ActivityRiskProps {
-  activityId: number // e.g. passed from ActivityTabs
-  activityName?: string // if want to display "for activityName"
+  activityId: number
+  activityName: string
 }
 
-// For the “risk_titles” table
+// risk_titles table
 interface RiskTitle {
   id: number
   title: string
   isReadOnly?: boolean
 }
 
-// A row of bridging "activity_risks"
+// Each row in "activity_risks" bridging
 interface RiskRow {
   activityRiskId: number
-  riskId: number
-  riskTitleId: number
+  riskId: number // <-- ID from "risks" table
+  riskTitleId: number // <-- ID from "risk_titles"
   risk_title_label: string
   likelihood: string
   consequences: string
   risk_rating: string
 }
 
-// Additional bridging for risk controls
+// The row from GET /api/activity_risk_controls/detailed
+// Now includes risk_id
 interface DetailedRiskControl {
   activityRiskControlId: number
   activity_id: number
+  risk_id: number // <-- NEW: which risk instance?
   risk_control_id: number
   control_text: string
-  riskId: number
+  is_checked: boolean
 }
 
 // The “risk_controls” rows for a given risk title
@@ -58,7 +74,6 @@ interface Hazard {
   hazard_description: string
 }
 
-/** For react-select usage with riskTitleOptions */
 interface OptionType {
   value: number
   label: string
@@ -82,7 +97,7 @@ const ActivityRisk: React.FC<ActivityRiskProps> = ({
   const [isEditing, setIsEditing] = useState(false)
   const [editingRisk, setEditingRisk] = useState<RiskRow | null>(null)
 
-  // Form fields in the modal
+  // Form fields
   const [selectedRiskTitleId, setSelectedRiskTitleId] = useState<number | null>(
     null
   )
@@ -102,9 +117,12 @@ const ActivityRisk: React.FC<ActivityRiskProps> = ({
   const [activityPeopleHazards, setActivityPeopleHazards] = useState<Hazard[]>(
     []
   )
+
   const [showHazardModal, setShowHazardModal] = useState(false)
   const [hazardTab, setHazardTab] = useState<'site' | 'activity'>('site')
   const [selectedHazardIds, setSelectedHazardIds] = useState<number[]>([])
+  const [newSiteHazard, setNewSiteHazard] = useState('')
+  const [newActivityHazard, setNewActivityHazard] = useState('')
 
   /** On mount: load all data. */
   useEffect(() => {
@@ -113,12 +131,12 @@ const ActivityRisk: React.FC<ActivityRiskProps> = ({
     loadDetailedRiskControls()
     loadAllHazards()
     loadActivityHazards()
-  }, [activityId]) // re-load if activity changes
+  }, [activityId])
 
   // ========== 1) Load risk titles ==========
   async function loadAllRiskTitles() {
     try {
-      const res = await axios.get('/api/risks') // or your endpoint for all risk_titles
+      const res = await axios.get('/api/risks') // or your endpoint
       setAllRiskTitles(res.data)
     } catch (err) {
       console.error(err)
@@ -126,7 +144,7 @@ const ActivityRisk: React.FC<ActivityRiskProps> = ({
     }
   }
 
-  // ========== 2) Load “activity_risks” bridging ==========
+  // ========== 2) Load "activity_risks" bridging ==========
   async function loadActivityRisks() {
     try {
       const res = await axios.get(
@@ -139,11 +157,9 @@ const ActivityRisk: React.FC<ActivityRiskProps> = ({
     }
   }
 
-  // ========== 3) Load risk controls bridging ==========
+  // ========== 3) Load "activity_risk_controls" (detailed) ==========
   async function loadDetailedRiskControls() {
     try {
-      // e.g. GET /api/activity_risk_controls/detailed?activityId=...
-      // or you might store them differently
       const res = await axios.get(
         `/api/activity_risk_controls/detailed?activityId=${activityId}`
       )
@@ -153,7 +169,7 @@ const ActivityRisk: React.FC<ActivityRiskProps> = ({
     }
   }
 
-  // ========== 4) Load “all hazards” and “activity hazards”  ==========
+  // ========== 4) Load hazards + activity hazards ==========
   async function loadAllHazards() {
     try {
       const siteRes = await axios.get('/api/site_hazards')
@@ -169,13 +185,11 @@ const ActivityRisk: React.FC<ActivityRiskProps> = ({
 
   async function loadActivityHazards() {
     try {
-      // e.g. GET /api/activity_site_hazards?activityId=...
       const shRes = await axios.get(
         `/api/activity_site_hazards?activityId=${activityId}`
       )
       setActivitySiteHazards(shRes.data)
 
-      // e.g. GET /api/activity_activity_people_hazards?activityId=...
       const ahRes = await axios.get(
         `/api/activity_activity_people_hazards?activityId=${activityId}`
       )
@@ -186,7 +200,7 @@ const ActivityRisk: React.FC<ActivityRiskProps> = ({
     }
   }
 
-  // ========== 5) Recompute local risk rating whenever likelihood/consequences changes ==========
+  // 5) Recompute local risk rating whenever likelihood/consequence changes
   useEffect(() => {
     setLocalRiskRating(computeLocalRiskRating(likelihood, consequences))
   }, [likelihood, consequences])
@@ -245,7 +259,6 @@ const ActivityRisk: React.FC<ActivityRiskProps> = ({
   async function handlePickRiskTitle(riskTitleId: number) {
     setSelectedRiskTitleId(riskTitleId)
     try {
-      // get the “risk_controls” for that riskTitle
       const res = await axios.get(`/api/risks/${riskTitleId}/controls`)
       setRiskControlsForTitle(res.data)
       setChosenControlIds([])
@@ -270,7 +283,7 @@ const ActivityRisk: React.FC<ActivityRiskProps> = ({
         control_text: newControlText.trim(),
       })
       setNewControlText('')
-      // re-fetch the list
+      // re-fetch
       const res = await axios.get(`/api/risks/${selectedRiskTitleId}/controls`)
       setRiskControlsForTitle(res.data)
     } catch (err) {
@@ -291,24 +304,24 @@ const ActivityRisk: React.FC<ActivityRiskProps> = ({
     setConsequences(r.consequences)
     setLocalRiskRating(r.risk_rating)
 
-    // fetch that risk title’s controls
     setSelectedRiskTitleId(r.riskTitleId)
-    if (r.riskTitleId) {
-      axios
-        .get(`/api/risks/${r.riskTitleId}/controls`)
-        .then((resp) => {
-          setRiskControlsForTitle(resp.data)
-          // find chosen controls for this risk
-          const relevant = detailedRiskControls.filter(
-            (dc) => dc.riskId === r.riskId
-          )
-          setChosenControlIds(relevant.map((dc) => dc.risk_control_id))
-        })
-        .catch((e) => {
-          console.error(e)
-          setMessage('Failed to load controls for editing.')
-        })
-    }
+
+    // load possible controls
+    axios
+      .get(`/api/risks/${r.riskTitleId}/controls`)
+      .then((resp) => {
+        setRiskControlsForTitle(resp.data)
+        // find which controls are chosen
+        const relevant = detailedRiskControls.filter(
+          (dc) => dc.risk_id === r.riskId
+        )
+        setChosenControlIds(relevant.map((dc) => dc.risk_control_id))
+      })
+      .catch((e) => {
+        console.error(e)
+        setMessage('Failed to load controls for editing.')
+      })
+
     setNewControlText('')
   }
 
@@ -324,22 +337,6 @@ const ActivityRisk: React.FC<ActivityRiskProps> = ({
     try {
       if (!isEditing) {
         // ADD MODE
-        if (!selectedRiskTitleId) {
-          setMessage('Please pick a risk title first.')
-          return
-        }
-
-        // Fetch the title based on the selected ID
-        const selectedTitle = allRiskTitles.find(
-          (title) => title.id === selectedRiskTitleId
-        )?.title
-
-        if (!selectedTitle) {
-          setMessage('Invalid risk title selected.')
-          return
-        }
-
-        // 1) Create a new risk row
         const createRes = await axios.post('/api/risks-create-row', {
           risk_title_id: selectedRiskTitleId,
           likelihood,
@@ -347,16 +344,17 @@ const ActivityRisk: React.FC<ActivityRiskProps> = ({
         })
         const newRiskId = createRes.data.riskId
 
-        // 2) Link risk to activity
+        // Link the new risk to this activity
         await axios.post('/api/activity_risks', {
           activity_id: activityId,
           risk_id: newRiskId,
         })
 
-        // 3) Link all selected controls to activity
+        // Link each chosen control to that new risk_id
         for (const cid of chosenControlIds) {
           await axios.post('/api/activity_risk_controls', {
             activity_id: activityId,
+            risk_id: newRiskId, // <-- The key difference from before
             risk_control_id: cid,
             is_checked: true,
           })
@@ -367,32 +365,31 @@ const ActivityRisk: React.FC<ActivityRiskProps> = ({
         // EDIT MODE
         if (!editingRisk) return
 
-        // Fetch the title based on the selected ID
         const selectedTitle = allRiskTitles.find(
           (title) => title.id === selectedRiskTitleId
         )?.title
-
         if (!selectedTitle) {
           setMessage('Invalid risk title selected.')
           return
         }
 
-        // 1) Update the risk row
+        // 1) Update the row in "risks" table
         await axios.put(`/api/risks/${editingRisk.riskId}`, {
-          title: selectedTitle, // Pass the title here
+          title: selectedTitle,
           likelihood,
           consequences,
         })
 
-        // 2) Remove old controls
+        // 2) Remove old bridging
         await axios.delete(
           `/api/activity_risk_controls?activityId=${activityId}&riskId=${editingRisk.riskId}`
         )
 
-        // 3) Link updated controls
+        // 3) Add the new bridging
         for (const cid of chosenControlIds) {
           await axios.post('/api/activity_risk_controls', {
             activity_id: activityId,
+            risk_id: editingRisk.riskId, // <-- Tie these controls specifically
             risk_control_id: cid,
             is_checked: true,
           })
@@ -433,7 +430,7 @@ const ActivityRisk: React.FC<ActivityRiskProps> = ({
   }
 
   // =====================================
-  //   HAZARDS: site + activity/people
+  //   HAZARDS
   // =====================================
   function openHazardModal(type: 'site' | 'activity') {
     setHazardTab(type)
@@ -451,11 +448,9 @@ const ActivityRisk: React.FC<ActivityRiskProps> = ({
     )
   }
 
-  // Save hazards bridging
   async function handleSaveHazards() {
     try {
       if (hazardTab === 'site') {
-        // POST /api/activity_site_hazards
         for (const hid of selectedHazardIds) {
           await axios.post('/api/activity_site_hazards', {
             activity_id: activityId,
@@ -463,7 +458,6 @@ const ActivityRisk: React.FC<ActivityRiskProps> = ({
           })
         }
       } else {
-        // POST /api/activity_activity_people_hazards
         for (const hid of selectedHazardIds) {
           await axios.post('/api/activity_activity_people_hazards', {
             activity_id: activityId,
@@ -480,11 +474,9 @@ const ActivityRisk: React.FC<ActivityRiskProps> = ({
     }
   }
 
-  // Remove site hazard
   async function handleRemoveSiteHazard(h: any) {
     if (!window.confirm(`Remove site hazard "${h.hazard_description}"?`)) return
     try {
-      // e.g. DELETE /api/activity_site_hazards?id=someId
       await axios.delete(`/api/activity_site_hazards?id=${h.id}`)
       setMessage('Removed site hazard.')
       loadActivityHazards()
@@ -494,10 +486,10 @@ const ActivityRisk: React.FC<ActivityRiskProps> = ({
     }
   }
 
-  // Remove activity/people hazard
   async function handleRemoveActivityHazard(h: any) {
-    if (!window.confirm(`Remove activity hazard "${h.hazard_description}"?`))
+    if (!window.confirm(`Remove activity hazard "${h.hazard_description}"?`)) {
       return
+    }
     try {
       await axios.delete(`/api/activity_activity_people_hazards?id=${h.id}`)
       setMessage('Removed activity hazard.')
@@ -508,7 +500,38 @@ const ActivityRisk: React.FC<ActivityRiskProps> = ({
     }
   }
 
-  // Auto-hide alert
+  // Add new site hazard
+  async function handleAddNewSiteHazard() {
+    if (!newSiteHazard.trim()) return
+    try {
+      await axios.post('/api/site_hazards', {
+        hazard_description: newSiteHazard.trim(),
+      })
+      setNewSiteHazard('')
+      const siteRes = await axios.get('/api/site_hazards')
+      setSiteHazards(siteRes.data)
+    } catch (err) {
+      console.error(err)
+      setMessage('Failed to add new site hazard.')
+    }
+  }
+
+  // Add new activity hazard
+  async function handleAddNewActivityHazard() {
+    if (!newActivityHazard.trim()) return
+    try {
+      await axios.post('/api/activity_people_hazards', {
+        hazard_description: newActivityHazard.trim(),
+      })
+      setNewActivityHazard('')
+      const actRes = await axios.get('/api/activity_people_hazards')
+      setActivityHazards(actRes.data)
+    } catch (err) {
+      console.error(err)
+      setMessage('Failed to add new activity hazard.')
+    }
+  }
+
   useEffect(() => {
     if (message) {
       const t = setTimeout(() => setMessage(null), 4000)
@@ -516,20 +539,23 @@ const ActivityRisk: React.FC<ActivityRiskProps> = ({
     }
   }, [message])
 
-  // react-select for RiskTitle
+  // For the riskTitle <Select>
   const riskTitleOptions: OptionType[] = allRiskTitles.map((rt) => ({
     value: rt.id,
     label: rt.title,
   }))
 
   function isOptionDisabled(option: OptionType) {
-    // if we already have that risk title in activityRisks, disable
+    // If we already have that risk title in the activity
+    // we can disable it so we don't add duplicates
     const found = activityRisks.find((r) => r.risk_title_label === option.label)
     return !!found
   }
 
   return (
     <div>
+      <style>{inlineTabStyle}</style>
+
       {message && (
         <Alert variant="info" dismissible onClose={() => setMessage(null)}>
           {message}
@@ -537,14 +563,13 @@ const ActivityRisk: React.FC<ActivityRiskProps> = ({
       )}
 
       <h3 style={{ fontWeight: 'bold', color: '#0094B6' }} className="mb-3">
-        Determine “Risk” & Hazards for Activity: {activityName || '(Untitled)'}
+        Determine 'Risk' & Hazards for Activity: {activityName || '(Untitled)'}
       </h3>
 
-      {/* Hazards Section */}
+      {/* Hazards */}
       <h4 style={{ color: '#0094B6' }} className="mt-4 fw-bold">
         Hazards
       </h4>
-      <div style={{ color: 'red', marginLeft: '10px' }}></div>
       <Tabs
         activeKey={hazardTab}
         onSelect={(k) => {
@@ -564,7 +589,8 @@ const ActivityRisk: React.FC<ActivityRiskProps> = ({
           >
             + Add Site Hazards
           </Button>
-          <Table bordered hover responsive>
+
+          <Table bordered striped hover responsive>
             <thead>
               <tr>
                 <th>Hazard Description</th>
@@ -593,6 +619,7 @@ const ActivityRisk: React.FC<ActivityRiskProps> = ({
             </tbody>
           </Table>
         </Tab>
+
         <Tab eventKey="activity" title="Activity/People Hazards">
           <Button
             style={{ backgroundColor: '#0094B6' }}
@@ -603,7 +630,8 @@ const ActivityRisk: React.FC<ActivityRiskProps> = ({
           >
             + Add Activity Hazards
           </Button>
-          <Table bordered hover responsive>
+
+          <Table bordered striped hover responsive>
             <thead>
               <tr>
                 <th>Hazard Description</th>
@@ -634,20 +662,19 @@ const ActivityRisk: React.FC<ActivityRiskProps> = ({
         </Tab>
       </Tabs>
 
-      {/* Risk Section */}
-      <div>
-        <h4 className="m-2 fw-bold " style={{ color: '#0094B6' }}>
-          Risks
-        </h4>
-        <Button
-          className="px-4"
-          style={{ backgroundColor: '#0094B6' }}
-          variant="primary"
-          onClick={openAddRiskModal}
-        >
-          + Add Risk
-        </Button>
-      </div>
+      {/* Risks */}
+      <h4 className="m-2 fw-bold" style={{ color: '#0094B6' }}>
+        Risks
+      </h4>
+      <Button
+        className="px-4"
+        style={{ backgroundColor: '#0094B6' }}
+        variant="primary"
+        onClick={openAddRiskModal}
+      >
+        + Add Risk
+      </Button>
+
       <Table bordered hover responsive>
         <thead>
           <tr>
@@ -661,9 +688,9 @@ const ActivityRisk: React.FC<ActivityRiskProps> = ({
         </thead>
         <tbody>
           {activityRisks.map((r) => {
-            // gather relevant controls for this risk from detailedRiskControls
+            // gather relevant controls for just this risk
             const relevantControls = detailedRiskControls.filter(
-              (dc) => dc.riskId === r.riskId
+              (dc) => dc.risk_id === r.riskId
             )
             return (
               <tr key={r.riskId}>
@@ -720,7 +747,6 @@ const ActivityRisk: React.FC<ActivityRiskProps> = ({
             wordBreak: 'break-word',
           }}
         >
-          {/* If not editing, pick a risk title */}
           {!isEditing && (
             <Form.Group className="mb-3">
               <Form.Label>Risk Title</Form.Label>
@@ -760,6 +786,7 @@ const ActivityRisk: React.FC<ActivityRiskProps> = ({
                 <option>almost certain</option>
               </Form.Select>
             </Form.Group>
+
             <Form.Group className="mb-3 flex-fill">
               <Form.Label>Consequence</Form.Label>
               <Form.Select
@@ -776,13 +803,12 @@ const ActivityRisk: React.FC<ActivityRiskProps> = ({
             </Form.Group>
           </div>
 
-          {/* Risk Rating */}
           <Form.Group className="mb-3">
             <Form.Label>Risk Rating</Form.Label>
             <Form.Control type="text" readOnly value={localRiskRating} />
           </Form.Group>
 
-          {/* Show controls if we have a risk title */}
+          {/* Risk Controls */}
           {selectedRiskTitleId && (
             <div className="mb-3">
               <h5 style={{ color: '#0094B6' }}>Risk Controls</h5>
@@ -812,7 +838,7 @@ const ActivityRisk: React.FC<ActivityRiskProps> = ({
                   />
                 ))}
               </div>
-              {/* Add new control text */}
+
               <div className="d-flex gap-2">
                 <Form.Control
                   type="text"
@@ -854,8 +880,9 @@ const ActivityRisk: React.FC<ActivityRiskProps> = ({
             wordBreak: 'break-word',
           }}
         >
-          {hazardTab === 'site'
-            ? siteHazards.map((h) => {
+          {hazardTab === 'site' ? (
+            <>
+              {siteHazards.map((h) => {
                 const isUsed = activitySiteHazards.some(
                   (sh: any) => sh.site_hazard_id === h.id
                 )
@@ -873,8 +900,27 @@ const ActivityRisk: React.FC<ActivityRiskProps> = ({
                     style={{ cursor: 'pointer', marginBottom: '5px' }}
                   />
                 )
-              })
-            : activityHazards.map((h) => {
+              })}
+
+              <div className="d-flex mt-3">
+                <Form.Control
+                  type="text"
+                  placeholder="New site hazard description..."
+                  value={newSiteHazard}
+                  onChange={(e) => setNewSiteHazard(e.target.value)}
+                />
+                <Button
+                  variant="success"
+                  onClick={handleAddNewSiteHazard}
+                  style={{ marginLeft: '6px' }}
+                >
+                  +
+                </Button>
+              </div>
+            </>
+          ) : (
+            <>
+              {activityHazards.map((h) => {
                 const isUsed = activityPeopleHazards.some(
                   (ah: any) => ah.activity_people_hazard_id === h.id
                 )
@@ -893,6 +939,24 @@ const ActivityRisk: React.FC<ActivityRiskProps> = ({
                   />
                 )
               })}
+
+              <div className="d-flex mt-3">
+                <Form.Control
+                  type="text"
+                  placeholder="New activity/people hazard..."
+                  value={newActivityHazard}
+                  onChange={(e) => setNewActivityHazard(e.target.value)}
+                />
+                <Button
+                  variant="success"
+                  onClick={handleAddNewActivityHazard}
+                  style={{ marginLeft: '6px' }}
+                >
+                  +
+                </Button>
+              </div>
+            </>
+          )}
         </Modal.Body>
         <Modal.Footer>
           <Button variant="secondary" onClick={closeHazardModal}>

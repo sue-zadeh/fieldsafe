@@ -3,8 +3,6 @@ import React, { useState, useEffect } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 import axios from 'axios'
 import { Form, Button, Row, Col, Card, Modal } from 'react-bootstrap'
-
-// Google Maps
 import { GoogleMap, Marker } from '@react-google-maps/api'
 
 interface ProjectOption {
@@ -30,18 +28,21 @@ const containerStyle = {
   height: '220px',
 }
 
-// Default center: e.g. Auckland
 const defaultCenter = { lat: -36.8485, lng: 174.7633 }
 
-// If you have the key in an .env, do something like:
-// const GOOGLE_MAPS_API_KEY = process.env.REACT_APP_MAPS_API_KEY || ''
-
+// We'll store the text we want for the "in progress" modal in this variable
+// so we can swap it out if the user is "already in progress" or "totally new".
 const AddActivity: React.FC = () => {
   const navigate = useNavigate()
-  const location = useLocation() as {
-    state?: { activityId?: number; fromSearch?: boolean }
+  const locState = useLocation().state as {
+    activityId?: number
+    fromSearch?: boolean
   }
+
+  // The list of projects for the dropdown
   const [projects, setProjects] = useState<ProjectOption[]>([])
+
+  // The activity object
   const [activity, setActivity] = useState<ActivityData>({
     activity_name: '',
     project_id: 0,
@@ -49,32 +50,47 @@ const AddActivity: React.FC = () => {
     notes: '',
     createdBy: '',
     status: 'InProgress',
+    projectLocation: '',
   })
 
-  // For read-only vs. edit modes
+  // readOnly mode vs. editing
   const [readOnly, setReadOnly] = useState(false)
-  // For the “already in progress” modal
+
+  // This will handle the "in‐progress" pop‐up
   const [showModal, setShowModal] = useState(false)
+  const [modalText, setModalText] = useState('') // We'll store dynamic text here
 
-  // Are we editing?
-  const activityId = location.state?.activityId
-  // If we came from search => no “in-progress” modal
-  const fromSearch = location.state?.fromSearch
+  // If we came from search => we skip the "in‐progress" modal
+  const fromSearch = locState?.fromSearch
+  // Possibly editing an existing activity
+  const activityId = locState?.activityId
 
-  // For the map
+  // Map center
   const [mapCenter, setMapCenter] = useState(defaultCenter)
   const [markerPos, setMarkerPos] = useState(defaultCenter)
 
-  // 1) Show in-progress modal only if:
-  // - we do NOT have an activityId
-  // - we did NOT come from search
+  // If user tries to open AddActivity with or without an existing activity:
+  // Decide whether to show the “already in progress” or “choose from list” modal
   useEffect(() => {
-    if (!activityId && !fromSearch) {
-      setShowModal(true)
+    if (!fromSearch) {
+      if (activityId) {
+        // We do have an ID, so presumably user was “in progress,”
+        // so show the "You already have a Field Note in progress..." text
+        setModalText(
+          'You already have a Field Note in progress. Would you like to start a new one?'
+        )
+        setShowModal(true)
+      } else {
+        // No activityId => brand new
+        setModalText(
+          'Would you like to choose an activity from list? Or start a new one?'
+        )
+        setShowModal(true)
+      }
     }
   }, [activityId, fromSearch])
 
-  // 2) Fetch all projects => for dropdown
+  // Fetch projects for the dropdown
   useEffect(() => {
     axios
       .get<ProjectOption[]>('/api/projects')
@@ -82,7 +98,7 @@ const AddActivity: React.FC = () => {
       .catch((err) => console.error('Error fetching projects', err))
   }, [])
 
-  // 3) If we have an activityId => fetch that activity, read-only
+  // If we have an activityId => fetch it for read‐only
   useEffect(() => {
     if (activityId) {
       axios
@@ -109,21 +125,17 @@ const AddActivity: React.FC = () => {
     }
   }, [activityId])
 
-  // 4) Whenever projectLocation changes, geocode it => update mapCenter & marker
+  // Geocode any time the location changes
   useEffect(() => {
     if (activity.projectLocation) {
       geocodeAddress(activity.projectLocation)
     }
   }, [activity.projectLocation])
 
-  // Quick function to geocode a string:
   async function geocodeAddress(address: string) {
     try {
-      // If you keep an environment variable:
-      // const url = `https://maps.googleapis.com/maps/api/geocode/json?address=${encodeURIComponent(
-      //   address
-      // )}&key=${GOOGLE_MAPS_API_KEY}`
-      // For demo, removing the key param so it might require a dev key:
+      // In production, you usually include your Google Maps key:
+      // const url = `https://maps.googleapis.com/maps/api/geocode/json?address=${encodeURIComponent(address)}&key=${GOOGLE_MAPS_API_KEY}`
       const url = `https://maps.googleapis.com/maps/api/geocode/json?address=${encodeURIComponent(
         address
       )}`
@@ -145,7 +157,7 @@ const AddActivity: React.FC = () => {
     }
   }
 
-  /** Handle changes in form fields */
+  // Form changes
   const handleChange = (
     e: React.ChangeEvent<
       HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement
@@ -158,7 +170,7 @@ const AddActivity: React.FC = () => {
     }))
   }
 
-  /** If project changes => auto-fill location from that project. */
+  // If user changes the selected project => fill location from that project
   const handleProjectChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const projId = Number(e.target.value)
     const proj = projects.find((p) => p.id === projId)
@@ -169,20 +181,24 @@ const AddActivity: React.FC = () => {
     }))
   }
 
-  // 5) Save new or update existing
-  const handleSave = async () => {
-    try {
-      if (
-        !activity.activity_date ||
-        !activity.activity_name ||
-        !activity.project_id
-      ) {
-        alert('Please fill Activity Name, Project, and Activity Date.')
-        return
-      }
+  // Minimum date
+  const minDate = '2024-01-01'
 
-      // CREATE
+  // =========== CREATE or UPDATE ================
+  const handleSave = async () => {
+    // Basic validation
+    if (
+      !activity.activity_date ||
+      !activity.activity_name ||
+      !activity.project_id
+    ) {
+      alert('Please fill Activity Name, Project, and Activity Date.')
+      return
+    }
+
+    try {
       if (!activityId) {
+        // CREATE new
         await axios.post('/api/activities', {
           activity_name: activity.activity_name,
           project_id: activity.project_id,
@@ -192,10 +208,16 @@ const AddActivity: React.FC = () => {
           status: activity.status,
         })
         alert('Activity created successfully!')
-        navigate('/searchactivity')
-      }
-      // UPDATE
-      else if (activityId && !readOnly) {
+
+        // If archived => go to archived tab
+        const redirectTo =
+          activity.status === 'archived'
+            ? 'archivedactivities'
+            : 'activeactivities'
+
+        navigate('/searchactivity', { state: { redirectTo } })
+      } else if (activityId && !readOnly) {
+        // UPDATE existing
         await axios.put(`/api/activities/${activityId}`, {
           activity_name: activity.activity_name,
           project_id: activity.project_id,
@@ -205,7 +227,12 @@ const AddActivity: React.FC = () => {
           status: activity.status,
         })
         alert('Activity updated successfully!')
-        navigate('/searchactivity')
+
+        const redirectTo =
+          activity.status === 'archived'
+            ? 'archivedactivities'
+            : 'activeactivities'
+        navigate('/searchactivity', { state: { redirectTo } })
       }
     } catch (err: any) {
       console.error(err)
@@ -217,11 +244,12 @@ const AddActivity: React.FC = () => {
     }
   }
 
-  /** Save as Copy => just POST with a new name. */
+  // =========== SAVE AS COPY =============
   const handleSaveAsCopy = async () => {
     if (!activityId) return
     try {
-      const copyName = activity.activity_name + '-copy'
+      const copyName = activity.activity_name
+      // + '-copy'
       await axios.post('/api/activities', {
         activity_name: copyName,
         project_id: activity.project_id,
@@ -231,7 +259,13 @@ const AddActivity: React.FC = () => {
         status: activity.status,
       })
       alert('Activity duplicated successfully!')
-      navigate('/searchactivity')
+
+      // Possibly also jump to the new one or just go to the list
+      const redirectTo =
+        activity.status === 'archived'
+          ? 'archivedactivities'
+          : 'activeactivities'
+      navigate('/searchactivity', { state: { redirectTo } })
     } catch (err: any) {
       console.error(err)
       if (err.response && err.response.status === 409) {
@@ -242,17 +276,17 @@ const AddActivity: React.FC = () => {
     }
   }
 
-  /** Make form editable again (when user clicks "Edit") */
-  const handleEdit = () => {
-    setReadOnly(false)
-  }
+  // “Edit” button => allow changing the fields
+  const handleEdit = () => setReadOnly(false)
 
-  /** Modal handling */
-  const handleCancelModal = () => {
+  // =========== MODAL LOGIC =============
+  const handleModalCancel = () => {
+    // “Close” => user can keep doing whatever they're doing
     setShowModal(false)
   }
-  const handleConfirmModal = () => {
-    // user wants a brand-new form
+
+  const handleModalNew = () => {
+    // "New Field Note" => blank out the form
     setActivity({
       activity_name: '',
       project_id: 0,
@@ -266,28 +300,22 @@ const AddActivity: React.FC = () => {
     setShowModal(false)
   }
 
-  // Minimum date is 2024-01-01
-  const minDate = '2024-01-01'
+  const handleModalGoList = () => {
+    navigate('/searchactivity')
+  }
 
   return (
-    <div className='m-4 shadow'>
-      {/* "In progress" modal if user didn't come from search and no activityId */}
-      <Modal show={showModal} onHide={handleCancelModal}>
+    <div className="m-4 shadow">
+      <Modal show={showModal} onHide={handleModalCancel}>
         <Modal.Header closeButton>
           <Modal.Title>Field Note In Progress</Modal.Title>
         </Modal.Header>
-        <Modal.Body>
-          You already have a Field Note in progress. Would you like to start a
-          new one?
-        </Modal.Body>
+        <Modal.Body>{modalText}</Modal.Body>
         <Modal.Footer>
-          <Button
-            variant="secondary"
-            onClick={() => navigate('/searchactivity')}
-          >
+          <Button variant="secondary" onClick={handleModalGoList}>
             Go To List
           </Button>
-          <Button variant="primary" onClick={handleConfirmModal}>
+          <Button variant="primary" onClick={handleModalNew}>
             New Field Note
           </Button>
         </Modal.Footer>
@@ -301,6 +329,7 @@ const AddActivity: React.FC = () => {
         </Card.Header>
         <Card.Body>
           <Form>
+            {/* Row 1: ActivityName + Status */}
             <Row className="mb-3">
               <Col md={6}>
                 <Form.Group controlId="activityName">
@@ -333,6 +362,7 @@ const AddActivity: React.FC = () => {
               </Col>
             </Row>
 
+            {/* Row 2: Project + ActivityDate */}
             <Row className="mb-3">
               <Col md={6}>
                 <Form.Group controlId="projectSelect">
@@ -343,7 +373,7 @@ const AddActivity: React.FC = () => {
                     onChange={handleProjectChange}
                     disabled={readOnly}
                   >
-                    <option value="">-- Select a Project --</option>
+                    <option value={0}>-- Select a Project --</option>
                     {projects.map((proj) => (
                       <option key={proj.id} value={proj.id}>
                         {proj.name}
@@ -370,7 +400,7 @@ const AddActivity: React.FC = () => {
               </Col>
             </Row>
 
-            {/* Show location read-only & Google Map */}
+            {/* Row 3: Location read‐only + CreatedBy */}
             <Row className="mb-3">
               <Col md={6}>
                 <Form.Group controlId="location">
@@ -398,7 +428,7 @@ const AddActivity: React.FC = () => {
               </Col>
             </Row>
 
-            {/* Show a small map with marker */}
+            {/* Map */}
             <div className="mb-3">
               <GoogleMap
                 mapContainerStyle={containerStyle}
@@ -409,6 +439,7 @@ const AddActivity: React.FC = () => {
               </GoogleMap>
             </div>
 
+            {/* Notes */}
             <Form.Group controlId="notes" className="mb-3">
               <Form.Label>Notes</Form.Label>
               <Form.Control
@@ -422,7 +453,7 @@ const AddActivity: React.FC = () => {
               />
             </Form.Group>
 
-            {/* Buttons */}
+            {/* Buttons: depends on whether new vs existing and readOnly */}
             {activityId && readOnly && (
               <div className="mt-3">
                 <Button variant="warning" onClick={handleEdit}>
@@ -430,6 +461,7 @@ const AddActivity: React.FC = () => {
                 </Button>
               </div>
             )}
+
             {activityId && !readOnly && (
               <div className="mt-3">
                 <Button variant="primary" onClick={handleSave}>
@@ -440,6 +472,7 @@ const AddActivity: React.FC = () => {
                 </Button>
               </div>
             )}
+
             {!activityId && (
               <div className="mt-3">
                 <Button variant="success" onClick={handleSave}>

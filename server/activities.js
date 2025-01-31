@@ -1,28 +1,43 @@
 // server/activities.js
-
 import express from 'express'
 import { pool } from './db.js'
 
 const router = express.Router()
 
+/**
+ * Helper to convert an incoming ISO date string
+ * (e.g. "2025-01-21T11:00:00.000Z") to "YYYY-MM-DD"
+ */
+function parseDateForMySQL(isoString) {
+  const dateObj = new Date(isoString)
+  // If invalid date
+  if (isNaN(dateObj.getTime())) {
+    return null
+  }
+  // Example: "2025-01-21"
+  const yyyy = dateObj.getUTCFullYear()
+  const mm = String(dateObj.getUTCMonth() + 1).padStart(2, '0')
+  const dd = String(dateObj.getUTCDate()).padStart(2, '0')
+  return `${yyyy}-${mm}-${dd}`
+}
+
 // ============== POST => /api/activities =============
 // Creates a new activity with a unique activity_name
-// Also copies project objectives => activity_objectives (if you want).
 router.post('/', async (req, res) => {
   try {
-    const {
-      activity_name,
-      project_id,
-      activity_date,
-      notes,
-      createdBy,
-      status,
-    } = req.body
+    let { activity_name, project_id, activity_date, notes, createdBy, status } =
+      req.body
 
     if (!activity_name || !project_id || !activity_date) {
-      return res
-        .status(400)
-        .json({ message: 'activity_name, project_id, and activity_date required' })
+      return res.status(400).json({
+        message: 'activity_name, project_id, and activity_date required',
+      })
+    }
+
+    // Convert the incoming date into MySQL-friendly format
+    const sqlDate = parseDateForMySQL(activity_date)
+    if (!sqlDate) {
+      return res.status(400).json({ message: 'Invalid or unparseable date.' })
     }
 
     // Check for uniqueness
@@ -46,7 +61,7 @@ router.post('/', async (req, res) => {
       [
         activity_name,
         project_id,
-        activity_date,
+        sqlDate, // the corrected date
         notes || '',
         createdBy || null,
         status || 'InProgress',
@@ -54,8 +69,7 @@ router.post('/', async (req, res) => {
     )
     const newActivityId = actResult.insertId
 
-    // (Optional) copy from project_objectives => activity_objectives
-    // If you have such a table:
+    // Optionally, copy from project_objectives => activity_objectives
     await pool.query(
       `
       INSERT INTO activity_objectives (activity_id, objective_id)
@@ -125,17 +139,12 @@ router.get('/:id', async (req, res) => {
 })
 
 // ============== PUT => /api/activities/:id =============
+// Edits an existing activity
 router.put('/:id', async (req, res) => {
   try {
     const { id } = req.params
-    const {
-      activity_name,
-      project_id,
-      activity_date,
-      notes,
-      createdBy,
-      status,
-    } = req.body
+    let { activity_name, project_id, activity_date, notes, createdBy, status } =
+      req.body
 
     if (!activity_name || !project_id || !activity_date) {
       return res.status(400).json({
@@ -143,19 +152,23 @@ router.put('/:id', async (req, res) => {
       })
     }
 
+    // Convert date to MySQL
+    const sqlDate = parseDateForMySQL(activity_date)
+    if (!sqlDate) {
+      return res.status(400).json({ message: 'Invalid or unparseable date.' })
+    }
+
     // Check if activity exists
-    const [existing] = await pool.query(
-      'SELECT * FROM activities WHERE id=?',
-      [id]
-    )
+    const [existing] = await pool.query('SELECT * FROM activities WHERE id=?', [
+      id,
+    ])
     if (!existing.length) {
       return res.status(404).json({ message: 'Activity not found' })
     }
 
-    // Check for name conflict if different from old name
+    // If the new name is different, ensure it’s not taken
     const oldName = existing[0].activity_name
     if (oldName !== activity_name) {
-      // see if new name is taken by another
       const [conflict] = await pool.query(
         'SELECT id FROM activities WHERE activity_name = ? AND id <> ?',
         [activity_name, id]
@@ -177,7 +190,7 @@ router.put('/:id', async (req, res) => {
     await pool.query(sql, [
       activity_name,
       project_id,
-      activity_date,
+      sqlDate, // the corrected date
       notes || '',
       createdBy || null,
       status || 'InProgress',
@@ -194,6 +207,17 @@ router.put('/:id', async (req, res) => {
 // ============== DELETE => /api/activities/:id =============
 router.delete('/:id', async (req, res) => {
   try {
+    // Check if activity is in activity_risks or something
+    const [childRows] = await pool.query(
+      'SELECT id FROM activity_risks WHERE activity_id=?',
+      [req.params.id]
+    )
+    if (childRows.length > 0) {
+      return res.status(409).json({
+        message: 'Cannot delete an activity that has data in other tabs.',
+      })
+    }
+
     const { id } = req.params
     const [result] = await pool.query('DELETE FROM activities WHERE id=?', [id])
     if (result.affectedRows === 0) {
