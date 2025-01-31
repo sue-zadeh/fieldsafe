@@ -4,6 +4,7 @@ import { useLocation, useNavigate } from 'react-router-dom'
 import axios from 'axios'
 import { Form, Button, Row, Col, Card, Modal } from 'react-bootstrap'
 import { GoogleMap, Marker } from '@react-google-maps/api'
+const GOOGLE_MAPS_API_KEY = import.meta.env.VITE_GOOGLE_MAPS_API_KEY || ''
 
 interface ProjectOption {
   id: number
@@ -138,7 +139,7 @@ const AddActivity: React.FC = () => {
       // const url = `https://maps.googleapis.com/maps/api/geocode/json?address=${encodeURIComponent(address)}&key=${GOOGLE_MAPS_API_KEY}`
       const url = `https://maps.googleapis.com/maps/api/geocode/json?address=${encodeURIComponent(
         address
-      )}`
+      )}&key=${GOOGLE_MAPS_API_KEY}`
       const resp = await fetch(url)
       const json = await resp.json()
       if (json.status === 'OK' && json.results[0]?.geometry?.location) {
