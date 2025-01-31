@@ -200,15 +200,28 @@ const SearchActivity: React.FC<SearchActivityProps> = ({ isSidebarOpen }) => {
         Choose an activity by pressing Arrow Key
       </h5>
 
-      <Table striped hover responsive>
+      <Table bordered striped hover responsive>
         <thead>
           <tr>
             <th className="">Activity Date</th>
             <th className="">Activity Name</th>
             <th className="">Project Name</th>
             <th className="mx-2">Location</th>
-            <th>Status</th>
-            <th className="text-start">Created By</th>
+            <th
+              style={{
+                minWidth: '90px',
+                whiteSpace: 'nowrap',
+                wordWrap: 'break-word',
+              }}
+            >
+              Status
+            </th>
+            <th
+              className=""
+              style={{ minWidth: '100px', paddingRight: '1rem' }}
+            >
+              Created By
+            </th>
             <th className="text-end">Action</th>
           </tr>
         </thead>
@@ -220,7 +233,7 @@ const SearchActivity: React.FC<SearchActivityProps> = ({ isSidebarOpen }) => {
               <td>{act.projectName || ''}</td>
               <td>{act.projectLocation}</td>
               <td>{act.status}</td>
-              <td className='ml-2'>{act.createdBy || 'N/A'}</td>
+              <td className="text-center">{act.createdBy || 'N/A'}</td>
               <td className="text-end">
                 {/* We removed the trash bin entirely */}
                 <span

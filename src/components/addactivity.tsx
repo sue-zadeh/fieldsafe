@@ -134,7 +134,7 @@ const AddActivity: React.FC = () => {
 
   async function geocodeAddress(address: string) {
     try {
-      // In production, you usually include your Google Maps key:
+      // In production, we usually should include our Google Maps key:
       // const url = `https://maps.googleapis.com/maps/api/geocode/json?address=${encodeURIComponent(address)}&key=${GOOGLE_MAPS_API_KEY}`
       const url = `https://maps.googleapis.com/maps/api/geocode/json?address=${encodeURIComponent(
         address
