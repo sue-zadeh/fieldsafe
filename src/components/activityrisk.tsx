@@ -20,11 +20,21 @@ import axios from 'axios'
  * specific risk instance (risks.id).
  */
 
+// -------------------------------------------
+// Inline <style> to override active tab color
+// -------------------------------------------
+// 
+
 // A quick inline style for your tabs
 const inlineTabStyle = `
   .nav-tabs .nav-link.active {
-    background-color: #76d6e2 !important;
-    color: #F4F4F1 !important;
+    color: #0094B6 !important;
+    font-weight: bold;
+    background-color: #eef8fb !important;
+    border-color: #0094B6 #0094B6 transparent !important;
+  }
+     .nav-tabs .nav-link {
+    color: #333;
   }
 `
 
