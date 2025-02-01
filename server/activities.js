@@ -10,15 +10,13 @@ const router = express.Router()
  */
 function parseDateForMySQL(isoString) {
   const dateObj = new Date(isoString)
-  // If invalid date
   if (isNaN(dateObj.getTime())) {
     return null
   }
-  // Example: "2025-01-21"
   const yyyy = dateObj.getUTCFullYear()
   const mm = String(dateObj.getUTCMonth() + 1).padStart(2, '0')
   const dd = String(dateObj.getUTCDate()).padStart(2, '0')
-  return `${yyyy}-${mm}-${dd}`
+  return `${yyyy}-${mm}-${dd}` // e.g. "2025-01-21"
 }
 
 // ============== POST => /api/activities =============

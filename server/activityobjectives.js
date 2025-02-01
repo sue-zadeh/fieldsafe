@@ -3,103 +3,177 @@ import { pool } from './db.js'
 
 const router = express.Router()
 
-// GET => /api/activity_objectives/:activity_id
-// Returns all objectives for a given activity
-router.get('/activity_objectives/:activity_id', async (req, res) => {
-  const { activity_id } = req.params
+// GET => /api/activity_outcome/:activityId
+// This looks up projectObjectives for the *project* of the given activity
+router.get('/activity_outcome/:activityId', async (req, res) => {
+  const { activityId } = req.params
   try {
-    const sql = `
-      SELECT
-        ao.id AS activityObjectiveId,
-        ao.activity_id,
-        ao.objective_id,
-        ao.amount,
-        ao.dateStart,
-        ao.dateEnd,
-        o.title,
-        o.measurement
-      FROM activity_objectives ao
-      JOIN objectives o ON ao.objective_id = o.id
-      WHERE ao.activity_id = ?
-    `
-
-    const [rows] = await pool.query(sql, [activity_id])
-    res.json(rows)
-  } catch (err) {
-    console.error('Error fetching activity objectives:', err)
-    res.status(500).json({ message: 'Failed to fetch activity objectives.' })
-  }
-})
-
-// POST => /api/activity_objectives
-// Insert a new objective row for an activity
-router.post('/activity_objectives', async (req, res) => {
-  const { activity_id, objective_id, amount, dateStart, dateEnd } = req.body
-  try {
-    // Optional: if you want to block date < 2024:
-    // if (dateStart && dateStart < '2024-01-01') { return res.status(400).json({message:'No date before 2024'}) }
-
-    const sql = `
-      INSERT INTO activity_objectives
-      (activity_id, objective_id, amount, dateStart, dateEnd)
-      VALUES (?, ?, ?, ?, ?)
-    `
-    await pool.query(sql, [
-      activity_id,
-      objective_id,
-      amount ?? null,
-      dateStart ?? null,
-      dateEnd ?? null,
-    ])
-    res.status(201).json({ message: 'Objective added to activity.' })
-  } catch (err) {
-    console.error('Error inserting activity objective:', err)
-    res.status(500).json({ message: 'Failed to add objective to activity.' })
-  }
-})
-
-// PUT => /api/activity_objectives/:id
-// Update amount / dateStart / dateEnd
-router.put('/activity_objectives/:id', async (req, res) => {
-  const { id } = req.params
-  const { amount, dateStart, dateEnd } = req.body
-  try {
-    const sql = `
-      UPDATE activity_objectives
-      SET amount = ?, dateStart = ?, dateEnd = ?
-      WHERE id = ?
-    `
-    const [result] = await pool.query(sql, [
-      amount ?? null,
-      dateStart ?? null,
-      dateEnd ?? null,
-      id,
-    ])
-    if (result.affectedRows === 0) {
-      return res.status(404).json({ message: 'No objective row found.' })
+    // 1) Find which project this activity belongs to
+    const [actRows] = await pool.query(
+      'SELECT project_id FROM activities WHERE id = ?',
+      [activityId]
+    )
+    if (!actRows.length) {
+      return res.status(404).json({ message: 'No such activity.' })
     }
-    res.json({ message: 'Activity objective updated.' })
+    const projectId = actRows[0].project_id
+
+    // 2) Get the project’s objectives (join with the objectives table)
+    const [objRows] = await pool.query(
+      `SELECT 
+         po.id AS projectObjectiveId,
+         po.objective_id,
+         po.amount,
+         o.title,
+         o.measurement
+       FROM project_objectives po
+       JOIN objectives o ON po.objective_id = o.id
+       WHERE po.project_id = ?`,
+      [projectId]
+    )
+    res.json({ projectId, objectives: objRows })
   } catch (err) {
-    console.error('Error updating activity objective:', err)
-    res.status(500).json({ message: 'Failed to update activity objective.' })
+    console.error(err)
+    res.status(500).json({ message: 'Failed to load project objectives.' })
   }
 })
 
-// DELETE => /api/activity_objectives/:id (optional)
-router.delete('/activity_objectives/:id', async (req, res) => {
+// PUT => /api/project_objectives/:id
+// Update the amount (or any other field) on the project_objectives row
+router.put('/project_objectives/:id', async (req, res) => {
   const { id } = req.params
+  const { amount } = req.body
   try {
     const [result] = await pool.query(
-      `DELETE FROM activity_objectives WHERE id = ?`,
-      [id]
+      `UPDATE project_objectives 
+       SET amount = ?
+       WHERE id = ?`,
+      [amount ?? null, id]
     )
     if (result.affectedRows === 0) {
-      return res.status(404).json({ message: 'No objective row found.' })
+      return res
+        .status(404)
+        .json({ message: 'No project objective row found.' })
     }
-    res.json({ message: 'Objective removed from activity.' })
+    res.json({ message: 'Project objective updated.' })
   } catch (err) {
-    console.error('Error deleting activity objective:', err)
-    res.status(500).json({ message: 'Failed to remove objective.' })
+    console.error(err)
+    res.status(500).json({ message: 'Failed to update project objective.' })
+  }
+})
+
+// PREDATOR routes (simplified example)
+
+// GET => /api/activity_predator/:activityId
+router.get('/activity_predator/:activityId', async (req, res) => {
+  const { activityId } = req.params
+  try {
+    const [rows] = await pool.query(
+      `SELECT ap.*, p.sub_type 
+         FROM activity_predator ap
+         JOIN predator p ON ap.predator_id = p.id
+         WHERE ap.activity_id = ?`,
+      [activityId]
+    )
+    res.json(rows)
+  } catch (err) {
+    console.error(err)
+    res.status(500).json({ message: 'Failed to fetch predator records.' })
+  }
+})
+
+// POST => /api/activity_predator
+router.post('/api/activity_predator', async (req, res) => {
+  try {
+    const {
+      activity_id,
+      predator_id,
+      measurement,
+      rats,
+      possums,
+      mustelids,
+      hedgehogs,
+      others,
+      othersDescription,
+    } = req.body
+
+    await pool.query(
+      `INSERT INTO activity_predator 
+        (activity_id, predator_id, measurement, 
+         rats, possums, mustelids, hedgehogs, others, others_description) 
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      [
+        activity_id,
+        predator_id,
+        measurement ?? null,
+        rats ?? 0,
+        possums ?? 0,
+        mustelids ?? 0,
+        hedgehogs ?? 0,
+        others ?? 0,
+        othersDescription || null,
+      ]
+    )
+    res.status(201).json({ message: 'Predator record created.' })
+  } catch (err) {
+    console.error(err)
+    res.status(500).json({ message: 'Failed to create predator record.' })
+  }
+})
+
+// PUT => /api/activity_predator/:id
+router.put('/api/activity_predator/:id', async (req, res) => {
+  const { id } = req.params
+  const {
+    activity_id,
+    predator_id,
+    measurement,
+    rats,
+    possums,
+    mustelids,
+    hedgehogs,
+    others,
+    othersDescription,
+  } = req.body
+  try {
+    const [result] = await pool.query(
+      `UPDATE activity_predator
+       SET activity_id=?, predator_id=?, measurement=?, 
+           rats=?, possums=?, mustelids=?, hedgehogs=?, others=?, 
+           others_description=?
+       WHERE id = ?`,
+      [
+        activity_id,
+        predator_id,
+        measurement ?? null,
+        rats ?? 0,
+        possums ?? 0,
+        mustelids ?? 0,
+        hedgehogs ?? 0,
+        others ?? 0,
+        othersDescription || null,
+        id,
+      ]
+    )
+    if (result.affectedRows === 0) {
+      return res.status(404).json({ message: 'No predator record found.' })
+    }
+    res.json({ message: 'Predator record updated.' })
+  } catch (err) {
+    console.error(err)
+    res.status(500).json({ message: 'Failed to update predator record.' })
+  }
+})
+
+// DELETE => /api/activity_predator/:id
+router.delete('/api/activity_predator/:id', async (req, res) => {
+  const { id } = req.params
+  try {
+    await pool.query(`DELETE FROM activity_predator WHERE id = ?`, [id])
+    res.json({ message: 'Predator record deleted.' })
+  } catch (err) {
+    console.error(err)
+    res.status(500).json({ message: 'Failed to delete predator record.' })
   }
 })
 

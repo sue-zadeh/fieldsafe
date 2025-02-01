@@ -75,7 +75,7 @@ const AddActivity: React.FC = () => {
   useEffect(() => {
     if (!fromSearch) {
       if (activityId) {
-        // We do have an ID, so presumably user was “in progress,”
+        // We do have an ID, so presumably user was 'in progress,'
         // so show the "You already have a Field Note in progress..." text
         setModalText(
           'You already have a Field Note in progress. Would you like to start a new one?'
@@ -100,23 +100,34 @@ const AddActivity: React.FC = () => {
   }, [])
 
   // If we have an activityId => fetch it for read‐only
+
   useEffect(() => {
     if (activityId) {
       axios
         .get(`/api/activities/${activityId}`)
         .then((res) => {
           const data = res.data
+          // The date might look like "2025-01-21T00:00:00.000Z"
+          // We want to ensure we store just "2025-01-21"
+          let pureDate = data.activity_date
+          if (pureDate && pureDate.length >= 10) {
+            pureDate = pureDate.slice(0, 10) // "YYYY-MM-DD"
+          }
+
           setActivity({
             id: data.id,
             activity_name: data.activity_name,
             project_id: data.project_id,
-            activity_date: data.activity_date,
+            // store date with no time
+            activity_date: pureDate,
             notes: data.notes || '',
             createdBy: data.createdBy || '',
             status: data.status || 'InProgress',
             projectLocation: data.projectLocation,
             projectName: data.projectName,
           })
+
+          // read‐only mode
           setReadOnly(true)
         })
         .catch((err) => {
@@ -389,7 +400,7 @@ const AddActivity: React.FC = () => {
                   <Form.Control
                     type="date"
                     name="activity_date"
-                    value={activity.activity_date?.substring(0, 10) || ''}
+                    value={activity.activity_date || ''} // needed now
                     onChange={handleChange}
                     min={minDate}
                     disabled={readOnly}

@@ -35,7 +35,7 @@ interface AddProjectProps {
 interface OriginalData {
   name: string
   location: string
-  startDate: string
+  startDate: Date | string
   status: ProjectStatus
   emergencyServices: string
   localMedicalCenterAddress: string
