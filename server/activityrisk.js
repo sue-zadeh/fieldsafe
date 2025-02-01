@@ -177,6 +177,8 @@ router.delete('/activity_risks', async (req, res) => {
  *  7) POST /api/activity_risk_controls
  *  Link a risk_control to the activity
  */
+// server/activity-risk.js
+
 router.post('/activity_risk_controls', async (req, res) => {
   const { activity_id, risk_control_id, is_checked } = req.body
   if (!activity_id || !risk_control_id) {
@@ -201,25 +203,23 @@ router.post('/activity_risk_controls', async (req, res) => {
   }
 })
 
-/**
- *   DELETE /api/activity_risk_controls?activityId=XXX&riskId=YYY
- *  Remove all bridging controls for that risk
- */
+// If you still have a "DELETE /api/activity_risk_controls?activityId=...&riskId=..."
+// you might do something simpler:
 router.delete('/activity_risk_controls', async (req, res) => {
   const { activityId, riskId } = req.query
   if (!activityId || !riskId) {
     return res.status(400).json({ message: 'Missing activityId or riskId' })
   }
+  // Because the bridging table doesn't store riskId, we can't strictly filter by riskId.
+  // So either remove them all or do some partial approach with risk_titles.
   try {
+    // If you want to remove *all controls* for the entire activity:
     await pool.query(
-      `DELETE arc
-       FROM activity_risk_controls arc
-       JOIN risks r ON arc.risk_control_id = r.id
-       WHERE arc.activity_id = ? AND r.id = ?`,
-      [activityId, riskId]
+      `DELETE FROM activity_risk_controls WHERE activity_id = ?`,
+      [activityId]
     )
     return res.json({
-      message: 'Removed risk controls for the specified risk.',
+      message: 'Removed all bridging controls for this activity.',
     })
   } catch (err) {
     console.error('DELETE /activity_risk_controls error:', err)

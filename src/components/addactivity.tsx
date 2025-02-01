@@ -101,25 +101,19 @@ const AddActivity: React.FC = () => {
 
   // If we have an activityId => fetch it for read‐only
 
+  // Pseudocode from AddActivity.tsx
   useEffect(() => {
     if (activityId) {
       axios
         .get(`/api/activities/${activityId}`)
         .then((res) => {
           const data = res.data
-          // The date might look like "2025-01-21T00:00:00.000Z"
-          // We want to ensure we store just "2025-01-21"
-          let pureDate = data.activity_date
-          if (pureDate && pureDate.length >= 10) {
-            pureDate = pureDate.slice(0, 10) // "YYYY-MM-DD"
-          }
-
+          // data.activity_date is already "YYYY-MM-DD" because of the server fix
           setActivity({
             id: data.id,
             activity_name: data.activity_name,
             project_id: data.project_id,
-            // store date with no time
-            activity_date: pureDate,
+            activity_date: data.activity_date, // already the correct format date from search activity date
             notes: data.notes || '',
             createdBy: data.createdBy || '',
             status: data.status || 'InProgress',
@@ -127,7 +121,6 @@ const AddActivity: React.FC = () => {
             projectName: data.projectName,
           })
 
-          // read‐only mode
           setReadOnly(true)
         })
         .catch((err) => {
@@ -400,9 +393,9 @@ const AddActivity: React.FC = () => {
                   <Form.Control
                     type="date"
                     name="activity_date"
-                    value={activity.activity_date || ''} // needed now
-                    onChange={handleChange}
-                    min={minDate}
+                    value={activity.activity_date || ''} // no substring needed
+                    onChange={handleChange} // handles changes
+                    min="2024-01-01"
                     disabled={readOnly}
                   />
                   <Form.Text className="text-muted">

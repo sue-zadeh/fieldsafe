@@ -3,12 +3,11 @@ import { pool } from './db.js'
 
 const router = express.Router()
 
-// GET => /api/activity_outcome/:activityId
-// This looks up projectObjectives for the *project* of the given activity
+// 1) GET => /api/activity_outcome/:activityId
 router.get('/activity_outcome/:activityId', async (req, res) => {
   const { activityId } = req.params
   try {
-    // 1) Find which project this activity belongs to
+    // Find projectId
     const [actRows] = await pool.query(
       'SELECT project_id FROM activities WHERE id = ?',
       [activityId]
@@ -18,7 +17,7 @@ router.get('/activity_outcome/:activityId', async (req, res) => {
     }
     const projectId = actRows[0].project_id
 
-    // 2) Get the project’s objectives (join with the objectives table)
+    // Get project objectives joined to objectives
     const [objRows] = await pool.query(
       `SELECT 
          po.id AS projectObjectiveId,
@@ -38,14 +37,62 @@ router.get('/activity_outcome/:activityId', async (req, res) => {
   }
 })
 
-// PUT => /api/project_objectives/:id
-// Update the amount (or any other field) on the project_objectives row
+// 2) POST => /api/objectives
+// Create a new objective in "objectives"
+router.post('/objectives', async (req, res) => {
+  try {
+    const { title, measurement } = req.body
+    if (!title || !measurement) {
+      return res.status(400).json({ message: 'Missing title or measurement.' })
+    }
+
+    const sql = `INSERT INTO objectives (title, measurement) VALUES (?, ?)`
+    const [result] = await pool.query(sql, [title, measurement])
+    // Return the inserted ID
+    return res.status(201).json({
+      id: result.insertId,
+      message: 'Objective created successfully.',
+    })
+  } catch (err) {
+    console.error('Error creating new objective:', err)
+    return res.status(500).json({ message: 'Failed to create new objective.' })
+  }
+})
+
+// 3) POST => /api/project_objectives
+// Link the new objective to a project
+router.post('/project_objectives', async (req, res) => {
+  try {
+    const { project_id, objective_id, amount } = req.body
+    if (!project_id || !objective_id) {
+      return res.status(400).json({
+        message: 'Missing project_id or objective_id.',
+      })
+    }
+
+    const sql = `
+      INSERT INTO project_objectives (project_id, objective_id, amount)
+      VALUES (?, ?, ?)
+    `
+    await pool.query(sql, [project_id, objective_id, amount ?? null])
+    return res
+      .status(201)
+      .json({ message: 'Objective linked to project successfully.' })
+  } catch (err) {
+    console.error('Error linking objective to project:', err)
+    return res
+      .status(500)
+      .json({ message: 'Failed to link objective to project.' })
+  }
+})
+
+// 4) PUT => /api/project_objectives/:id
 router.put('/project_objectives/:id', async (req, res) => {
   const { id } = req.params
   const { amount } = req.body
   try {
     const [result] = await pool.query(
-      `UPDATE project_objectives 
+      `UPDATE project_objectives
        SET amount = ?
        WHERE id = ?`,
       [amount ?? null, id]
@@ -62,7 +109,7 @@ router.put('/project_objectives/:id', async (req, res) => {
   }
 })
 
-// PREDATOR routes (simplified example)
+//========= PREDATOR routes ===========
 
 // GET => /api/activity_predator/:activityId
 router.get('/activity_predator/:activityId', async (req, res) => {

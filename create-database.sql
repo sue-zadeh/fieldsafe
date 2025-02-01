@@ -185,12 +185,14 @@ CREATE TABLE IF NOT EXISTS activity_activity_people_hazards (
   FOREIGN KEY (activity_people_hazard_id) REFERENCES activity_people_hazards(id) ON DELETE CASCADE
 );
 
-
+/*
 DROP TABLE IF EXISTS project_risk_controls;
 DROP TABLE IF EXISTS project_risks;
 DROP TABLE IF EXISTS risk_controls;
 DROP TABLE IF EXISTS risks;
 DROP TABLE IF EXISTS risk_titles;
+=======================================*/
+
 /* risk_titles */
 CREATE TABLE risk_titles (
     id INT AUTO_INCREMENT PRIMARY KEY,
@@ -296,7 +298,8 @@ CREATE TABLE project_risk_controls (
     FOREIGN KEY (risk_control_id) REFERENCES risk_controls(id) ON DELETE CASCADE
 );
 
-/* checklist */
+/*=======================================
+ checklist */
 CREATE TABLE checklist (
     id INT AUTO_INCREMENT PRIMARY KEY,
     description VARCHAR(255) NOT NULL
@@ -319,7 +322,9 @@ CREATE TABLE project_checklist (
     FOREIGN KEY (project_id) REFERENCES projects(id) ON DELETE CASCADE,
     FOREIGN KEY (checklist_id) REFERENCES checklist(id) ON DELETE CASCADE
 );
-/* activities */
+
+/*=================================================
+ activities */
 CREATE TABLE IF NOT EXISTS activities (
   id INT AUTO_INCREMENT PRIMARY KEY,
   project_id INT NOT NULL,
@@ -333,7 +338,8 @@ CREATE TABLE IF NOT EXISTS activities (
   FOREIGN KEY (project_id) REFERENCES projects(id) ON DELETE CASCADE
 );
 
-/*activity_incident_reports*/
+/*===================================================
+activity_incident_reports*/
 CREATE TABLE IF NOT EXISTS activity_incident_reports (
   id INT AUTO_INCREMENT PRIMARY KEY,
   
