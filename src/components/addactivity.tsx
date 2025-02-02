@@ -24,6 +24,17 @@ interface ActivityData {
   projectName?: string
 }
 
+interface AddActivityProps {
+  activityId?: number | null
+  // If you need them in the child:
+  initialActivityName?: string
+  initialProjectName?: string
+  onActivityUpdated?: (
+    activityId: number,
+    activityName: string,
+    projectName: string
+  ) => void
+}
 const containerStyle = {
   width: '100%',
   height: '220px',
@@ -33,7 +44,7 @@ const defaultCenter = { lat: -36.8485, lng: 174.7633 }
 
 // We'll store the text we want for the "in progress" modal in this variable
 // so we can swap it out if the user is "already in progress" or "totally new".
-const AddActivity: React.FC = () => {
+const AddActivity: React.FC<AddActivityProps> = ({}) => {
   const navigate = useNavigate()
   const locState = useLocation().state as {
     activityId?: number
@@ -473,7 +484,7 @@ const AddActivity: React.FC = () => {
                   Save Changes
                 </Button>{' '}
                 <Button variant="info" onClick={handleSaveAsCopy}>
-                  Save as Copy
+                  Save as New Activity
                 </Button>
               </div>
             )}

@@ -28,7 +28,7 @@ const steps = [
   'Complete',
 ]
 
-const ActivityTabs: React.FC<ActivityTabsProps> = ({isSidebarOpen}) => {
+const ActivityTabs: React.FC<ActivityTabsProps> = ({ isSidebarOpen }) => {
   // We read some optional state if the caller used navigate('/activity-notes', { state: {...} });
   const location = useLocation() as {
     state?: {
@@ -317,7 +317,7 @@ const ActivityTabs: React.FC<ActivityTabsProps> = ({isSidebarOpen}) => {
   }
 
   return (
-<div
+    <div
       className={`container-fluid ${
         isSidebarOpen ? 'content-expanded' : 'content-collapsed'
       }`}

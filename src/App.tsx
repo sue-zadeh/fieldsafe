@@ -19,7 +19,7 @@ import AddObjective from './components/addobjective'
 import AddRisk from './components/addrisk'
 import AddHazard from './components/addhazard'
 import SearchActivity from './components/searchactivity'
-// import ProjectRisk from './components/projectrisk'
+import Report from './components/report'
 import ActivityWizard from './components/activitytabs'
 
 const GOOGLE_MAPS_API_KEY = import.meta.env.VITE_GOOGLE_MAPS_API_KEY || ''
@@ -294,10 +294,10 @@ const App: React.FC = () => {
                     path="/searchactivity"
                     element={<SearchActivity isSidebarOpen={isSidebarOpen} />}
                   />
-                  {/* <Route
-                    path="/projectrisk"
-                    element={<ProjectRisk isSidebarOpen={isSidebarOpen} />}
-                  /> */}
+                  <Route
+                    path="/report"
+                    element={<Report isSidebarOpen={isSidebarOpen} />}
+                  />
                 </Routes>
               </LoadScript>
             </div>

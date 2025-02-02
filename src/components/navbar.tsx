@@ -1,19 +1,12 @@
-import React from 'react'
+import React, { useState } from 'react'
 import { Link, useLocation } from 'react-router-dom'
-import {
-  FaUserPlus,
-  FaUsers,
-  FaUserCog,
-  FaTasks,
-  FaBullseye,
-} from 'react-icons/fa'
+import { FaUserPlus, FaUsers, FaUserCog, FaTasks } from 'react-icons/fa'
 import { MdGroups, MdVolunteerActivism, MdLocalActivity } from 'react-icons/md'
 import {
   BsCalendar2Plus,
   BsCalendarCheck,
   BsPersonFillAdd,
 } from 'react-icons/bs'
-// import Logo from '../assets/logo3.png'
 import LogoLil from '../assets/logo-lil.png'
 
 interface NavbarProps {
@@ -29,10 +22,18 @@ const Navbar: React.FC<NavbarProps> = ({
 }) => {
   const location = useLocation()
 
-  // Simple helper to see if the current route matches:
+  // 1) Track whether navbar is collapsed or not
+  const [navCollapsed, setNavCollapsed] = useState(true)
+
+  // Helper for current route
   const isActive = (path: string) => location.pathname === path
 
-  // get role from localStorage after login
+  // Helper to close the navbar after any link click
+  const handleLinkClick = () => {
+    setNavCollapsed(true)
+  }
+
+  // get role from localStorage
   const role = localStorage.getItem('role')
 
   return (
@@ -50,7 +51,11 @@ const Navbar: React.FC<NavbarProps> = ({
     >
       <div className="container-fluid">
         {/* Logo on the left */}
-        <Link to="/" className="navbar-brand d-flex align-items-center">
+        <Link
+          to="/"
+          className="navbar-brand d-flex align-items-center"
+          onClick={handleLinkClick}
+        >
           <img
             src={LogoLil}
             alt="logo"
@@ -59,22 +64,24 @@ const Navbar: React.FC<NavbarProps> = ({
           />
         </Link>
 
-        {/* Hamburger toggler for small screens */}
+        {/* 2) Toggler uses onClick to update navCollapsed */}
         <button
           className="navbar-toggler"
           type="button"
-          data-bs-toggle="collapse"
-          data-bs-target="#navbarNavDropdown"
+          onClick={() => setNavCollapsed(!navCollapsed)}
           aria-controls="navbarNavDropdown"
-          aria-expanded="false"
+          aria-expanded={!navCollapsed}
           aria-label="Toggle navigation"
           style={{ backgroundColor: '#F4F7F1' }}
         >
           <span className="navbar-toggler-icon"></span>
         </button>
 
-        {/* Collapsible area */}
-        <div className="collapse navbar-collapse" id="navbarNavDropdown">
+        {/* 3) Conditionally apply "show" class if navCollapsed is false */}
+        <div
+          className={`collapse navbar-collapse ${navCollapsed ? '' : 'show'}`}
+          id="navbarNavDropdown"
+        >
           <ul className="navbar-nav ms-auto fs-6">
             {/* Projects */}
             <li className="nav-item dropdown px-3">
@@ -98,12 +105,14 @@ const Navbar: React.FC<NavbarProps> = ({
               </a>
               <ul className="dropdown-menu" aria-labelledby="projectsDropdown">
                 <li>
+                  {/* 4) onClick={handleLinkClick} to close navbar */}
                   <Link
                     to="/addproject"
-                    className="dropdown-item "
+                    className="dropdown-item"
                     style={{
                       fontWeight: isActive('/addproject') ? 'bold' : 'normal',
                     }}
+                    onClick={handleLinkClick}
                   >
                     <BsCalendar2Plus style={{ marginRight: '5px' }} />
                     {location.pathname === '/editproject'
@@ -121,6 +130,7 @@ const Navbar: React.FC<NavbarProps> = ({
                         ? 'bold'
                         : 'normal',
                     }}
+                    onClick={handleLinkClick}
                   >
                     <BsCalendarCheck style={{ marginRight: '5px' }} />
                     Search Project
@@ -159,6 +169,7 @@ const Navbar: React.FC<NavbarProps> = ({
                         ? 'bold'
                         : 'normal',
                     }}
+                    onClick={handleLinkClick}
                   >
                     <MdLocalActivity style={{ marginRight: '5px' }} />
                     Add Activity
@@ -173,6 +184,7 @@ const Navbar: React.FC<NavbarProps> = ({
                         ? 'bold'
                         : 'normal',
                     }}
+                    onClick={handleLinkClick}
                   >
                     <FaTasks style={{ marginRight: '5px' }} />
                     Search Activity
@@ -181,6 +193,22 @@ const Navbar: React.FC<NavbarProps> = ({
               </ul>
             </li>
 
+            {/* Report */}
+            <ul>
+              <li>
+                <Link
+                  to="/report"
+                  className="dropdown-item"
+                  style={{
+                    fontWeight: isActive('/report') ? 'bold' : 'normal',
+                  }}
+                  onClick={handleLinkClick}
+                >
+                  <MdLocalActivity style={{ marginRight: '5px' }} />
+                  Report
+                </Link>
+              </li>
+            </ul>
             {/* Organization Profile */}
             <li className="nav-item dropdown px-3">
               <a
@@ -219,6 +247,7 @@ const Navbar: React.FC<NavbarProps> = ({
                           ? 'bold'
                           : 'normal',
                       }}
+                      onClick={handleLinkClick}
                     >
                       <FaUserPlus style={{ marginRight: '5px' }} />
                       Add User
@@ -232,6 +261,7 @@ const Navbar: React.FC<NavbarProps> = ({
                     style={{
                       fontWeight: isActive('/groupadmin') ? 'bold' : 'normal',
                     }}
+                    onClick={handleLinkClick}
                   >
                     <MdGroups style={{ marginRight: '5px' }} />
                     Group Admin
@@ -244,6 +274,7 @@ const Navbar: React.FC<NavbarProps> = ({
                     style={{
                       fontWeight: isActive('/teamlead') ? 'bold' : 'normal',
                     }}
+                    onClick={handleLinkClick}
                   >
                     <FaUsers style={{ marginRight: '5px' }} />
                     Team Leader
@@ -256,24 +287,12 @@ const Navbar: React.FC<NavbarProps> = ({
                     style={{
                       fontWeight: isActive('/fieldstaff') ? 'bold' : 'normal',
                     }}
+                    onClick={handleLinkClick}
                   >
                     <FaUserCog style={{ marginRight: '5px' }} />
                     Field Staff
                   </Link>
                 </li>
-
-                {/* <li>
-                  <Link
-                    to="/objectives"
-                    className="dropdown-item"
-                    style={{
-                      fontWeight: isActive('/objectives') ? 'bold' : 'normal',
-                    }}
-                  >
-                    <FaBullseye style={{ marginRight: '5px' }} />
-                    Add Objective
-                  </Link>
-                </li> */}
               </ul>
             </li>
 
@@ -307,6 +326,7 @@ const Navbar: React.FC<NavbarProps> = ({
                         ? 'bold'
                         : 'normal',
                     }}
+                    onClick={handleLinkClick}
                   >
                     <BsPersonFillAdd style={{ marginRight: '5px' }} />
                     Add Volunteer
@@ -319,6 +339,7 @@ const Navbar: React.FC<NavbarProps> = ({
                     style={{
                       fontWeight: isActive('/volunteer') ? 'bold' : 'normal',
                     }}
+                    onClick={handleLinkClick}
                   >
                     <MdVolunteerActivism style={{ marginRight: '5px' }} />
                     Volunteer
@@ -327,31 +348,6 @@ const Navbar: React.FC<NavbarProps> = ({
               </ul>
             </li>
 
-            {/*===== Objectives ======= */}
-            {/* <li className="nav-item dropdown px-3">
-              <a
-                className="nav-link dropdown-toggle"
-                href="#"
-                id="objectiveDropdown"
-                role="button"
-                data-bs-toggle="dropdown"
-                aria-expanded="false"
-                style={{
-                  color: '#1A1A1A',
-                  fontWeight:
-                    isActive('/objectives') || isActive('/objectives')
-                      ? 'bold'
-                      : 'normal',
-                }}
-              >
-                <FaBullseye style={{ marginRight: '5px' }} />
-                Objectives
-              </a>
-              <ul
-                className="dropdown-menu"
-                aria-labelledby="objectiveDropdown"
-              ></ul>
-            </li> */}
             {/* Logout */}
             {isLoggedIn && (
               <li className="nav-item">

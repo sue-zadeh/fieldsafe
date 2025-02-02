@@ -70,7 +70,40 @@ router.put('/risks/:riskId', async (req, res) => {
     res.status(500).json({ error: 'Failed to update risk row and controls.' })
   }
 })
+//======================================
 
+// server/activity-risk.js
+router.get('/activity_risk_controls/detailed', async (req, res) => {
+  const { activityId } = req.query
+  if (!activityId) {
+    return res.status(400).json({ message: 'No activityId provided' })
+  }
+  try {
+    // MUST return arc.risk_id so we can do (dc) => dc.risk_id === r.riskId
+    const [rows] = await pool.query(
+      `
+      SELECT arc.id AS activityRiskControlId,
+             arc.activity_id,
+             arc.risk_id,
+             arc.risk_control_id,
+             arc.is_checked,
+             rc.control_text
+        FROM activity_risk_controls arc
+        JOIN risk_controls rc ON arc.risk_control_id = rc.id
+       WHERE arc.activity_id = ?
+    `,
+      [activityId]
+    )
+    return res.json(rows)
+  } catch (err) {
+    console.error('GET /activity_risk_controls/detailed error:', err)
+    return res
+      .status(500)
+      .json({ message: 'Failed to fetch risk controls bridging.' })
+  }
+})
+
+//===================================
 /**
  *  3) GET /api/activity_risks?activityId=...
  *  Return bridging rows joined with "risks" + "risk_titles"
@@ -180,17 +213,18 @@ router.delete('/activity_risks', async (req, res) => {
 // server/activity-risk.js
 
 router.post('/activity_risk_controls', async (req, res) => {
-  const { activity_id, risk_control_id, is_checked } = req.body
-  if (!activity_id || !risk_control_id) {
-    return res
-      .status(400)
-      .json({ message: 'Missing activity_id or risk_control_id.' })
+  const { activity_id, risk_id, risk_control_id, is_checked } = req.body
+  if (!activity_id || !risk_id || !risk_control_id) {
+    return res.status(400).json({
+      message: 'Missing activity_id, risk_id, or risk_control_id.',
+    })
   }
+
   try {
     await pool.query(
-      `INSERT INTO activity_risk_controls (activity_id, risk_control_id, is_checked)
-       VALUES (?,?,?)`,
-      [activity_id, risk_control_id, is_checked ? 1 : 0]
+      `INSERT INTO activity_risk_controls (activity_id, risk_id, risk_control_id, is_checked)
+    VALUES (?,?,?,?)`,
+      [activity_id, risk_id, risk_control_id, is_checked ? 1 : 0]
     )
     return res
       .status(201)
@@ -205,6 +239,7 @@ router.post('/activity_risk_controls', async (req, res) => {
 
 // If you still have a "DELETE /api/activity_risk_controls?activityId=...&riskId=..."
 // you might do something simpler:
+
 router.delete('/activity_risk_controls', async (req, res) => {
   const { activityId, riskId } = req.query
   if (!activityId || !riskId) {

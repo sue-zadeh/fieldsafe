@@ -23,6 +23,7 @@ import ActivityObjectivesRouter from './activityobjectives.js'
 import predatorRouter from './predator.js'
 import activitiesRouter from './activities.js'
 import completeRouter from './complete.js'
+import reportRouter from './report.js'
 
 dotenv.config()
 
@@ -53,7 +54,8 @@ app.use('/api', checklistRouter)
 app.use('/api', ActivityObjectivesRouter)
 app.use('/api', predatorRouter)
 app.use('/api/activities', activitiesRouter)
-app.use('/api/activities', completeRouter)
+app.use('/api/activities/complete', completeRouter)
+app.use('/api/report', reportRouter)
 
 // test route
 app.get('/api/ping', (req, res) => {

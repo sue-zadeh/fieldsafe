@@ -347,15 +347,18 @@ CREATE TABLE IF NOT EXISTS activity_incident_reports (
   activity_id INT NOT NULL,
   FOREIGN KEY (activity_id) REFERENCES activities(id) ON DELETE CASCADE,
   
-  /* Was an incident reported?*/
+  /* Link to the projects table */
+  project_id INT NOT NULL,
+  FOREIGN KEY (project_id) REFERENCES projects(id) ON DELETE CASCADE,
+
+  /* Was an incident reported? */
   any_incident ENUM('No','Yes') DEFAULT 'No',
   
-  /* If Yes, collect all relevant details:*/
+  /* If Yes, collect all relevant details: */
   type_of_incident ENUM('Near Miss','Medical Treatment','Other Significant Event','First Aid') NULL,
-  medical_treatment_obtained VARCHAR(255) NULL,        -- If medical
+  medical_treatment_obtained VARCHAR(255) NULL,
   project_location VARCHAR(255) NULL,
   project_site_manager VARCHAR(255) NULL,
-  
   date_of_incident DATE NULL,
   time_of_incident TIME NULL,
   
@@ -364,7 +367,7 @@ CREATE TABLE IF NOT EXISTS activity_incident_reports (
   type_of_injury VARCHAR(255) NULL,
   body_part_injured VARCHAR(255) NULL,
   location_of_accident VARCHAR(255) NULL,
-  witnesses VARCHAR(255) NULL,                        -- Could also be TEXT
+  witnesses VARCHAR(255) NULL,
   task_undertaken VARCHAR(255) NULL,
   safety_instructions TEXT NULL,
   ppe_worn TEXT NULL,
@@ -377,7 +380,7 @@ CREATE TABLE IF NOT EXISTS activity_incident_reports (
   register_of_injuries ENUM('No','Yes') DEFAULT 'No',
   further_action_recommended TEXT NULL,
   
-  /* Signatures and approvals*/
+  /* Signatures and approvals */
   injured_person_signature VARCHAR(255) NULL,
   injured_person_signature_date DATE NULL,
   manager_signature VARCHAR(255) NULL,
@@ -387,7 +390,8 @@ CREATE TABLE IF NOT EXISTS activity_incident_reports (
   chairperson_signature VARCHAR(255) NULL,
   chairperson_signature_date DATE NULL,
 
-  /* For completeness*/
+  /* For completeness */
   report_completed ENUM('No','Yes') DEFAULT 'No',
+
   created_at DATETIME DEFAULT CURRENT_TIMESTAMP
 );

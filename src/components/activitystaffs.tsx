@@ -10,16 +10,11 @@ interface Staff {
 }
 
 interface StaffTabProps {
-  activityId: number
-  activityName: string
-  projectName: string
+  activityId?: number
+  activityName ?: string
 }
 
-const ActivityStaffsTab: React.FC<StaffTabProps> = ({
-  activityId,
-  activityName,
-  projectName,
-}) => {
+const ActivityStaffsTab: React.FC<StaffTabProps> = ({ activityId }) => {
   const [unassignedStaff, setUnassignedStaff] = useState<Staff[]>([])
   const [activityStaffs, setActivityStaffs] = useState<Staff[]>([])
   const [selectedGroupAdmin, setSelectedGroupAdmin] = useState<number | null>(
@@ -106,10 +101,12 @@ const ActivityStaffsTab: React.FC<StaffTabProps> = ({
 
   return (
     <div>
-      <h3 style={{ color: '#0094B6' }}>Assign Staff to Activity</h3>
-      <h5 className="fw-bold p-2 fs-4" style={{ color: '#0094B6' }}>
+      <h4 className="pb-4 fw-bold text-center" style={{ color: '#0094B6' }}>
+        Assign Staff to Activity
+      </h4>
+      {/* <h5 className="fw-bold p-2 fs-4" style={{ color: '#0094B6' }}>
         Activity: {activityName} || Project: {projectName}
-      </h5>
+      </h5> */}
       {/* Dropdowns for each staff type */}
       <div className="row mb-3">
         {/* Group Admins */}

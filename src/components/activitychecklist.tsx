@@ -8,6 +8,8 @@ interface Checklist {
 
 interface ActivityChecklistProps {
   activityId: number
+  activityName?: string
+  projectId?: string
 }
 
 const ActivityChecklist: React.FC<ActivityChecklistProps> = ({
@@ -19,7 +21,7 @@ const ActivityChecklist: React.FC<ActivityChecklistProps> = ({
   const [activityChecklists, setActivityChecklists] = useState<Checklist[]>([])
   const [selectedChecklists, setSelectedChecklists] = useState<number[]>([])
 
-  const [projectName, setProjectName] = useState<string>('') // Store project name
+  const [, setProjectName] = useState<string>('') // Store project name
 
   // Fetch the project name for the activity
   useEffect(() => {
@@ -110,9 +112,12 @@ const ActivityChecklist: React.FC<ActivityChecklistProps> = ({
       <h3 className="fw-bold p-2 fs-4" style={{ color: '#0094B6' }}>
         <h5 className="my-3 fw-bold"></h5>
       </h3>
-      <p className="fw-bold p-2 fs-4" style={{ color: '#0094B6' }}>
+      <h4 className="fw-bold pb-4 text-center" style={{ color: '#0094B6' }}>
+        Assign items from Checklist to Activity
+      </h4>
+      {/* <p className="fw-bold p-2 fs-4" style={{ color: '#0094B6' }}>
         Selected Project: {projectName}
-      </p>
+      </p> */}
       <div className="d-flex flex-column align-items-center">
         <h5 style={{ marginBottom: '1rem' }}>
           Hold Ctrl/Cmd to select multiple

@@ -195,7 +195,11 @@ const AddHazard: React.FC<AddHazardsProps> = ({ isSidebarOpen }) => {
                 value={siteHazardDesc}
                 onChange={(e) => setSiteHazardDesc(e.target.value)}
               />
-              <Button className="mt-3 align-self-start w-100" style={{ backgroundColor: '#0094B6' }} type="submit">
+              <Button
+                className="mt-3 align-self-start w-100"
+                style={{ backgroundColor: '#0094B6' }}
+                type="submit"
+              >
                 Add Site Hazard
               </Button>
             </Form>
@@ -213,7 +217,7 @@ const AddHazard: React.FC<AddHazardsProps> = ({ isSidebarOpen }) => {
               className="bg-white rounded shadow w-100"
               style={{
                 marginBottom: '2rem',
-                tableLayout: 'fixed', // CHANGED
+                tableLayout: 'fixed',
                 width: '100%',
               }}
             >
@@ -229,7 +233,7 @@ const AddHazard: React.FC<AddHazardsProps> = ({ isSidebarOpen }) => {
                       whiteSpace: 'pre-wrap',
                       wordWrap: 'break-word',
                       overflowWrap: 'break-word',
-                      wordBreak: 'break-all', // CHANGED, helps super-long words
+                      wordBreak: 'break-all', // for long words
                     }}
                   >
                     Hazard Description
@@ -249,7 +253,7 @@ const AddHazard: React.FC<AddHazardsProps> = ({ isSidebarOpen }) => {
                         whiteSpace: 'pre-wrap',
                         wordWrap: 'break-word',
                         overflowWrap: 'break-word',
-                        wordBreak: 'break-all', // CHANGED
+                        wordBreak: 'break-all',
                       }}
                     >
                       {editSiteHazard?.id === hazard.id ? (
@@ -282,22 +286,24 @@ const AddHazard: React.FC<AddHazardsProps> = ({ isSidebarOpen }) => {
                           variant="success"
                           size="sm"
                           className="me-2"
-                          style={{ backgroundColor: '#0094B6' }}
+                          style={{ backgroundColor: '#738c40' }}
                           onClick={() => handleEditSave(editSiteHazard, 'site')}
                         >
                           Save
                         </Button>
                       ) : (
                         <Button
+                          style={{ backgroundColor: '#0094b6' }}
                           variant="warning"
                           size="sm"
-                          className="me-2"
+                          className="me-2 text-light"
                           onClick={() => setEditSiteHazard(hazard)}
                         >
                           Edit
                         </Button>
                       )}
                       <Button
+                        style={{ backgroundColor: '#D37B49', color: 'white' }}
                         variant="danger"
                         size="sm"
                         onClick={() => handleDelete(hazard.id, 'site')}
@@ -328,7 +334,11 @@ const AddHazard: React.FC<AddHazardsProps> = ({ isSidebarOpen }) => {
                 value={activityHazardDesc}
                 onChange={(e) => setActivityHazardDesc(e.target.value)}
               />
-              <Button className="mt-3 align-self-start w-100" style={{ backgroundColor: '#0094B6' }} type="submit">
+              <Button
+                className="mt-3 align-self-start w-100"
+                style={{ backgroundColor: '#0094B6' }}
+                type="submit"
+              >
                 Add Activity / People Hazard
               </Button>
             </Form>
@@ -414,7 +424,7 @@ const AddHazard: React.FC<AddHazardsProps> = ({ isSidebarOpen }) => {
                           variant="success"
                           size="sm"
                           className="me-2"
-                          style={{ backgroundColor: '#0094B6' }}
+                          style={{ backgroundColor: '#738c40' }}
                           onClick={() =>
                             handleEditSave(editActivityHazard, 'activity')
                           }
@@ -423,15 +433,17 @@ const AddHazard: React.FC<AddHazardsProps> = ({ isSidebarOpen }) => {
                         </Button>
                       ) : (
                         <Button
+                          style={{ backgroundColor: '#0094B6' }}
                           variant="warning"
                           size="sm"
-                          className="me-2"
+                          className="me-2 text-light"
                           onClick={() => setEditActivityHazard(hazard)}
                         >
                           Edit
                         </Button>
                       )}
                       <Button
+                        style={{ backgroundColor: '#D37B49', color: 'white' }}
                         variant="danger"
                         size="sm"
                         onClick={() => handleDelete(hazard.id, 'activity')}

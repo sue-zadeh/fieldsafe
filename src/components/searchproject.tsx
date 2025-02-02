@@ -28,6 +28,8 @@ const SearchProject: React.FC<SearchProjectProps> = ({ isSidebarOpen }) => {
   const [projects, setProjects] = useState<Project[]>([])
   const [notification, setNotification] = useState<string | null>(null)
   const [activeTab, setActiveTab] = useState('activeprojects') // Default
+  // Track whether the local nav is expanded or collapsed
+  const [expanded, setExpanded] = useState(false)
   const navigate = useNavigate()
   const location = useLocation()
 
@@ -139,7 +141,10 @@ const SearchProject: React.FC<SearchProjectProps> = ({ isSidebarOpen }) => {
 
       {/* Tabs (Active / Archive) */}
       <Navbar
+        collapseOnSelect // it automatically collapses on link select
         expand="lg"
+        expanded={expanded} // controls open/close
+        onToggle={setExpanded} // updates state when nav is clicked
         className="py-2"
         style={{ backgroundColor: '#c4edf2' }}
       >
@@ -150,7 +155,10 @@ const SearchProject: React.FC<SearchProjectProps> = ({ isSidebarOpen }) => {
         <Navbar.Collapse id="basic-navbar-nav">
           <Nav className="mx-auto justify-content-center">
             <Nav.Link
-              onClick={() => handleNavClick('activeprojects')}
+              onClick={() => {
+                handleNavClick('activeprojects')
+                setExpanded(false) // close the nav
+              }}
               style={{
                 fontWeight: activeTab === 'activeprojects' ? 'bold' : 'normal',
                 color: '#1A1A1A',
@@ -160,7 +168,10 @@ const SearchProject: React.FC<SearchProjectProps> = ({ isSidebarOpen }) => {
               Active Projects
             </Nav.Link>
             <Nav.Link
-              onClick={() => handleNavClick('archiveprojects')}
+              onClick={() => {
+                handleNavClick('archiveprojects')
+                setExpanded(false) // close the nav
+              }}
               style={{
                 fontWeight: activeTab === 'archiveprojects' ? 'bold' : 'normal',
                 color: '#1A1A1A',
@@ -260,13 +271,15 @@ const SearchProject: React.FC<SearchProjectProps> = ({ isSidebarOpen }) => {
 
                 <div className="mt-3">
                   <button
-                    className="btn btn-warning me-3"
+                    className="btn btn-warning me-3 text-light"
+                    style={{ backgroundColor: '#0094B6' }}
                     onClick={() => handleEdit(p)}
                   >
                     Edit
                   </button>
                   <button
                     className="btn btn-danger"
+                    style={{ backgroundColor: '#D37B40' }}
                     onClick={() => handleDelete(p)}
                   >
                     Delete

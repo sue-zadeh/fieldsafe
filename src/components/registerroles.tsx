@@ -150,9 +150,9 @@ const RegisterRoles: React.FC<RegisterroleProps> = ({ isSidebarOpen }) => {
       await axios.post('/api/send-email', {
         email: formData.email,
         subject: 'Welcome to FieldSafe!',
-        message: `Dear ${formData.firstname} ${formData.lastname},\n\nYou are now registered as a ${formData.role}
-         for your organisation’s FieldSafe App use.\nwe welcome your feedback on its use.\n 
-         Your login email is: ${formData.email}.\nPlease click on forgot passord and enter your email. your password will email you\n\nBest regards,\nFieldSafe Team`,
+        message: `Dear ${formData.firstname} ${formData.lastname},\n\nYou are now registered as a ${formData.role} for your organisation’s FieldSafe App use.\nWe welcome your feedback on its use.\nYour login email is: ${formData.email}.\nPlease click on forgot password on login page and enter your email. Your password will be emailed to you in a separate email.\n\n\nBest regards,\nFieldSafe Team`,
+
+        // Add login button here in green colour
       })
     } catch (error) {
       console.error('Error sending email:', error)

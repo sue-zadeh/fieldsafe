@@ -1,6 +1,15 @@
 import React, { useState, useEffect, FormEvent } from 'react'
 import axios from 'axios'
-import { Table, Form, Button, Alert, ButtonGroup } from 'react-bootstrap'
+import {
+  Table,
+  Form,
+  Button,
+  Alert,
+  ButtonGroup,
+  Card,
+  Row,
+  Col,
+} from 'react-bootstrap'
 
 interface Objective {
   id: number
@@ -130,17 +139,17 @@ const AddObjectives: React.FC<AddObjectivesProps> = ({ isSidebarOpen }) => {
         isSidebarOpen ? 'content-expanded' : 'content-collapsed'
       }`}
       style={{
-        marginLeft: isSidebarOpen ? '0px' : '0px',
         transition: 'margin 0.3s ease',
-        paddingTop: '2px',
+        paddingTop: '1rem',
+        paddingBottom: '2rem',
       }}
     >
       <h2
+        className="fw-bold mb-4"
         style={{
           color: '#0094B6',
-          fontWeight: 'bold',
-          paddingTop: '2rem',
-          paddingBottom: '3rem',
+          marginTop: '2rem',
+          textAlign: 'center',
         }}
       >
         Add Objectives
@@ -153,7 +162,7 @@ const AddObjectives: React.FC<AddObjectivesProps> = ({ isSidebarOpen }) => {
             top: 0,
             left: 0,
             width: '100%',
-            zIndex: 9999, // so it's on top
+            zIndex: 9999,
           }}
         >
           <Alert variant="info" className="text-center m-0 rounded-0">
@@ -161,197 +170,174 @@ const AddObjectives: React.FC<AddObjectivesProps> = ({ isSidebarOpen }) => {
           </Alert>
         </div>
       )}
-      <div className="row form-container bg-white p-4 g-4 rounded shadow">
-        {/* LEFT: objectives list */}
-        <div className="col-md-6">
-          <h4 className="pb-3">
-            <b>Objectives List</b>
-          </h4>
-          {objectives.length === 0 ? (
-            <p className="text-muted">No objectives yet</p>
-          ) : (
-            <Table
-              bordered
-              hover
-              striped
-              size="sm"
-              className="bg-white rounded shadow w-100"
-              style={{
-                marginBottom: '2rem',
-                tableLayout: 'fixed',
-                width: '100%',
-              }}
-            >
-              {' '}
-              <thead>
-                <tr>
-                  <th className="text-center" style={{ width: '30px' }}>
-                    #
-                  </th>
-                  <th
-                    className="text-center"
-                    style={{
-                      width: '200px',
-                      whiteSpace: 'pre-wrap',
-                      wordWrap: 'break-word',
-                      overflowWrap: 'break-word',
-                      wordBreak: 'break-all',
-                    }}
-                  >
-                    Title
-                  </th>
-                  <th className="text-center" style={{ width: '80px' }}>
-                    Measurement
-                  </th>
-                  <th className="text-center" style={{ width: '80px' }}>
-                    Actions
-                  </th>
-                </tr>
-              </thead>
-              <tbody>
-                {objectives.map((obj, index) => {
-                  const isEditing = editObj && editObj.id === obj.id
-                  return (
-                    <tr key={obj.id}>
-                      <td className="text-center">{index + 1}</td>
-                      {/* Title cell with wrapping */}
-                      <td
-                        style={{
-                          width: '200px',
-                          whiteSpace: 'pre-wrap',
-                          wordWrap: 'break-word',
-                          overflowWrap: 'break-word',
-                          wordBreak: 'break-all',
-                        }}
-                      >
-                        {isEditing ? (
-                          <Form.Control
-                            type="text"
-                            value={editObj.title}
-                            style={{
-                              whiteSpace: 'pre-wrap',
-                              wordWrap: 'break-word',
-                              overflowWrap: 'break-word',
-                              wordBreak: 'break-all',
-                            }}
-                            onChange={(e) =>
-                              setEditObj((prev) =>
-                                prev ? { ...prev, title: e.target.value } : null
-                              )
-                            }
-                          />
-                        ) : (
-                          obj.title
-                        )}
-                      </td>
-                      <td>
-                        {isEditing ? (
-                          <Form.Control
-                            type="text"
-                            value={editObj.measurement}
-                            onChange={(e) =>
-                              setEditObj((prev) =>
-                                prev
-                                  ? { ...prev, measurement: e.target.value }
-                                  : null
-                              )
-                            }
-                          />
-                        ) : (
-                          obj.measurement
-                        )}
-                      </td>
-                      <td>
-                        {isEditing ? (
-                          <ButtonGroup>
-                            <Button
-                              className="mt-3 align-self-start"
-                              variant="success"
-                              size="sm"
-                              onClick={handleEditSave}
-                            >
-                              Save
-                            </Button>
-                            <Button
-                              variant="secondary"
-                              size="sm"
-                              className="me-2"
-                              onClick={handleEditCancel}
-                            >
-                              Cancel
-                            </Button>
-                          </ButtonGroup>
-                        ) : (
-                          <ButtonGroup>
-                            <Button
-                              variant="warning"
-                              size="sm"
-                              onClick={() => handleEditClick(obj)}
-                            >
-                              Edit
-                            </Button>
-                            <Button
-                              variant="danger"
-                              size="sm"
-                              onClick={() => handleDelete(obj.id)}
-                            >
-                              Delete
-                            </Button>
-                          </ButtonGroup>
-                        )}
-                      </td>
-                    </tr>
-                  )
-                })}
-              </tbody>
-            </Table>
-          )}
-        </div>
 
-        {/* RIGHT: add form */}
-        <div className="col-md-6 bg-white px-5 pt-5 rounded shadow ">
-          <h4
-            style={{
-              color: '#0094B6',
-            }}
-          >
-            <b>Add a New Objective</b>
-          </h4>
-          <Form onSubmit={handleSubmit}>
-            <Form.Group className="m-3" controlId="objectiveTitle">
-              <Form.Label>
-                <b>Objective Title</b>
-              </Form.Label>
-              <Form.Control
-                type="text"
-                placeholder="Write a new objective here"
-                value={title}
-                onChange={(e) => setTitle(e.target.value)}
-              />
-            </Form.Group>
+      <Row className="g-4 px-3">
+        {/* Left Side: Objectives List */}
+        <Col xs={12} md={6}>
+          <Card className="shadow">
+            <Card.Header style={{ backgroundColor: '#F4F7F1' }}>
+              <h5 className="fw-bold mb-0">Objectives List</h5>
+            </Card.Header>
+            <Card.Body style={{ padding: '0.75rem' }}>
+              {objectives.length === 0 ? (
+                <p className="text-muted text-center my-3">
+                  No objectives have been added yet.
+                </p>
+              ) : (
+                // Make table horizontally scrollable
+                <div className="table-responsive">
+                  <Table bordered hover striped size="sm" className="mb-0">
+                    <thead>
+                      <tr>
+                        <th className="text-center" style={{ width: '40px' }}>
+                          #
+                        </th>
+                        <th>Title</th>
+                        <th>Measurement</th>
+                        <th className="text-center" style={{ width: '130px' }}>
+                          Action
+                        </th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {objectives.map((obj, index) => {
+                        const isEditing = editObj && editObj.id === obj.id
+                        return (
+                          <tr key={obj.id}>
+                            <td className="text-center">{index + 1}</td>
+                            <td>
+                              {isEditing ? (
+                                <Form.Control
+                                  type="text"
+                                  value={editObj.title}
+                                  onChange={(e) =>
+                                    setEditObj((prev) =>
+                                      prev
+                                        ? { ...prev, title: e.target.value }
+                                        : null
+                                    )
+                                  }
+                                />
+                              ) : (
+                                obj.title
+                              )}
+                            </td>
+                            <td>
+                              {isEditing ? (
+                                <Form.Control
+                                  type="text"
+                                  value={editObj.measurement}
+                                  onChange={(e) =>
+                                    setEditObj((prev) =>
+                                      prev
+                                        ? {
+                                            ...prev,
+                                            measurement: e.target.value,
+                                          }
+                                        : null
+                                    )
+                                  }
+                                />
+                              ) : (
+                                obj.measurement
+                              )}
+                            </td>
+                            <td className="d-flex justify-content-center align-items-center">
+                              {isEditing ? (
+                                <>
+                                  <Button
+                                    style={{ backgroundColor: '#738c40' }}
+                                    className="me-1"
+                                    variant="success"
+                                    size="sm"
+                                    onClick={handleEditSave}
+                                  >
+                                    Save
+                                  </Button>
+                                  <Button
+                                    variant="secondary"
+                                    size="sm"
+                                    onClick={handleEditCancel}
+                                  >
+                                    Cancel
+                                  </Button>
+                                </>
+                              ) : (
+                                <>
+                                  <Button
+                                    style={{ backgroundColor: '#0094b6' }}
+                                    className="me-1 text-light"
+                                    variant="info"
+                                    size="sm"
+                                    onClick={() => handleEditClick(obj)}
+                                  >
+                                    Edit
+                                  </Button>
+                                  <Button
+                                    style={{
+                                      backgroundColor: '#D37B49',
+                                      color: 'white',
+                                    }}
+                                    variant="danger"
+                                    size="sm"
+                                    onClick={() => handleDelete(obj.id)}
+                                  >
+                                    Delete
+                                  </Button>
+                                </>
+                              )}
+                            </td>
+                          </tr>
+                        )
+                      })}
+                    </tbody>
+                  </Table>
+                </div>
+              )}
+            </Card.Body>
+          </Card>
+        </Col>
 
-            <Form.Group className="mb-3" controlId="measurement">
-              <Form.Label>
-                <b>Measurement</b>
-              </Form.Label>
-              <Form.Control
-                type="text"
-                placeholder="Units, e.g. 'Hours', 'Hectares'..."
-                value={measurement}
-                onChange={(e) => setMeasurement(e.target.value)}
-              />
-            </Form.Group>
+        {/* Right Side: Add form */}
+        <Col xs={12} md={6}>
+          <Card className="shadow">
+            <Card.Header style={{ backgroundColor: '#F4F7F1' }}>
+              <h5 className="fw-bold mb-0">Add a New Objective</h5>
+            </Card.Header>
+            <Card.Body>
+              <Form onSubmit={handleSubmit}>
+                <Form.Group className="mb-3" controlId="objectiveTitle">
+                  <Form.Label>Objective Title</Form.Label>
+                  <Form.Control
+                    type="text"
+                    placeholder="Enter a new objective"
+                    value={title}
+                    onChange={(e) => setTitle(e.target.value)}
+                  />
+                </Form.Group>
 
-            <Button
-              type="submit"
-              className="w-100 mt-3 text-dark fs-6 "
-              style={{ backgroundColor: '#76D6E2'  }}
-            >
-              Add New Objective
-            </Button>
-          </Form>
-        </div>
-      </div>
+                <Form.Group className="mb-3" controlId="measurement">
+                  <Form.Label>Measurement</Form.Label>
+                  <Form.Control
+                    type="text"
+                    placeholder="Units, e.g. 'Hours', 'm2'..."
+                    value={measurement}
+                    onChange={(e) => setMeasurement(e.target.value)}
+                  />
+                </Form.Group>
+
+                <Button
+                  type="submit"
+                  className="w-100 mt-2"
+                  style={{ backgroundColor: '#76D6E2', color: '#1A1A1A' }}
+                >
+                  + Add Objective
+                </Button>
+              </Form>
+            </Card.Body>
+          </Card>
+        </Col>
+      </Row>
     </div>
   )
 }

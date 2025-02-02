@@ -1,4 +1,5 @@
 // src/components/AddProject.tsx
+
 import React, { useState, useEffect, useRef } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 import axios, { AxiosError } from 'axios'
@@ -35,7 +36,7 @@ interface AddProjectProps {
 interface OriginalData {
   name: string
   location: string
-  startDate: Date | string
+  startDate: string
   status: ProjectStatus
   emergencyServices: string
   localMedicalCenterAddress: string
@@ -66,14 +67,13 @@ const AddProject: React.FC<AddProjectProps> = ({ isSidebarOpen }) => {
 
   // Are we editing?
   const [isEdit, setIsEdit] = useState(false)
-  // const [isObjectives, setIsObjectives] = useState(false)
-
   const [projectId, setProjectId] = useState<number | null>(null)
 
   // Form fields
   const [name, setName] = useState('')
   const [startDate, setStartDate] = useState('')
   const [status, setStatus] = useState<ProjectStatus>('inprogress')
+  const [expanded, setExpanded] = useState(false)
 
   const [notification, setNotification] = useState<string | null>(null)
 
@@ -145,8 +145,7 @@ const AddProject: React.FC<AddProjectProps> = ({ isSidebarOpen }) => {
             setExistingInductionUrl(project.inductionFileUrl)
 
           setSelectedObjectives(objectiveIds || [])
-          // const startDate = new Date(Date.UTC(2025, 0, 23));
-          // Original data
+
           setOriginalData({
             name: project.name,
             location: project.location,
@@ -167,7 +166,7 @@ const AddProject: React.FC<AddProjectProps> = ({ isSidebarOpen }) => {
     }
   }, [locationState])
 
-  // Auto-clear notification after 6s
+  // Auto-clear notification after 10s
   useEffect(() => {
     if (notification) {
       const timer = setTimeout(() => {
@@ -214,11 +213,6 @@ const AddProject: React.FC<AddProjectProps> = ({ isSidebarOpen }) => {
   // ===========================
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-
-    const adjustedDate = new Date(startDate)
-    adjustedDate.setMinutes(
-      adjustedDate.getMinutes() + adjustedDate.getTimezoneOffset()
-    )
 
     // validations
     if (!name || !location || !startDate || !emergencyServices) {
@@ -276,30 +270,7 @@ const AddProject: React.FC<AddProjectProps> = ({ isSidebarOpen }) => {
 
     // If editing => PUT
     if (isEdit && projectId) {
-      try {
-        await axios.put(`/api/projects/${projectId}`, formData, {
-          headers: { 'Content-Type': 'multipart/form-data' },
-        })
-        notify('Project updated successfully!')
-        setTimeout(() => {
-          navigate('/searchproject', {
-            state: {
-              redirectTo:
-                status === 'archived' ? 'archiveprojects' : 'activeprojects',
-            },
-          })
-        }, 1000)
-      } catch (err) {
-        const axiosErr = err as AxiosError<{ message: string }>
-        if (axiosErr.response?.status === 400) {
-          notify('Project name already exists. Please choose another.')
-        } else {
-          console.error('Error updating project:', err)
-          notify('Failed to update project.')
-        }
-      }
-
-      // check for no changes
+      // check for no changes first:
       if (originalData) {
         const isNoChange =
           originalData.name === name &&
@@ -307,7 +278,6 @@ const AddProject: React.FC<AddProjectProps> = ({ isSidebarOpen }) => {
           originalData.startDate === startDate &&
           originalData.status === status &&
           originalData.imageUrl === imageUrl &&
-          // originalData.inductionFileUrl === inductionFileUrl, etc.
           originalData.emergencyServices === emergencyServices &&
           originalData.localMedicalCenterAddress ===
             localMedicalCenterAddress &&
@@ -330,7 +300,14 @@ const AddProject: React.FC<AddProjectProps> = ({ isSidebarOpen }) => {
           headers: { 'Content-Type': 'multipart/form-data' },
         })
         notify('Project updated successfully!')
-        setTimeout(navigateToSearch, 2000)
+        setTimeout(() => {
+          navigate('/searchproject', {
+            state: {
+              redirectTo:
+                status === 'archived' ? 'archiveprojects' : 'activeprojects',
+            },
+          })
+        }, 1000)
       } catch (err) {
         const axiosErr = err as AxiosError<{ message: string }>
         if (axiosErr.response?.status === 400) {
@@ -401,7 +378,6 @@ const AddProject: React.FC<AddProjectProps> = ({ isSidebarOpen }) => {
       )
       return
     }
-
     if (!/^[+\d]+$/.test(localMedicalCenterPhone)) {
       notify(
         'Local Medical Center Phone must contain only numbers and may start with +.'
@@ -409,7 +385,6 @@ const AddProject: React.FC<AddProjectProps> = ({ isSidebarOpen }) => {
       return
     }
 
-    // Check name uniqueness ====================
     try {
       const checkRes = await axios.get(
         `/api/projects?name=${encodeURIComponent(name)}`
@@ -422,7 +397,7 @@ const AddProject: React.FC<AddProjectProps> = ({ isSidebarOpen }) => {
       console.warn('Uniqueness check error (save as new):', error)
     }
 
-    // Build new formData =============
+    // Build new formData
     const formData = new FormData()
     formData.append('name', name)
     formData.append('location', location)
@@ -475,23 +450,28 @@ const AddProject: React.FC<AddProjectProps> = ({ isSidebarOpen }) => {
     >
       {/* Nav bar for projects page */}
       <Navbar
+        collapseOnSelect
         expand="lg"
+        expanded={expanded} // controls open/close
+        onToggle={setExpanded} // updates state when nav is clicked
         style={{
           backgroundColor: '#c4edf2',
           width: '100%',
         }}
         className="py-2"
       >
-        {/* Hamburger menue-Toggle for small screens */}
+        {/* Hamburger menu Toggle for small screens */}
         <Navbar.Toggle
           aria-controls="basic-navbar-nav"
           style={{ backgroundColor: '#F4F7F1' }}
         />
         <Navbar.Collapse id="basic-navbar-nav">
           <Nav className="mx-auto justify-content-center">
-            {/*First Tab = Details */}
             <Nav.Link
-              onClick={() => handleNavClick('details')}
+              onClick={() => {
+                handleNavClick('details')
+                setExpanded(false) // close the nav
+              }}
               style={{
                 fontWeight: activeTab === 'details' ? 'bold' : 'normal',
                 color: '#1A1A1A',
@@ -501,7 +481,10 @@ const AddProject: React.FC<AddProjectProps> = ({ isSidebarOpen }) => {
               Details
             </Nav.Link>
             <Nav.Link
-              onClick={() => handleNavClick('objectives')}
+              onClick={() => {
+                handleNavClick('objectives')
+                setExpanded(false) // close the nav
+              }}
               style={{
                 fontWeight: activeTab === 'objectives' ? 'bold' : 'normal',
                 color: '#1A1A1A',
@@ -510,21 +493,24 @@ const AddProject: React.FC<AddProjectProps> = ({ isSidebarOpen }) => {
             >
               add Objectives
             </Nav.Link>
-            {/* Hazards */}
             <Nav.Link
-              onClick={() => handleNavClick('hazards')}
+              onClick={() => {
+                handleNavClick('hazards')
+                setExpanded(false) // close the nav
+              }}
               style={{
-                fontWeight: activeTab === 'hazard' ? 'bold' : 'normal',
+                fontWeight: activeTab === 'hazards' ? 'bold' : 'normal',
                 color: '#1A1A1A',
                 marginRight: '1rem',
               }}
             >
               Add Hazards
             </Nav.Link>
-
-            {/* Risks */}
             <Nav.Link
-              onClick={() => handleNavClick('risks')}
+              onClick={() => {
+                handleNavClick('risks')
+                setExpanded(false) // close the nav
+              }}
               style={{
                 fontWeight: activeTab === 'risks' ? 'bold' : 'normal',
                 color: '#1A1A1A',
@@ -536,6 +522,7 @@ const AddProject: React.FC<AddProjectProps> = ({ isSidebarOpen }) => {
         </Navbar.Collapse>
       </Navbar>
       {/* END Secondary Nav */}
+
       <div>
         <h3
           className="m-2 fw-4"
@@ -544,17 +531,15 @@ const AddProject: React.FC<AddProjectProps> = ({ isSidebarOpen }) => {
             fontWeight: 'bold',
           }}
         >
-          {
-            activeTab === 'details'
-              ? isEdit
-                ? 'Edit Project'
-                : 'Create Project'
-              : '' /* or do not render anything */
-          }
+          {activeTab === 'details'
+            ? isEdit
+              ? 'Edit Project'
+              : 'Create Project'
+            : ''}
         </h3>
       </div>
 
-      {/* Notification (displays for 8s) */}
+      {/* Notification (displays for 10s) */}
       {notification && (
         <div
           style={{
@@ -562,7 +547,7 @@ const AddProject: React.FC<AddProjectProps> = ({ isSidebarOpen }) => {
             top: 0,
             left: 0,
             width: '100%',
-            zIndex: 9999, // so it's on top
+            zIndex: 9999,
           }}
         >
           <Alert variant="info" className="text-center m-0 rounded-0">
@@ -574,8 +559,156 @@ const AddProject: React.FC<AddProjectProps> = ({ isSidebarOpen }) => {
       <div style={{ marginTop: '2rem' }}>
         {activeTab === 'details' && (
           <div className="row">
-            {/* LEFT COLUMN */}
-            <div className="col-md-5 p-0 rounded p-3 ">
+            {/* MAIN FORM - on the LEFT on desktops (order-md-1), but FIRST on mobile (order-1) */}
+            <div className="col-md-7 order-1 order-md-1 form-container bg-white rounded shadow px-3 pt-0">
+              <Form onSubmit={handleSubmit}>
+                <Form.Group controlId="projectName" className="my-3 fw-bold">
+                  <Form.Label>Project Name</Form.Label>
+                  <Form.Control
+                    required
+                    type="text"
+                    placeholder="Enter project name"
+                    value={name}
+                    onChange={(e) => setName(e.target.value)}
+                  />
+                </Form.Group>
+
+                <Form.Group className="mb-3 fw-bold">
+                  <Form.Label>Objectives</Form.Label>
+                  <div style={{ display: 'flex', gap: '0.5rem' }}>
+                    <Form.Control
+                      readOnly
+                      as="textarea"
+                      rows={2}
+                      value={selectedObjectivesText}
+                      placeholder="(No objectives selected)"
+                      onClick={openObjModal}
+                    />
+                    <Button variant="secondary" onClick={openObjModal}>
+                      Edit
+                    </Button>
+                  </div>
+                </Form.Group>
+
+                <Row>
+                  <Col md={6}>
+                    <Form.Group controlId="startDate" className="mb-3">
+                      <Form.Label>Start Date</Form.Label>
+                      <Form.Control
+                        required
+                        type="date"
+                        name="startDate"
+                        value={startDate || ''}
+                        onChange={(e) => setStartDate(e.target.value)}
+                        min={!isEdit ? todayString : undefined}
+                      />
+                    </Form.Group>
+                  </Col>
+                  <Col md={6}>
+                    <Form.Group controlId="status" className="mb-3">
+                      <Form.Label>Status</Form.Label>
+                      <Form.Select
+                        required
+                        value={status}
+                        onChange={(e) =>
+                          setStatus(e.target.value as ProjectStatus)
+                        }
+                      >
+                        <option value="inprogress">In Progress</option>
+                        <option value="completed">Completed</option>
+                        <option value="onhold">On Hold</option>
+                        <option value="archived">Archived</option>
+                      </Form.Select>
+                    </Form.Group>
+                  </Col>
+                </Row>
+
+                <Row>
+                  <Col md={6}>
+                    <Form.Group className="mb-3" controlId="primaryContactName">
+                      <Form.Label>Primary Contact Name</Form.Label>
+                      <Form.Control
+                        required
+                        type="text"
+                        value={primaryContactName}
+                        onChange={(e) => setPrimaryContactName(e.target.value)}
+                      />
+                    </Form.Group>
+                  </Col>
+                  <Col md={6}>
+                    <Form.Group
+                      className="mb-3"
+                      controlId="primaryContactPhone"
+                    >
+                      <Form.Label>Primary Contact Phone</Form.Label>
+                      <Form.Control
+                        required
+                        type="text"
+                        value={primaryContactPhone}
+                        onChange={(e) => setPrimaryContactPhone(e.target.value)}
+                        placeholder="phone number (+ allowed)"
+                      />
+                    </Form.Group>
+                  </Col>
+                </Row>
+
+                <div className="mb-3">
+                  <Form.Label>Map Location</Form.Label>
+                  <div style={{ width: '100%', height: '200px' }}>
+                    <GoogleMap
+                      mapContainerStyle={containerStyle}
+                      center={mapCenter}
+                      zoom={12}
+                    >
+                      <Marker position={markerPos} />
+                    </GoogleMap>
+                  </div>
+                </div>
+
+                <Form.Group controlId="location" className="mb-3">
+                  <Form.Label>Project Location</Form.Label>
+                  <Autocomplete
+                    onLoad={(auto) => (autocompleteRef.current = auto)}
+                    onPlaceChanged={handlePlaceChanged}
+                  >
+                    <Form.Control
+                      required
+                      type="text"
+                      placeholder="Type an address"
+                      value={location}
+                      onChange={(e) => setLocation(e.target.value)}
+                    />
+                  </Autocomplete>
+                </Form.Group>
+
+                {/* If editing => show two buttons: "Save Changes" and "Save as New Project" */}
+                {isEdit ? (
+                  <div className="d-flex flex-column pb-3 fs-5 gap-2">
+                    <Button
+                      type="submit"
+                      style={{ backgroundColor: OCEAN_BLUE, color: '#fff' }}
+                    >
+                      Save Changes
+                    </Button>
+                    <Button variant="warning" onClick={handleSaveAsNewProject}>
+                      Save as New Project
+                    </Button>
+                  </div>
+                ) : (
+                  /* If creating => single "Save" button */
+                  <Button
+                    type="submit"
+                    className="w-100 m-3 fs-5"
+                    style={{ backgroundColor: OCEAN_BLUE, color: '#fff' }}
+                  >
+                    Save
+                  </Button>
+                )}
+              </Form>
+            </div>
+
+            {/* SMALLER SIDE - on the RIGHT on desktops (order-md-2), but SECOND on mobile (order-2) */}
+            <div className="col-md-5 order-2 order-md-2 p-0 rounded p-3">
               <h4 style={{ color: OCEAN_BLUE }}>{name || '[Project Name]'}</h4>
 
               <div className="border pt-0 mb-3 text-center">
@@ -624,7 +757,7 @@ const AddProject: React.FC<AddProjectProps> = ({ isSidebarOpen }) => {
                   />
                 </div>
               </div>
-              {/* Emergensy Services */}
+
               <h5>Emergency Services</h5>
               <Form.Group className="mb-3" controlId="emergencyServices">
                 <Form.Control
@@ -774,160 +907,12 @@ const AddProject: React.FC<AddProjectProps> = ({ isSidebarOpen }) => {
                 </div>
               </div>
             </div>
-
-            {/* RIGHT COLUMN */}
-            <div className="form-container bg-white  rounded shadow col-md-7 px-3 pt-0">
-              <Form onSubmit={handleSubmit}>
-                <Form.Group controlId="projectName" className="my-3 fw-bold">
-                  <Form.Label>Project Name</Form.Label>
-                  <Form.Control
-                    required
-                    type="text"
-                    placeholder="Enter project name"
-                    value={name}
-                    onChange={(e) => setName(e.target.value)}
-                  />
-                </Form.Group>
-
-                <Form.Group className="mb-3 fw-bold">
-                  <Form.Label>Objectives</Form.Label>
-                  <div style={{ display: 'flex', gap: '0.5rem' }}>
-                    <Form.Control
-                      readOnly
-                      as="textarea"
-                      rows={2}
-                      value={selectedObjectivesText}
-                      placeholder="(No objectives selected)"
-                      onClick={openObjModal}
-                    />
-                    <Button variant="secondary" onClick={openObjModal}>
-                      Edit
-                    </Button>
-                  </div>
-                </Form.Group>
-
-                <Row>
-                  <Col md={6}>
-                    <Form.Group controlId="startDate" className="mb-3">
-                      <Form.Label>Start Date</Form.Label>
-                      <Form.Control
-                        required
-                        type="date"
-                        value={startDate}
-                        onChange={(e) => setStartDate(e.target.value)}
-                        min={!isEdit ? todayString : undefined}
-                      />
-                    </Form.Group>
-                  </Col>
-                  <Col md={6}>
-                    <Form.Group controlId="status" className="mb-3">
-                      <Form.Label>Status</Form.Label>
-                      <Form.Select
-                        required
-                        value={status}
-                        onChange={(e) =>
-                          setStatus(e.target.value as ProjectStatus)
-                        }
-                      >
-                        <option value="inprogress">In Progress</option>
-                        <option value="completed">Completed</option>
-                        <option value="onhold">On Hold</option>
-                        <option value="archived">Archived</option>
-                      </Form.Select>
-                    </Form.Group>
-                  </Col>
-                </Row>
-
-                <Row>
-                  <Col md={6}>
-                    <Form.Group className="mb-3" controlId="primaryContactName">
-                      <Form.Label>Primary Contact Name</Form.Label>
-                      <Form.Control
-                        required
-                        type="text"
-                        value={primaryContactName}
-                        onChange={(e) => setPrimaryContactName(e.target.value)}
-                      />
-                    </Form.Group>
-                  </Col>
-                  <Col md={6}>
-                    <Form.Group
-                      className="mb-3"
-                      controlId="primaryContactPhone"
-                    >
-                      <Form.Label>Primary Contact Phone</Form.Label>
-                      <Form.Control
-                        required
-                        type="text"
-                        value={primaryContactPhone}
-                        onChange={(e) => setPrimaryContactPhone(e.target.value)}
-                        placeholder="phone number (+ allowed)"
-                      />
-                    </Form.Group>
-                  </Col>
-                </Row>
-
-                <div className="mb-3">
-                  <Form.Label>Map Location</Form.Label>
-                  <div style={{ width: '100%', height: '200px' }}>
-                    <GoogleMap
-                      mapContainerStyle={containerStyle}
-                      center={mapCenter}
-                      zoom={12}
-                    >
-                      <Marker position={markerPos} />
-                    </GoogleMap>
-                  </div>
-                </div>
-
-                <Form.Group controlId="location" className="mb-3">
-                  <Form.Label>Project Location</Form.Label>
-                  <Autocomplete
-                    onLoad={(auto) => (autocompleteRef.current = auto)}
-                    onPlaceChanged={handlePlaceChanged}
-                  >
-                    <Form.Control
-                      required
-                      type="text"
-                      placeholder="Type an address"
-                      value={location}
-                      onChange={(e) => setLocation(e.target.value)}
-                    />
-                  </Autocomplete>
-                </Form.Group>
-
-                {/* If editing => show two buttons: "Save Changes" and "Save as New Project" */}
-                {isEdit ? (
-                  <div className="d-flex flex-column pb-3 fs-5 gap-2">
-                    <Button
-                      type="submit"
-                      style={{ backgroundColor: OCEAN_BLUE, color: '#fff' }}
-                    >
-                      Save Changes
-                    </Button>
-                    <Button variant="warning" onClick={handleSaveAsNewProject}>
-                      Save as New Project
-                    </Button>
-                  </div>
-                ) : (
-                  /* If creating => single "Save" button */
-                  <Button
-                    type="submit"
-                    className="w-100 m-3 fs-5"
-                    style={{ backgroundColor: OCEAN_BLUE, color: '#fff' }}
-                  >
-                    Save
-                  </Button>
-                )}
-              </Form>
-            </div>
           </div>
         )}
 
-        {/* Additional tabs: Objectives, Risks, etc. */}
+        {/* Additional tabs: Objectives, Hazards, Risks */}
         {activeTab === 'objectives' && (
           <div className="py-2">
-            {/* <h3 ><b>Project Objectives</b></h3> */}
             <AddObjectives isSidebarOpen={isSidebarOpen} />
           </div>
         )}
@@ -943,7 +928,7 @@ const AddProject: React.FC<AddProjectProps> = ({ isSidebarOpen }) => {
         )}
       </div>
 
-      {/* MODAL for objectives */}
+      {/* Modal for objectives */}
       <Modal show={showObjModal} onHide={closeObjModal} size="lg">
         <Modal.Header closeButton>
           <Modal.Title>Select Objectives</Modal.Title>

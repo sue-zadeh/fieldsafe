@@ -6,6 +6,21 @@ import path from 'path'
 
 const router = express.Router()
 
+/**
+ * Helper to convert an incoming ISO date string
+ * (e.g. "2025-01-21T11:00:00.000Z") to "YYYY-MM-DD"
+ */
+function parseDateForMySQL(isoString) {
+  const dateObj = new Date(isoString)
+  if (isNaN(dateObj.getTime())) {
+    return null
+  }
+  const yyyy = dateObj.getUTCFullYear()
+  const mm = String(dateObj.getUTCMonth() + 1).padStart(2, '0')
+  const dd = String(dateObj.getUTCDate()).padStart(2, '0')
+  return `${yyyy}-${mm}-${dd}` // e.g. "2025-01-21"
+}
+
 // ================= Multer Setup =================
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
@@ -20,8 +35,8 @@ const storage = multer.diskStorage({
 const upload = multer({ storage })
 
 // ================= GET /api/projects =================
-// If ?name= is given, return {exists:true|false} for uniqueness check
-// Otherwise, return a simple list of *all* projects (SELECT * FROM projects).
+// If ?name= is given, return {exists:true} for uniqueness check
+// Otherwise, return a list of all projects.
 router.get('/', async (req, res) => {
   const { name } = req.query
   try {
@@ -44,7 +59,7 @@ router.get('/', async (req, res) => {
 })
 
 // ================= GET /api/projects/projList =================
-// So your "Search Project" page can keep using bridging data
+// "SearchProject" can use bridging data
 router.get('/projList', async (req, res) => {
   try {
     const [rows] = await pool.query(`
@@ -65,13 +80,32 @@ router.get('/projList', async (req, res) => {
 })
 
 // ============ GET /api/projects/:id ============
-// Return single project + array of objective IDs
+// Return single project + array of objective IDs,
+// with the project's date in "YYYY-MM-DD" format
 router.get('/:id', async (req, res) => {
   const { id } = req.params
   try {
-    const [projRows] = await pool.query('SELECT * FROM projects WHERE id = ?', [
-      id,
-    ])
+    // We do a SELECT that uses DATE_FORMAT so front end sees "YYYY-MM-DD"
+    const sql = `
+      SELECT
+        p.id,
+        p.name,
+        p.location,
+        DATE_FORMAT(p.startDate, '%Y-%m-%d') AS startDate,
+        p.status,
+        p.createdBy,
+        p.emergencyServices,
+        p.localMedicalCenterAddress,
+        p.localMedicalCenterPhone,
+        p.localHospital,
+        p.primaryContactName,
+        p.primaryContactPhone,
+        p.imageUrl,
+        p.inductionFileUrl
+      FROM projects p
+      WHERE p.id = ?
+    `
+    const [projRows] = await pool.query(sql, [id])
     if (projRows.length === 0) {
       return res.status(404).json({ message: 'Project not found' })
     }
@@ -100,7 +134,7 @@ router.post(
   ]),
   async (req, res) => {
     try {
-      const {
+      let {
         name,
         location,
         startDate,
@@ -115,25 +149,13 @@ router.post(
         objectives, // JSON string
       } = req.body
 
-      // ================= Error handling middleware for Date
+      // Convert date to "YYYY-MM-DD"
+      const sqlDate = parseDateForMySQL(startDate)
+      if (!sqlDate) {
+        return res.status(400).json({ message: 'Invalid or unparseable date.' })
+      }
 
-      router.post('/api/activities', (req, res) => {
-        // let { activity_date } = req.body
-        // // Convert to a JS Date
-        // const isoDate = new Date(activity_date)
-        // Create a new date in UTC
-        const adjusted = new Date(Date.UTC(2025, 0, 0))
-
-        // Date.UTC(isoDate.getFullYear(), isoDate.getMonth(), isoDate.getDate())
-        // )
-        // Format as YYYY-MM-DD
-        const y = adjusted.getUTCFullYear()
-        const m = String(adjusted.getUTCMonth() + 1).padStart(2, '0')
-        const d = String(adjusted.getUTCDate()).padStart(2, '0')
-        // activity_date = `${y}-${m}-${d}`
-      })
-
-      // Check name uniqueness
+      // Check uniqueness
       const [dupRows] = await pool.query(
         'SELECT id FROM projects WHERE name = ?',
         [name]
@@ -155,10 +177,10 @@ router.post(
       // Insert project
       const insertSql = `
         INSERT INTO projects
-        (name, location, startDate, status, createdBy,
-         emergencyServices, localMedicalCenterAddress, localMedicalCenterPhone,
-         localHospital, primaryContactName, primaryContactPhone,
-         imageUrl, inductionFileUrl)
+          (name, location, startDate, status, createdBy,
+           emergencyServices, localMedicalCenterAddress, localMedicalCenterPhone,
+           localHospital, primaryContactName, primaryContactPhone,
+           imageUrl, inductionFileUrl)
         VALUES (?, ?, ?, ?, ?,
                 ?, ?, ?,
                 ?, ?, ?,
@@ -167,7 +189,7 @@ router.post(
       const [result] = await pool.query(insertSql, [
         name,
         location,
-        startDate,
+        sqlDate, // store "YYYY-MM-DD"
         status,
         createdBy || null,
         emergencyServices || '111 will contact all emergency services',
@@ -216,10 +238,9 @@ router.put(
     { name: 'inductionFile', maxCount: 1 },
   ]),
   async (req, res) => {
-    const { id } = req.params
-
     try {
-      const {
+      const { id } = req.params
+      let {
         name,
         location,
         startDate,
@@ -231,28 +252,14 @@ router.put(
         localHospital,
         primaryContactName,
         primaryContactPhone,
-        objectives, // JSON array of IDs
+        objectives, // JSON array
       } = req.body
 
-      // Check name uniqueness excluding self
-      const [dupRows] = await pool.query(
-        'SELECT id FROM projects WHERE name = ? AND id != ?',
-        [name, id]
-      )
-      if (dupRows.length > 0) {
-        return res.status(400).json({ message: 'Project name already taken.' })
-      }
+      // Convert date to "YYYY-MM-DD"
+      const sqlDate = parseDateForMySQL(startDate)
+      // It's OK if user didn't change date => maybe it's empty => we keep old below
 
-      let imageUrl = null
-      let inductionFileUrl = null
-      if (req.files['image']) {
-        imageUrl = req.files['image'][0].path
-      }
-      if (req.files['inductionFile']) {
-        inductionFileUrl = req.files['inductionFile'][0].path
-      }
-
-      // fetch existing row
+      // Check if project exists
       const [existingRows] = await pool.query(
         'SELECT * FROM projects WHERE id = ?',
         [id]
@@ -262,51 +269,88 @@ router.put(
       }
       const old = existingRows[0]
 
-      // partial update logic
-      const updatedName = name ?? old.name
-      const updatedLocation = location ?? old.location
-      const updatedStartDate = new Date(Date.UTC(2025, 0, 0))
-      const updatedStatus = status ?? old.status
-      const updatedCreatedBy = createdBy ?? old.createdBy
-      const updatedEmergency = emergencyServices ?? old.emergencyServices
-      const updatedMedAddr =
-        localMedicalCenterAddress ?? old.localMedicalCenterAddress
-      const updatedMedPhone =
-        localMedicalCenterPhone ?? old.localMedicalCenterPhone
-      const updatedLocalHosp = localHospital ?? old.localHospital
-      const updatedPContactName = primaryContactName ?? old.primaryContactName
-      const updatedPContactPhone =
-        primaryContactPhone ?? old.primaryContactPhone
-      const updatedImage = imageUrl ?? old.imageUrl
-      const updatedInduction = inductionFileUrl ?? old.inductionFileUrl
+      // Check name conflict
+      if (name) {
+        const [dupRows] = await pool.query(
+          'SELECT id FROM projects WHERE name = ? AND id != ?',
+          [name, id]
+        )
+        if (dupRows.length > 0) {
+          return res
+            .status(400)
+            .json({ message: 'Project name already taken.' })
+        }
+      }
 
-      // update row
+      // If we have new files
+      let imageUrl = old.imageUrl
+      let inductionFileUrl = old.inductionFileUrl
+      if (req.files['image']) {
+        imageUrl = req.files['image'][0].path
+      }
+      if (req.files['inductionFile']) {
+        inductionFileUrl = req.files['inductionFile'][0].path
+      }
+
+      // Partial update logic: if a field wasn't provided, keep old
+      const finalName = name !== undefined ? name : old.name
+      const finalLocation = location !== undefined ? location : old.location
+      // If user gave a new date => use sqlDate. Else keep old.startDate as is.
+      // We'll store old.startDate in the DB if user didn't specify anything new.
+      // old.startDate is a full date/time; let's keep it as is or you can parse it:
+      const finalStartDate = sqlDate || old.startDate
+      const finalStatus = status !== undefined ? status : old.status
+      const finalCreatedBy = createdBy !== undefined ? createdBy : old.createdBy
+      const finalEmergency =
+        emergencyServices !== undefined
+          ? emergencyServices
+          : old.emergencyServices
+      const finalMedAddr =
+        localMedicalCenterAddress !== undefined
+          ? localMedicalCenterAddress
+          : old.localMedicalCenterAddress
+      const finalMedPhone =
+        localMedicalCenterPhone !== undefined
+          ? localMedicalCenterPhone
+          : old.localMedicalCenterPhone
+      const finalHosp =
+        localHospital !== undefined ? localHospital : old.localHospital
+      const finalContactName =
+        primaryContactName !== undefined
+          ? primaryContactName
+          : old.primaryContactName
+      const finalContactPhone =
+        primaryContactPhone !== undefined
+          ? primaryContactPhone
+          : old.primaryContactPhone
+
       const updateSql = `
         UPDATE projects
-        SET name = ?, location = ?, startDate = ?, status = ?, createdBy = ?,
-            emergencyServices = ?, localMedicalCenterAddress = ?, localMedicalCenterPhone = ?,
-            localHospital = ?, primaryContactName = ?, primaryContactPhone = ?,
-            imageUrl = ?, inductionFileUrl = ?
+        SET 
+          name = ?, location = ?, startDate = ?, status = ?, createdBy = ?,
+          emergencyServices = ?, localMedicalCenterAddress = ?, localMedicalCenterPhone = ?,
+          localHospital = ?, primaryContactName = ?, primaryContactPhone = ?,
+          imageUrl = ?, inductionFileUrl = ?
         WHERE id = ?
       `
       await pool.query(updateSql, [
-        updatedName,
-        updatedLocation,
-        updatedStartDate,
-        updatedStatus,
-        updatedCreatedBy,
-        updatedEmergency,
-        updatedMedAddr,
-        updatedMedPhone,
-        updatedLocalHosp,
-        updatedPContactName,
-        updatedPContactPhone,
-        updatedImage,
-        updatedInduction,
+        finalName,
+        finalLocation,
+        finalStartDate, // "YYYY-MM-DD" if user changed date, else old
+        finalStatus,
+        finalCreatedBy,
+        finalEmergency,
+        finalMedAddr,
+        finalMedPhone,
+        finalHosp,
+        finalContactName,
+        finalContactPhone,
+        imageUrl,
+        inductionFileUrl,
         id,
       ])
 
-      // bridging: remove old, insert new
+      // bridging: remove old objectives, insert new
       await pool.query('DELETE FROM project_objectives WHERE project_id = ?', [
         id,
       ])

@@ -365,7 +365,8 @@ const AddRisk: React.FC<AddRiskProps> = ({ isSidebarOpen }) => {
                         onChange={(e) => setEditingTitleText(e.target.value)}
                       />
                       <Button
-                        className="mr-8px mt-4px w-25"
+                      style={{ backgroundColor: '#738c40', color: 'white' }}
+                        className="mr-8px mt-4px w-25 rounded"
                         onClick={handleEditTitle}
                         variant="success"
                         size="sm"
@@ -373,7 +374,7 @@ const AddRisk: React.FC<AddRiskProps> = ({ isSidebarOpen }) => {
                         Save Title
                       </Button>
                       <Button
-                        className="mt-4px fs-6 w-15 "
+                        className="mt-4px fs-6 w-15 rounded "
                         onClick={() => setEditingTitle(false)}
                         variant="outline-secondary"
                         size="sm"
@@ -401,7 +402,8 @@ const AddRisk: React.FC<AddRiskProps> = ({ isSidebarOpen }) => {
                         {selectedRisk.title}
                       </h5>
                       <Button
-                        className="w-25 fs-6 mt-3"
+                      style={{ backgroundColor: '#0094b6', color: 'white' }}
+                        className="w-25 fs-6 mt-3 rounded"
                         variant="warning"
                         size="sm"
                         onClick={toggleEditTitle}
@@ -416,7 +418,8 @@ const AddRisk: React.FC<AddRiskProps> = ({ isSidebarOpen }) => {
               {/* Risk Delete button if not read-only */}
               {!selectedRisk.isReadOnly && (
                 <Button
-                  className="mt-2 fs-6 w-25"
+                style={{ backgroundColor: '#D37B49', color: 'white' }}
+                  className="mt-2 fs-6 w-25 rounded"
                   variant="danger"
                   onClick={() => handleDeleteRisk(selectedRisk)}
                   size="sm"
@@ -489,6 +492,8 @@ const AddRisk: React.FC<AddRiskProps> = ({ isSidebarOpen }) => {
                             style={{ marginBottom: '6px' }}
                           />
                           <Button
+                          className='rounded'
+                          style={{ backgroundColor: '#738c40', color: 'white' }}
                             onClick={handleSaveControlEdit}
                             size="sm"
                             variant="success"
@@ -503,15 +508,16 @@ const AddRisk: React.FC<AddRiskProps> = ({ isSidebarOpen }) => {
                           {!ctrl.isReadOnly && (
                             <div style={{ marginTop: '6px' }}>
                               <Button
-                                className="fs-6 px-3"
+                                className="fs-6 px-3 text-light rounded"
                                 onClick={() => startEditControl(ctrl)}
                                 variant="warning"
                                 size="sm"
-                                style={{ marginRight: '4px' }}
+                                style={{ backgroundColor: '#0094b6', marginRight: '4px' }}
                               >
                                 Edit
                               </Button>
                               <Button
+                              style={{ backgroundColor: '#D37B40', marginRight: '4px' }}
                                 className="fs-6 px-3"
                                 onClick={() => handleDeleteControl(ctrl)}
                                 variant="danger"
@@ -627,7 +633,8 @@ const AddRisk: React.FC<AddRiskProps> = ({ isSidebarOpen }) => {
             </Form.Group>
           ))}
           <Button
-            className="w-50 fs-6  mx-5 align-center justify-content-center"
+            className="w-50 fs-6  mx-5 align-center justify-content-center rounded"
+            style={{ backgroundColor: '#738c40', marginRight: '4px' }}
             onClick={addNewControlInput}
             variant="secondary"
             size="sm"
@@ -635,7 +642,7 @@ const AddRisk: React.FC<AddRiskProps> = ({ isSidebarOpen }) => {
             + Add Control
           </Button>{' '}
           <Button
-            className="w-50 fs-6 mt-2 mx-5"
+            className="w-50 fs-6 mt-2 mx-5 rounded"
             style={{ backgroundColor: '#0094B6' }}
             onClick={handleCreateRisk}
             variant="primary"

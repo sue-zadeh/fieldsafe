@@ -12,15 +12,17 @@ interface Volunteer {
 
 interface VolunteerTabProps {
   activityId: number
+  activityName ?: string
 }
 
-const ActivityVolunteerTab: React.FC<VolunteerTabProps> = ({ activityId }) => {
+const ActivityVolunteerTab: React.FC<VolunteerTabProps> = ({ activityId 
+   }) => {
   const [unassignedVolunteers, setUnassignedVolunteers] = useState<Volunteer[]>(
     []
   )
   const [activityVolunteers, setActivityVolunteers] = useState<Volunteer[]>([])
   const [selectedVolunteers, setSelectedVolunteers] = useState<number[]>([])
-  const [projectName, setProjectName] = useState<string>('') // Store project name
+  const [, setProjectName] = useState<string>('') // Store project name
 
   // Fetch the project name for the activity
   useEffect(() => {
@@ -105,16 +107,13 @@ const ActivityVolunteerTab: React.FC<VolunteerTabProps> = ({ activityId }) => {
 
   return (
     <div>
-      <h3 className="fw-bold p-2 fs-4" style={{ color: '#0094B6' }}>
+      <h4 className="fw-bold pb-4 text-center" style={{ color: '#0094B6' }}>
         Assign Volunteers to Activity
-      </h3>
-      <p className="fw-bold p-2 fs-4" style={{ color: '#0094B6' }}>
-        Selected Project: {projectName}
-      </p>
+      </h4>
 
-      <h5 style={{ marginBottom: '1rem' }}>
+      <h6 className=" text-center" style={{ marginBottom: '1rem' }}>
         Hold the Ctrl key (or Cmd key on Mac) to select multiple options.
-      </h5>
+      </h6>
       <div className="d-flex flex-column align-items-center">
         <div className="mb-3 w-50">
           <h5 style={{ color: '#0094B6' }}>Available Volunteers</h5>

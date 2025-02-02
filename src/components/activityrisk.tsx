@@ -48,16 +48,16 @@ interface RiskRow {
   risk_rating: string
 }
 
+//
+// IMPORTANT: We do have "risk_id" in bridging. So let's keep it in DetailedRiskControl:
+//
 interface DetailedRiskControl {
   activityRiskControlId: number
   activity_id: number
-  // We do NOT have a 'risk_id' column in our bridging table...
-  // so each row only knows (activity_id, risk_control_id)
+  risk_id: number            // We do want to store which risk this control belongs to
   risk_control_id: number
   control_text: string
   is_checked: boolean
-  // For reference, some code used to store "risk_id", but the DB doesn't have it
-  // risk_id?: number
 }
 
 interface RiskControlForTitle {
@@ -120,7 +120,7 @@ const ActivityRisk: React.FC<ActivityRiskProps> = ({
   const [newSiteHazard, setNewSiteHazard] = useState('')
   const [newActivityHazard, setNewActivityHazard] = useState('')
 
-  /** On mount: load all data. */
+  // On mount, load everything
   useEffect(() => {
     loadAllRiskTitles()
     loadActivityRisks()
@@ -143,9 +143,7 @@ const ActivityRisk: React.FC<ActivityRiskProps> = ({
   // 2) activity_risks bridging
   async function loadActivityRisks() {
     try {
-      const res = await axios.get(
-        `/api/activity_risks?activityId=${activityId}`
-      )
+      const res = await axios.get(`/api/activity_risks?activityId=${activityId}`)
       setActivityRisks(res.data)
     } catch (err) {
       console.error(err)
@@ -156,6 +154,8 @@ const ActivityRisk: React.FC<ActivityRiskProps> = ({
   // 3) activity_risk_controls/detailed
   async function loadDetailedRiskControls() {
     try {
+      // IMPORTANT: Make sure your server route returns risk_id.
+      // e.g. SELECT arc.risk_id, ...
       const res = await axios.get(
         `/api/activity_risk_controls/detailed?activityId=${activityId}`
       )
@@ -196,7 +196,7 @@ const ActivityRisk: React.FC<ActivityRiskProps> = ({
     }
   }
 
-  // recompute rating
+  // Recompute risk rating
   useEffect(() => {
     setLocalRiskRating(computeLocalRiskRating(likelihood, consequences))
   }, [likelihood, consequences])
@@ -236,9 +236,9 @@ const ActivityRisk: React.FC<ActivityRiskProps> = ({
     return 'Unknown'
   }
 
-  // =================
-  // ADD RISK modal
-  // =================
+  // =========================
+  // ADD RISK
+  // =========================
   function openAddRiskModal() {
     setShowRiskModal(true)
     setIsEditing(false)
@@ -279,6 +279,7 @@ const ActivityRisk: React.FC<ActivityRiskProps> = ({
         control_text: newControlText.trim(),
       })
       setNewControlText('')
+      // Re-fetch the list
       const res = await axios.get(`/api/risks/${selectedRiskTitleId}/controls`)
       setRiskControlsForTitle(res.data)
     } catch (err) {
@@ -287,9 +288,9 @@ const ActivityRisk: React.FC<ActivityRiskProps> = ({
     }
   }
 
-  // ================
-  // EDIT RISK modal
-  // ================
+  // =========================
+  // EDIT RISK
+  // =========================
   function openEditRiskModal(r: RiskRow) {
     setShowRiskModal(true)
     setIsEditing(true)
@@ -300,30 +301,28 @@ const ActivityRisk: React.FC<ActivityRiskProps> = ({
     setLocalRiskRating(r.risk_rating)
     setSelectedRiskTitleId(r.riskTitleId)
 
+    // fetch controls for that riskTitle
     axios
       .get(`/api/risks/${r.riskTitleId}/controls`)
       .then((resp) => {
         setRiskControlsForTitle(resp.data)
-        // gather relevant bridging for this entire activity
-        // We do not store risk_id in bridging, so we filter
-        // by:  the controls that are in "detailedRiskControls"
-        // But we have no direct reference to "this risk only."
-        // (That’s the known limitation.)
-        const relevant = detailedRiskControls // might just be all
-        const ctrlIds = relevant.map((d) => d.risk_control_id)
-        setChosenControlIds(ctrlIds)
+        // find bridging for this risk specifically:
+        // filter by "dc.risk_id === r.riskId"
+        const relevant = detailedRiskControls.filter(
+          (dc) => dc.risk_id === r.riskId
+        )
+        setChosenControlIds(relevant.map((rc) => rc.risk_control_id))
       })
-      .catch((e) => {
-        console.error(e)
+      .catch((err) => {
+        console.error(err)
         setMessage('Failed to load controls for editing.')
       })
-
     setNewControlText('')
   }
 
-  // =================
+  // =========================
   // SAVE RISK
-  // =================
+  // =========================
   async function handleSaveRisk() {
     if (!selectedRiskTitleId || !likelihood || !consequences) {
       setMessage('Please ensure all fields are filled.')
@@ -332,7 +331,7 @@ const ActivityRisk: React.FC<ActivityRiskProps> = ({
 
     try {
       if (!isEditing) {
-        // CREATE
+        // -------- ADD MODE --------
         const createRes = await axios.post('/api/risks-create-row', {
           risk_title_id: selectedRiskTitleId,
           likelihood,
@@ -340,16 +339,17 @@ const ActivityRisk: React.FC<ActivityRiskProps> = ({
         })
         const newRiskId = createRes.data.riskId
 
-        // link to activity
+        // Link risk to activity
         await axios.post('/api/activity_risks', {
           activity_id: activityId,
           risk_id: newRiskId,
         })
 
-        // link chosen controls (only storing activityId + controlId)
+        // Link chosen controls
         for (const cid of chosenControlIds) {
           await axios.post('/api/activity_risk_controls', {
             activity_id: activityId,
+            risk_id: newRiskId, // must pass the new risk
             risk_control_id: cid,
             is_checked: true,
           })
@@ -357,30 +357,27 @@ const ActivityRisk: React.FC<ActivityRiskProps> = ({
 
         setMessage('Activity risk added successfully.')
       } else {
-        // UPDATE
+        // -------- EDIT MODE --------
         if (!editingRisk) return
 
-        // find the actual text label
-        const selectedTitle = allRiskTitles.find(
+        // get the new text for the risk_title
+        const newTitle = allRiskTitles.find(
           (t) => t.id === selectedRiskTitleId
         )?.title
-        if (!selectedTitle) {
+        if (!newTitle) {
           setMessage('Invalid risk title selected.')
           return
         }
 
-        // call PUT /api/risks/:riskId
+        // Put to /risks/:riskId
         await axios.put(`/api/risks/${editingRisk.riskId}`, {
-          title: selectedTitle,
+          title: newTitle,
           likelihood,
           consequences,
-          // The server code expects "chosenControlIds" + "activity_id"
-          // But let's only pass them if your route truly needs them
           chosenControlIds,
           activity_id: activityId,
         })
 
-        // we are removing and re-adding bridging in that route
         setMessage('Activity risk updated successfully.')
       }
 
@@ -393,14 +390,12 @@ const ActivityRisk: React.FC<ActivityRiskProps> = ({
     }
   }
 
-  // =================
+  // =========================
   // REMOVE RISK
-  // =================
+  // =========================
   async function handleRemoveRisk(r: RiskRow) {
     if (!window.confirm(`Remove risk "${r.risk_title_label}"?`)) return
     try {
-      // The route /api/activity_risks?activityId=...&riskId=...
-      // also removes bridging & risk row
       await axios.delete(
         `/api/activity_risks?activityId=${activityId}&riskId=${r.riskId}`
       )
@@ -413,15 +408,19 @@ const ActivityRisk: React.FC<ActivityRiskProps> = ({
     }
   }
 
-  // hazards
+  // =========================
+  // Hazards (unchanged)
+  // =========================
   function openHazardModal(type: 'site' | 'activity') {
     setHazardTab(type)
     setSelectedHazardIds([])
     setShowHazardModal(true)
   }
+
   function closeHazardModal() {
     setShowHazardModal(false)
   }
+
   function toggleHazardSelected(hid: number) {
     setSelectedHazardIds((prev) =>
       prev.includes(hid) ? prev.filter((x) => x !== hid) : [...prev, hid]
@@ -465,10 +464,10 @@ const ActivityRisk: React.FC<ActivityRiskProps> = ({
       setMessage('Failed to remove site hazard.')
     }
   }
+
   async function handleRemoveActivityHazard(h: any) {
-    if (!window.confirm(`Remove activity hazard "${h.hazard_description}"?`)) {
+    if (!window.confirm(`Remove activity hazard "${h.hazard_description}"?`))
       return
-    }
     try {
       await axios.delete(`/api/activity_activity_people_hazards?id=${h.id}`)
       setMessage('Removed activity hazard.')
@@ -493,6 +492,7 @@ const ActivityRisk: React.FC<ActivityRiskProps> = ({
       setMessage('Failed to add new site hazard.')
     }
   }
+
   async function handleAddNewActivityHazard() {
     if (!newActivityHazard.trim()) return
     try {
@@ -508,6 +508,7 @@ const ActivityRisk: React.FC<ActivityRiskProps> = ({
     }
   }
 
+  // auto-hide alert
   useEffect(() => {
     if (message) {
       const t = setTimeout(() => setMessage(null), 4000)
@@ -521,6 +522,7 @@ const ActivityRisk: React.FC<ActivityRiskProps> = ({
   }))
 
   function isOptionDisabled(option: OptionType) {
+    // if we already have that risk title in activityRisks, disable
     const found = activityRisks.find((r) => r.risk_title_label === option.label)
     return !!found
   }
@@ -535,9 +537,12 @@ const ActivityRisk: React.FC<ActivityRiskProps> = ({
         </Alert>
       )}
 
-      <h3 style={{ fontWeight: 'bold', color: '#0094B6' }} className="mb-3">
+      <h4
+        style={{ fontWeight: 'bold', color: '#0094B6' }}
+        className="mb-3 text-center"
+      >
         Determine 'Risk' & Hazards for Activity: {activityName || '(Untitled)'}
-      </h3>
+      </h4>
 
       {/* Hazards */}
       <h4 style={{ color: '#0094B6' }} className="mt-4 fw-bold">
@@ -661,10 +666,10 @@ const ActivityRisk: React.FC<ActivityRiskProps> = ({
         </thead>
         <tbody>
           {activityRisks.map((r) => {
-            // Because bridging doesn't store risk_id,
-            // all bridging rows just belong to the entire activity.
-            // We can't truly filter by risk. This is the old approach.
-            const relevantControls = detailedRiskControls // possibly all
+            // filter the bridging to show only the controls for this risk
+            const relevantControls = detailedRiskControls.filter(
+              (dc) => dc.risk_id === r.riskId
+            )
             return (
               <tr key={r.riskId}>
                 <td style={{ whiteSpace: 'normal', wordBreak: 'break-word' }}>
@@ -758,7 +763,6 @@ const ActivityRisk: React.FC<ActivityRiskProps> = ({
                 <option>almost certain</option>
               </Form.Select>
             </Form.Group>
-
             <Form.Group className="mb-3 flex-fill">
               <Form.Label>Consequence</Form.Label>
               <Form.Select
@@ -851,6 +855,7 @@ const ActivityRisk: React.FC<ActivityRiskProps> = ({
             wordBreak: 'break-word',
           }}
         >
+          {/* Hazards unchanged */}
           {hazardTab === 'site' ? (
             <>
               {siteHazards.map((h) => {
