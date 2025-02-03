@@ -77,7 +77,6 @@ interface OptionType {
 
 const ActivityRisk: React.FC<ActivityRiskProps> = ({
   activityId,
-  activityName,
 }) => {
   const [message, setMessage] = useState<string | null>(null)
 
@@ -544,7 +543,8 @@ const ActivityRisk: React.FC<ActivityRiskProps> = ({
         style={{ fontWeight: 'bold', color: '#0094B6' }}
         className="mb-3 text-center"
       >
-        Determine 'Risk' & Hazards for Activity: {activityName || '(Untitled)'}
+        Determine 'Risk' & Hazards for Activity
+         {/* {activityName || '(Untitled)'} */}
       </h4>
 
       {/* Hazards */}
