@@ -36,7 +36,8 @@ const Home: React.FC<HomeProps> = ({ isSidebarOpen }) => {
           position: 'absolute',
           top: 0,
           left: isSidebarOpen ? '220px' : '10px', // so overlay matches the offset
-          // width: 'calc(100% - ' + (isSidebarOpen ? '0px' : '10px') + ')',
+          width: '50%' ,
+          justifyItems: 'center',
           height: '100%',
           backgroundColor: 'rgba(0, 0, 0, 0.3)',
           pointerEvents: 'none', // so clicks pass through

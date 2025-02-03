@@ -197,9 +197,6 @@ const AddActivity: React.FC<AddActivityProps> = ({}) => {
     }))
   }
 
-  // Minimum date
-  const minDate = '2024-01-01'
-
   // =========== CREATE or UPDATE ================
   const handleSave = async () => {
     // Basic validation

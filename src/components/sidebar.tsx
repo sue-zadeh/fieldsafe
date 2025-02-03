@@ -231,21 +231,20 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, toggleSidebar }) => {
         </NavItem>
 
         {/* Report */}
-        <NavItem label="Report">
+        <div>
           <Link
             to="/report"
             style={{
-              ...dropdownLinkStyle,
-              ...(isActive('/report')
-                ? { fontWeight: 'bold', color: '#000' }
-                : {}),
+              ...navItemStyle(isActive('/report')),
+              display: 'flex',
+              alignItems: 'center',
+              textDecoration: 'none',
             }}
           >
             <FaRegChartBar style={{ marginRight: '8px' }} />
-            Report
+            {isOpen && 'Report'}
           </Link>
-        </NavItem>
-
+        </div>
         {/* All USERS */}
         <NavItem label="Organisation Profile" dropdownId="organization">
           <ul style={dropdownListStyle}>

@@ -5,7 +5,7 @@ import { pool } from './db.js'
 const router = express.Router()
 
 /**
- *  1) Create a row in "risks" table (the core risk)
+ *  Create a row in "risks" table (the core risk)
  *  POST /api/risks-create-row
  */
 router.post('/risks-create-row', async (req, res) => {
@@ -24,43 +24,48 @@ router.post('/risks-create-row', async (req, res) => {
 })
 
 /**
- *  2) Update an existing "risks" row
- *  PUT /api/risks/:riskId
- */
-// In server/activity-risk.js:
+ *  Update an existing "risks" row
+ */  
+ 
 router.put('/risks/:riskId', async (req, res) => {
   const { riskId } = req.params
-  const { title, likelihood, consequences, chosenControlIds, activity_id } =
-    req.body
+  const { title, likelihood, consequences, chosenControlIds, activity_id } = req.body
 
-  if (!title || title.trim() === '') {
+  if (!title || !title.trim()) {
     return res.status(400).json({ error: 'Title cannot be null or empty.' })
   }
 
   try {
-    // 1) Which row in "risks"?
-    const [[foundRisk]] = await pool.query(`SELECT * FROM risks WHERE id=?`, [
-      riskId,
-    ])
+    // 1) Find the associated row in `risks` to see which risk_title_id it uses
+    const [[foundRisk]] = await pool.query(
+      `SELECT * FROM risks WHERE id=?`,
+      [riskId]
+    )
     if (!foundRisk) {
-      return res.status(404).json({ error: `No such risk with id=${riskId}` })
+      return res.status(404).json({ error: `No risk row with id=${riskId}` })
     }
 
-    // 2) The real risk_title_id is:
     const realTitleId = foundRisk.risk_title_id
 
-    // If you’re concerned about isReadOnly or something, check it here:
-    // e.g. SELECT isReadOnly FROM risk_titles WHERE id=? and block if needed.
-
-    // 3) Update the risk_titles row
-    await pool.query(
-      `UPDATE risk_titles
-          SET title=?
-        WHERE id=?`,
-      [title, realTitleId]
+    // 2) Check if that risk_title is read-only
+    const [[titleRow]] = await pool.query(
+      `SELECT isReadOnly FROM risk_titles WHERE id=?`,
+      [realTitleId]
     )
+    if (!titleRow) {
+      return res.status(404).json({ error: `No risk_title row with id=${realTitleId}` })
+    }
 
-    // 4) Update the main "risks" row
+    // 3) If it's NOT read-only, we can rename the risk_title
+    if (titleRow.isReadOnly === 0) {
+      await pool.query(
+        `UPDATE risk_titles SET title=? WHERE id=?`,
+        [title.trim(), realTitleId]
+      )
+    } 
+    // else if isReadOnly=1, skip updating the `risk_titles.title`
+
+    // 4) Always update "risks" row for likelihood & consequences
     await pool.query(
       `UPDATE risks
           SET likelihood=?,
@@ -69,29 +74,30 @@ router.put('/risks/:riskId', async (req, res) => {
       [likelihood, consequences, riskId]
     )
 
-    // 5) Remove old bridging controls
+    // Remove old bridging controls for this risk in this activity
     await pool.query(
       `DELETE FROM activity_risk_controls
-        WHERE activity_id=? AND risk_id=?`,
-      [activity_id, riskId]
+        WHERE activity_id=? AND risk_control_id IN (
+          SELECT id FROM risk_controls WHERE risk_title_id=?
+        )`,
+      [activity_id, realTitleId]
     )
+    // `WHERE activity_id=? AND risk_id=?`)
 
-    // 6) Add new bridging controls
+    // Insert new bridging controls
     for (const controlId of chosenControlIds || []) {
       await pool.query(
         `INSERT INTO activity_risk_controls
-           (activity_id, risk_id, risk_control_id, is_checked)
-         VALUES (?,?,?,?)`,
-        [activity_id, riskId, controlId, 1]
+           (activity_id, risk_control_id, is_checked)
+         VALUES (?,?,?)`,
+        [activity_id, controlId, 1]
       )
     }
 
     return res.json({ message: 'Updated risk row and controls.' })
   } catch (err) {
-    console.error(err)
-    return res
-      .status(500)
-      .json({ error: 'Failed to update risk row/controls.' })
+    console.error('PUT /api/risks/:riskId error:', err)
+    return res.status(500).json({ error: 'Failed to update risk row/controls.' })
   }
 })
 
@@ -130,7 +136,7 @@ router.get('/activity_risk_controls/detailed', async (req, res) => {
 
 //===================================
 /**
- *  3) GET /api/activity_risks?activityId=...
+ *  GET /api/activity_risks?activityId=...
  *  Return bridging rows joined with "risks" + "risk_titles"
  */
 router.get('/activity_risks', async (req, res) => {
@@ -161,7 +167,7 @@ router.get('/activity_risks', async (req, res) => {
 })
 
 /**
- *  4) POST /api/activity_risks
+ *  POST /api/activity_risks
  *  Link an existing risk_id to this activity
  */
 router.post('/activity_risks', async (req, res) => {
@@ -182,7 +188,7 @@ router.post('/activity_risks', async (req, res) => {
 })
 
 /**
- *  4) Delete risk, title, and controls together
+ *  Delete risk, title, and controls together
  *  DELETE /api/activity_risks?activityId=XXX&riskId=YYY
  */
 router.delete('/activity_risks', async (req, res) => {
@@ -232,7 +238,7 @@ router.delete('/activity_risks', async (req, res) => {
 })
 
 /**
- *  7) POST /api/activity_risk_controls
+ *  POST /api/activity_risk_controls
  *  Link a risk_control to the activity
  */
 // server/activity-risk.js
@@ -262,9 +268,7 @@ router.post('/activity_risk_controls', async (req, res) => {
   }
 })
 
-// If you still have a "DELETE /api/activity_risk_controls?activityId=...&riskId=..."
-// you might do something simpler:
-
+//DEleted activity_risk_controls
 router.delete('/activity_risk_controls', async (req, res) => {
   const { activityId, riskId } = req.query
   if (!activityId || !riskId) {

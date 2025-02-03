@@ -251,7 +251,6 @@ const ActivityOutcome: React.FC<ActivityOutcomeProps> = ({ activityId }) => {
   return (
     <div>
       <div className="container-fluid px-2 py-2">
-        
         {/* Main Outcome Table (filteredObjectives) */}
         <h4 className="my-4  text-center" style={{ color: '#0094B6' }}>
           Activity Outcome

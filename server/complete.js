@@ -126,6 +126,7 @@ completeRouter.get('/:activityId', async (req, res) => {
 // POST / => completes an activity + optionally inserts an incident
 completeRouter.post('/', async (req, res) => {
   const { activityId, notes, anyIncident, incidentDetails } = req.body
+  // Convert the incoming date into MySQL-friendly format
 
   try {
     // 1) Update the activity => notes + status=Completed
@@ -135,7 +136,11 @@ completeRouter.post('/', async (req, res) => {
         WHERE id = ?`,
       [notes || '', activityId]
     )
-
+    // Convert the incoming date into MySQL-friendly format
+    const sqlDate = parseDateForMySQL(activity_date)
+    if (!sqlDate) {
+      return res.status(400).json({ message: 'Invalid or unparseable date.' })
+    }
     // 2) Grab the project_id from that activity
     const [rows] = await pool.query(
       `SELECT project_id

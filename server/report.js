@@ -1,10 +1,71 @@
-// file: routes/report.js
+// file: server/report.js
 import express from 'express'
-import { pool } from '../db.js'
+import { pool } from './db.js'
 
 const router = express.Router()
 
-// GET => /api/report/objective?projectId=..&objectiveId=..&startDate=..&endDate=..
+/**===============================================
+ * Helper to convert an incoming ISO date string
+ * (e.g. "2025-01-21T11:00:00.000Z") to "YYYY-MM-DD"
+ */
+function parseDateForMySQL(isoString) {
+  const dateObj = new Date(isoString)
+  if (isNaN(dateObj.getTime())) {
+    return null
+  }
+  const yyyy = dateObj.getUTCFullYear()
+  const mm = String(dateObj.getUTCMonth() + 1).padStart(2, '0')
+  const dd = String(dateObj.getUTCDate()).padStart(2, '0')
+  return `${yyyy}-${mm}-${dd}` // e.g. "2025-01-21"
+}
+//====================================
+
+/**
+ * (1) GET /api/report/report_outcome/:projectId
+ * Similar to "activity_outcome/:activityId" except we pass a projectId directly.
+ * Returns { projectId, objectives: [...] } shaped exactly like the old code.
+ */
+router.get('/report_outcome/:projectId', async (req, res) => {
+  const { projectId } = req.params
+  try {
+    // verify project exists:
+    const [projRows] = await pool.query(
+      'SELECT id, name FROM projects WHERE id=?',
+      [projectId]
+    )
+    if (projRows.length === 0) {
+      return res.status(404).json({ message: 'No such project.' })
+    }
+
+    // get the project objectives joined with objectives
+    const [objRows] = await pool.query(
+      `
+      SELECT 
+        po.id AS projectObjectiveId,
+        po.objective_id,
+        po.amount,
+        o.title,
+        o.measurement
+      FROM project_objectives po
+      JOIN objectives o ON po.objective_id = o.id
+      WHERE po.project_id = ?
+    `,
+      [projectId]
+    )
+
+    return res.json({ projectId, objectives: objRows })
+  } catch (err) {
+    console.error('Error loading project objectives:', err)
+    return res
+      .status(500)
+      .json({ message: 'Failed to load project objectives.' })
+  }
+})
+
+/**
+ * GET => /api/report/objective?projectId=..&objectiveId=..&startDate=..&endDate=..
+ * For generating sums from activity_objectives or activity_predator
+ */
 router.get('/objective', async (req, res) => {
   const { projectId, objectiveId, startDate, endDate } = req.query
   if (!projectId || !objectiveId || !startDate || !endDate) {
@@ -14,7 +75,7 @@ router.get('/objective', async (req, res) => {
   }
 
   try {
-    // 1) Check if the objective is "Establishing Predator Control"
+    // Check if objective is "Establishing Predator Control"
     const [objRows] = await pool.query(
       'SELECT id, title FROM objectives WHERE id=?',
       [objectiveId]
@@ -23,12 +84,12 @@ router.get('/objective', async (req, res) => {
       return res.status(404).json({ message: 'No such objective.' })
     }
     const objectiveTitle = (objRows[0].title || '').toLowerCase()
-    let isPredator = objectiveTitle.includes('predator control')
+    const isPredator = objectiveTitle.includes('predator control')
 
     let reportData = {}
 
     if (!isPredator) {
-      // Normal objective => sum from activity_objectives
+      // Sum from activity_objectives
       const [rows] = await pool.query(
         `
         SELECT SUM(ao.amount) AS total
@@ -45,10 +106,8 @@ router.get('/objective', async (req, res) => {
       const totalAmount = rows[0].total || 0
       reportData = { totalAmount }
     } else {
-      // Predator => sum from activity_predator, etc.
-      // we'll skip the full logic. we need:
-      //   sub_type = 'Traps Established', 'Traps Checked', 'Catches', etc.
-      // Summations for measurement, rats, possums, etc.
+      // Sum from activity_predator, etc.
+      // We'll just stub in zero or do the real logic
       reportData = {
         trapsEstablishedTotal: 0,
         trapsCheckedTotal: 0,

@@ -44,7 +44,7 @@ const Report: React.FC<ReportProps> = ({ isSidebarOpen }) => {
   )
 
   // For date picking
-  // If you want to prevent picking any "past" date, set them to today at minimum
+  // to prevent picking any "past" date,we should set them to today at minimum
   const [todayString] = useState(() => {
     const d = new Date()
     const yyyy = d.getFullYear()
@@ -58,7 +58,7 @@ const Report: React.FC<ReportProps> = ({ isSidebarOpen }) => {
   const [notification, setNotification] = useState<string | null>(null)
   const [reportData, setReportData] = useState<ReportRow | null>(null)
 
-  // 1) On mount => load all projects
+  // On mount => load all projects
   useEffect(() => {
     axios
       .get('/api/projects') // must match your server route
@@ -69,7 +69,7 @@ const Report: React.FC<ReportProps> = ({ isSidebarOpen }) => {
       })
   }, [])
 
-  // 2) When user picks a project => load that project’s objectives
+  // When user picks a project => load that project’s objectives
   useEffect(() => {
     if (!selectedProjectId) {
       setObjectives([])
@@ -96,7 +96,7 @@ const Report: React.FC<ReportProps> = ({ isSidebarOpen }) => {
     }
   }, [notification])
 
-  // 3) Generate the report
+  // Generate the report
   const handleGenerateReport = async () => {
     if (!selectedProjectId || !selectedObjectiveId) {
       setNotification('Please select both project and objective.')
@@ -212,7 +212,7 @@ const Report: React.FC<ReportProps> = ({ isSidebarOpen }) => {
                 <Form.Control
                   type="date"
                   value={startDate}
-                  min={todayString} // optional, if you don't want past dates
+                  // min={todayString}
                   onChange={(e) => setStartDate(e.target.value)}
                 />
               </Form.Group>
