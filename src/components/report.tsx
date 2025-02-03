@@ -9,7 +9,7 @@ interface IProject {
 }
 
 interface IObjective {
-  projectObjectiveId: number      // matching your DB
+  projectObjectiveId: number
   objective_id: number
   title: string
   measurement: string
@@ -17,9 +17,7 @@ interface IObjective {
 }
 
 interface ReportRow {
-  // For normal objectives:
   totalAmount?: number
-  // For predator objectives:
   trapsEstablishedTotal?: number
   trapsCheckedTotal?: number
   catchesBreakdown?: {
@@ -37,21 +35,33 @@ interface ReportProps {
 
 const Report: React.FC<ReportProps> = ({ isSidebarOpen }) => {
   const [projects, setProjects] = useState<IProject[]>([])
-  const [selectedProjectId, setSelectedProjectId] = useState<number | null>(null)
+  const [selectedProjectId, setSelectedProjectId] = useState<number | null>(
+    null
+  )
   const [objectives, setObjectives] = useState<IObjective[]>([])
   const [selectedObjectiveId, setSelectedObjectiveId] = useState<number | null>(
     null
   )
+
+  // For date picking
+  // If you want to prevent picking any "past" date, set them to today at minimum
+  const [todayString] = useState(() => {
+    const d = new Date()
+    const yyyy = d.getFullYear()
+    const mm = String(d.getMonth() + 1).padStart(2, '0')
+    const dd = String(d.getDate()).padStart(2, '0')
+    return `${yyyy}-${mm}-${dd}` // e.g. "2025-09-04"
+  })
 
   const [startDate, setStartDate] = useState('')
   const [endDate, setEndDate] = useState('')
   const [notification, setNotification] = useState<string | null>(null)
   const [reportData, setReportData] = useState<ReportRow | null>(null)
 
-  // 1) On mount, load all Projects
+  // 1) On mount => load all projects
   useEffect(() => {
     axios
-      .get('/api/projects') // or your existing route that returns all projects
+      .get('/api/projects') // must match your server route
       .then((res) => setProjects(res.data))
       .catch((err) => {
         console.error('Error loading projects:', err)
@@ -59,17 +69,17 @@ const Report: React.FC<ReportProps> = ({ isSidebarOpen }) => {
       })
   }, [])
 
-  // 2) When user picks a project => load that project’s “project_objectives”
+  // 2) When user picks a project => load that project’s objectives
   useEffect(() => {
     if (!selectedProjectId) {
       setObjectives([])
       setSelectedObjectiveId(null)
       return
     }
+
     axios
       .get<IObjective[]>(`/api/projects/${selectedProjectId}/objectives`)
       .then((res) => {
-        // This should return rows from project_objectives joined with objectives
         setObjectives(res.data || [])
       })
       .catch((err) => {
@@ -86,6 +96,7 @@ const Report: React.FC<ReportProps> = ({ isSidebarOpen }) => {
     }
   }, [notification])
 
+  // 3) Generate the report
   const handleGenerateReport = async () => {
     if (!selectedProjectId || !selectedObjectiveId) {
       setNotification('Please select both project and objective.')
@@ -145,7 +156,7 @@ const Report: React.FC<ReportProps> = ({ isSidebarOpen }) => {
       <div className="d-flex justify-content-center mb-3">
         <div
           className="card p-3 shadow"
-          style={{ width: '480px', backgroundColor: '#F4F7F1' }} // Off-White
+          style={{ width: '480px', backgroundColor: '#F4F7F1' }}
         >
           <h5 className="mb-3" style={{ color: '#0094B6' }}>
             Filters
@@ -171,6 +182,7 @@ const Report: React.FC<ReportProps> = ({ isSidebarOpen }) => {
                 </Form.Select>
               </Form.Group>
             </Col>
+
             <Col sm={6}>
               <Form.Group>
                 <Form.Label>Objective</Form.Label>
@@ -200,6 +212,7 @@ const Report: React.FC<ReportProps> = ({ isSidebarOpen }) => {
                 <Form.Control
                   type="date"
                   value={startDate}
+                  min={todayString} // optional, if you don't want past dates
                   onChange={(e) => setStartDate(e.target.value)}
                 />
               </Form.Group>
@@ -210,6 +223,7 @@ const Report: React.FC<ReportProps> = ({ isSidebarOpen }) => {
                 <Form.Control
                   type="date"
                   value={endDate}
+                  min={startDate} // ensures user can't pick < start date
                   onChange={(e) => setEndDate(e.target.value)}
                 />
               </Form.Group>
@@ -219,7 +233,11 @@ const Report: React.FC<ReportProps> = ({ isSidebarOpen }) => {
           <div className="mt-3 text-end">
             <Button
               onClick={handleGenerateReport}
-              style={{ backgroundColor: '#76D6E2', color: '#1A1A1A', border: 'none' }}
+              style={{
+                backgroundColor: '#76D6E2',
+                color: '#1A1A1A',
+                border: 'none',
+              }}
             >
               Generate Report
             </Button>

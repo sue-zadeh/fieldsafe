@@ -1,23 +1,8 @@
+// file: routes/report.js
 import express from 'express'
-import { pool } from './db.js'
+import { pool } from '../db.js'
 
 const router = express.Router()
-
-/**===============================================
- * Helper to convert an incoming ISO date string
- * (e.g. "2025-01-21T11:00:00.000Z") to "YYYY-MM-DD"
- */
-function parseDateForMySQL(isoString) {
-  const dateObj = new Date(isoString)
-  if (isNaN(dateObj.getTime())) {
-    return null
-  }
-  const yyyy = dateObj.getUTCFullYear()
-  const mm = String(dateObj.getUTCMonth() + 1).padStart(2, '0')
-  const dd = String(dateObj.getUTCDate()).padStart(2, '0')
-  return `${yyyy}-${mm}-${dd}` // e.g. "2025-01-21"
-}
-//====================================
 
 // GET => /api/report/objective?projectId=..&objectiveId=..&startDate=..&endDate=..
 router.get('/objective', async (req, res) => {
@@ -61,7 +46,9 @@ router.get('/objective', async (req, res) => {
       reportData = { totalAmount }
     } else {
       // Predator => sum from activity_predator, etc.
-      // ...
+      // we'll skip the full logic. we need:
+      //   sub_type = 'Traps Established', 'Traps Checked', 'Catches', etc.
+      // Summations for measurement, rats, possums, etc.
       reportData = {
         trapsEstablishedTotal: 0,
         trapsCheckedTotal: 0,

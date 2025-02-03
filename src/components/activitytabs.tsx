@@ -14,7 +14,7 @@ import ActivityComplete from './activitycomplete'
 
 /** We no longer accept isSidebarOpen, nor do we keep projectId. */
 interface ActivityTabsProps {
-  activityName: string
+  activityName?: string
   isSidebarOpen: boolean
 }
 
