@@ -679,12 +679,19 @@ const ActivityRisk: React.FC<ActivityRiskProps> = ({
                   {r.risk_title_label}
                 </td>
                 <td>
-                  {relevantControls.map((c, idx) => (
-                    <React.Fragment key={idx}>
-                      {c.control_text}
-                      <br />
-                    </React.Fragment>
-                  ))}
+                  <ul style={{ marginBottom: 0, paddingLeft: '20px' }}>
+                    {relevantControls.map((c, idx) => (
+                      <React.Fragment key={idx}>
+                        <li
+                          key={idx}
+                          style={{ listStyleType: 'disc', marginBottom: '4px' }}
+                        >
+                          {c.control_text}
+                        </li>
+                        {/* <br /> */}
+                      </React.Fragment>
+                    ))}
+                  </ul>
                 </td>
                 <td>{r.likelihood}</td>
                 <td>{r.consequences}</td>
@@ -783,7 +790,7 @@ const ActivityRisk: React.FC<ActivityRiskProps> = ({
           </div>
 
           <Form.Group className="mb-3">
-            <Form.Label>Risk Rating</Form.Label>
+            <Form.Label>Risk Rating (auto-filled)</Form.Label>
             <Form.Control type="text" readOnly value={localRiskRating} />
           </Form.Group>
 

@@ -5,7 +5,7 @@ import {
   FaUsers,
   FaTasks,
   FaUserCog,
-  // FaBullseye,
+  FaRegChartBar,
 } from 'react-icons/fa'
 import { MdGroups, MdVolunteerActivism, MdLocalActivity } from 'react-icons/md'
 import {
@@ -228,6 +228,22 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, toggleSidebar }) => {
               </Link>
             </li>
           </ul>
+        </NavItem>
+
+        {/* Report */}
+        <NavItem label="Report">
+          <Link
+            to="/report"
+            style={{
+              ...dropdownLinkStyle,
+              ...(isActive('/report')
+                ? { fontWeight: 'bold', color: '#000' }
+                : {}),
+            }}
+          >
+            <FaRegChartBar style={{ marginRight: '8px' }} />
+            Report
+          </Link>
         </NavItem>
 
         {/* All USERS */}

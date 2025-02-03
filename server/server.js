@@ -156,12 +156,18 @@ app.post('/api/forgot-password', async (req, res) => {
     ])
 
     if (rows.length === 0) {
+      console.log('→ Email not found in staffs') // for debugging
+
       return res.status(404).json({ message: 'Email not found' })
     }
 
     const user = rows[0]
+    console.log('→ Found user:', user) // for debugging
+
     // Generate random new password
     const newPassword = Math.random().toString(36).substring(2, 10)
+    console.log('→ newPassword to hash:', newPassword) // for debugging
+
     const hashedPassword = await bcrypt.hash(newPassword, 10)
 
     await pool.query('UPDATE staffs SET password = ? WHERE id = ?', [

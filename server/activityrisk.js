@@ -27,49 +27,74 @@ router.post('/risks-create-row', async (req, res) => {
  *  2) Update an existing "risks" row
  *  PUT /api/risks/:riskId
  */
+// In server/activity-risk.js:
 router.put('/risks/:riskId', async (req, res) => {
   const { riskId } = req.params
   const { title, likelihood, consequences, chosenControlIds, activity_id } =
     req.body
 
   if (!title || title.trim() === '') {
-    return res.status(400).json({ error: 'Title cannot be null or empty.' }) // Moved inside the handler
+    return res.status(400).json({ error: 'Title cannot be null or empty.' })
   }
 
   try {
-    // Update risk title
-    await pool.query(`UPDATE risk_titles SET title=? WHERE id=?`, [
-      title,
+    // 1) Which row in "risks"?
+    const [[foundRisk]] = await pool.query(`SELECT * FROM risks WHERE id=?`, [
       riskId,
     ])
+    if (!foundRisk) {
+      return res.status(404).json({ error: `No such risk with id=${riskId}` })
+    }
 
-    // Update risk details
+    // 2) The real risk_title_id is:
+    const realTitleId = foundRisk.risk_title_id
+
+    // If you’re concerned about isReadOnly or something, check it here:
+    // e.g. SELECT isReadOnly FROM risk_titles WHERE id=? and block if needed.
+
+    // 3) Update the risk_titles row
     await pool.query(
-      `UPDATE risks SET likelihood=?, consequences=? WHERE id=?`,
+      `UPDATE risk_titles
+          SET title=?
+        WHERE id=?`,
+      [title, realTitleId]
+    )
+
+    // 4) Update the main "risks" row
+    await pool.query(
+      `UPDATE risks
+          SET likelihood=?,
+              consequences=?
+        WHERE id=?`,
       [likelihood, consequences, riskId]
     )
 
-    // Remove old controls
+    // 5) Remove old bridging controls
     await pool.query(
-      `DELETE FROM activity_risk_controls WHERE activity_id=? AND risk_id=?`,
+      `DELETE FROM activity_risk_controls
+        WHERE activity_id=? AND risk_id=?`,
       [activity_id, riskId]
     )
 
-    // Add new controls
-    for (const controlId of chosenControlIds) {
+    // 6) Add new bridging controls
+    for (const controlId of chosenControlIds || []) {
       await pool.query(
-        `INSERT INTO activity_risk_controls (activity_id, risk_control_id, is_checked)
-         VALUES (?,?,?)`,
-        [activity_id, controlId, 1]
+        `INSERT INTO activity_risk_controls
+           (activity_id, risk_id, risk_control_id, is_checked)
+         VALUES (?,?,?,?)`,
+        [activity_id, riskId, controlId, 1]
       )
     }
 
-    res.json({ message: 'Updated risk row and controls.' })
+    return res.json({ message: 'Updated risk row and controls.' })
   } catch (err) {
     console.error(err)
-    res.status(500).json({ error: 'Failed to update risk row and controls.' })
+    return res
+      .status(500)
+      .json({ error: 'Failed to update risk row/controls.' })
   }
 })
+
 //======================================
 
 // server/activity-risk.js

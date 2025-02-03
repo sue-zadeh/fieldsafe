@@ -5,6 +5,7 @@ import 'bootstrap/dist/css/bootstrap.min.css'
 interface ActivityCompleteProps {
   activityId: number // from parent (ActivityTabs)
   activityName?: string
+  projectName?: string
 }
 
 const ActivityComplete: React.FC<ActivityCompleteProps> = ({
@@ -64,7 +65,7 @@ const ActivityComplete: React.FC<ActivityCompleteProps> = ({
   const [showEmailModal, setShowEmailModal] = useState(false)
   const [recipientEmail, setRecipientEmail] = useState('')
   // let user enter a recipientName to greet them in the email
-  const [recipientName, setRecipientName] = useState('')
+  const [recipientName] = useState('')
 
   //  isLoading: indicates we’re in the middle of sending
   const [isLoading, setIsLoading] = useState<boolean>(false)
@@ -216,10 +217,12 @@ const ActivityComplete: React.FC<ActivityCompleteProps> = ({
     try {
       // Build a incident data:
       const incidentSummary = `
-       Hi ${recipientName || 'there'},
-        
-        Here is the incident report:
-        -----------------------------------
+      Activity Name: ${activityName}
+      
+      Hi ${recipientName || 'there'},
+      
+      Here is the incident report:
+      -----------------------------------
      Incident ID: ${activityId}
      Type of Incident: ${typeOfIncident}
      Medical Treatment: ${medicalTreatmentObtained}
@@ -710,7 +713,7 @@ const ActivityComplete: React.FC<ActivityCompleteProps> = ({
                   <input
                     className="form-control"
                     type="date"
-                    value={committeeMeetingDate}
+                    value={committeeMeetingDate || ''}
                     onChange={(e) =>
                       handleDateChange(e, setCommitteeMeetingDate)
                     }
@@ -747,7 +750,7 @@ const ActivityComplete: React.FC<ActivityCompleteProps> = ({
                   <input
                     className="form-control"
                     type="date"
-                    value={chairpersonSignatureDate}
+                    value={chairpersonSignatureDate || ''}
                     onChange={(e) =>
                       handleDateChange(e, setChairpersonSignatureDate)
                     }

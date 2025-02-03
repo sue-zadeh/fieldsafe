@@ -1,14 +1,13 @@
 import React, { useEffect } from 'react'
-import Welcompage from '../assets/welcompage2.jpg'
 import AOS from 'aos'
 import 'aos/dist/aos.css'
+import Welcompage from '../assets/welcompage2.jpg'
 
 interface HomeProps {
   isSidebarOpen: boolean
 }
 
 const Home: React.FC<HomeProps> = ({ isSidebarOpen }) => {
-  // Initialize AOS once
   useEffect(() => {
     AOS.init({ duration: 1200 })
   }, [])
@@ -19,57 +18,58 @@ const Home: React.FC<HomeProps> = ({ isSidebarOpen }) => {
         isSidebarOpen ? 'content-expanded' : 'content-collapsed'
       }`}
       style={{
-        position: 'relative',
         marginLeft: isSidebarOpen ? '220px' : '50px',
         transition: 'margin 0.3s ease',
-        height: '100vh',
-        // marginRight: '2rem',
+        padding: 0,
+        // Make sure our container can fill the viewport
+        minHeight: '100vh',
         width: '100%',
-        // overflow: 'hidden',
-        padding: 0, // remove extra padding
+        // Next 3 lines: the full-page background
+        backgroundImage: `url(${Welcompage})`,
+        backgroundSize: 'cover',
+        backgroundPosition: 'center',
       }}
     >
-      {/* Background container with an overlay */}
+      {/* Overlay to darken the background for readability */}
       <div
-        data-aos="fade-down"
         style={{
-          position: 'fixed',
-          width: '90%',
-          height: '95%',
-          marginRight: '2rem',
-          backgroundImage: `url(${Welcompage})`,
-          backgroundSize: 'cover',
-          backgroundPosition: 'center',
-          backgroundRepeat: 'no-repeat',
-          borderBottom: '5px solid darkred',
+          position: 'absolute',
+          top: 0,
+          left: isSidebarOpen ? '220px' : '10px', // so overlay matches the offset
+          // width: 'calc(100% - ' + (isSidebarOpen ? '0px' : '10px') + ')',
+          height: '100%',
+          backgroundColor: 'rgba(0, 0, 0, 0.3)',
+          pointerEvents: 'none', // so clicks pass through
+          transition: 'left 0.3s ease',
+        }}
+      ></div>
+
+      {/* Content container: center everything */}
+      <div
+        className="d-flex flex-column align-items-center justify-content-center"
+        style={{
+          position: 'relative',
+          zIndex: 2, // above the overlay
+          width: '100%',
+          minHeight: '100vh',
+          textAlign: 'center',
+          color: '#fff',
         }}
       >
-        {/* Dark overlay for readability */}
-        <div
-          style={{
-            position: 'absolute',
-            top: 0,
-            right: 0,
-            bottom: 0,
-            left: 0,
-            backgroundColor: 'rgba(0, 0, 0, 0.3)',
-            zIndex: 1,
-          }}
-        />
-      </div>
-
-      {/* Centered text with AOS animations */}
-      <div
-        className="container-fluid position-fixed position-absolute top-50 start-50 translate-middle text-center text-light"
-        style={{ zIndex: 1 }} // above the overlay
-      >
         <h1
-          style={{ fontSize: '4rem', textAlign: 'center' }}
           data-aos="fade-down-right"
+          style={{
+            fontSize: 'clamp(2rem, 6vw, 4rem)',
+            marginBottom: '1rem',
+            fontWeight: 'bold',
+          }}
         >
           Welcome
         </h1>
-        <h2 className=" fw-bold" data-aos="fade-up">
+        <h2
+          data-aos="fade-up"
+          style={{ fontSize: 'clamp(1.5rem, 4vw, 2.5rem)' }}
+        >
           Nau mai, Haere mai
         </h2>
       </div>

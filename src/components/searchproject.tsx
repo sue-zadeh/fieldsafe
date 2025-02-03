@@ -98,8 +98,11 @@ const SearchProject: React.FC<SearchProjectProps> = ({ isSidebarOpen }) => {
   }
 
   // Simple date format
-  function formatDateNoShift(dateString: string): string {
-    const [year, month, day] = dateString.split('-')
+  function formatDate(isoString: string) {
+    if (!isoString) return ''
+    const d = new Date(isoString)
+    if (isNaN(d.getTime())) return isoString
+    const day = String(d.getDate()).padStart(2, '0')
     const monthNames = [
       'January',
       'February',
@@ -114,13 +117,10 @@ const SearchProject: React.FC<SearchProjectProps> = ({ isSidebarOpen }) => {
       'November',
       'December',
     ]
-    const monthIndex = parseInt(month, 10) - 1
-    return `${monthNames[monthIndex]} ${parseInt(day, 10)}, ${year}`
+    const monthName = monthNames[d.getMonth()]
+    const year = d.getFullYear()
+    return `${day}-${monthName}-${year}`
   }
-  const formatDate = (dateString: string): string => {
-    return formatDateNoShift(dateString)
-  }
-
   return (
     <div
       className={`container-fluid ${

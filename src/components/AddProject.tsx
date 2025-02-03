@@ -775,7 +775,7 @@ const AddProject: React.FC<AddProjectProps> = ({ isSidebarOpen }) => {
                     controlId="localMedicalCenterAddress"
                   >
                     <Form.Label>
-                      Local Medical Center <br />
+                      Local Medical Center * <br />
                       (Address)
                     </Form.Label>
                     <Form.Control
@@ -795,7 +795,7 @@ const AddProject: React.FC<AddProjectProps> = ({ isSidebarOpen }) => {
                   >
                     <Form.Label>
                       Local Medical Center <br />
-                      (Phone)
+                      (Phone) *
                     </Form.Label>
                     <Form.Control
                       required

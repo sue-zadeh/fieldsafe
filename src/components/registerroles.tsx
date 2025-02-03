@@ -150,9 +150,19 @@ const RegisterRoles: React.FC<RegisterroleProps> = ({ isSidebarOpen }) => {
       await axios.post('/api/send-email', {
         email: formData.email,
         subject: 'Welcome to FieldSafe!',
-        message: `Dear ${formData.firstname} ${formData.lastname},\n\nYou are now registered as a ${formData.role} for your organisation’s FieldSafe App use.\nWe welcome your feedback on its use.\nYour login email is: ${formData.email}.\nPlease click on forgot password on login page and enter your email. Your password will be emailed to you in a separate email.\n\n\nBest regards,\nFieldSafe Team`,
-
-        // Add login button here in green colour
+        message: `
+        Dear ${formData.firstname} ${formData.lastname},
+        
+        You are now registered as a ${formData.role} in the FieldSafe App.
+        Your login email: ${formData.email}
+        Your password: ${formData.password}
+        
+        Please keep this password secure. 
+        If you wish to change it, use the "Forgot Password" link to get a reset.
+        
+        Best regards,
+        FieldSafe Team
+                `,
       })
     } catch (error) {
       console.error('Error sending email:', error)
@@ -321,6 +331,7 @@ const RegisterRoles: React.FC<RegisterroleProps> = ({ isSidebarOpen }) => {
                     type="email"
                     name="email"
                     value={formData.email}
+                    autoComplete="new-email"
                     onChange={(e) =>
                       handleInputChange(
                         e as React.ChangeEvent<HTMLInputElement>
@@ -382,6 +393,7 @@ const RegisterRoles: React.FC<RegisterroleProps> = ({ isSidebarOpen }) => {
                           type={showPassword ? 'text' : 'password'}
                           name="password"
                           value={formData.password}
+                          autoComplete="new-password"
                           onChange={(e) =>
                             handleInputChange(
                               e as React.ChangeEvent<HTMLInputElement>

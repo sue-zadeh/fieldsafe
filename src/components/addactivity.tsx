@@ -319,7 +319,8 @@ const AddActivity: React.FC<AddActivityProps> = ({}) => {
   const handleModalGoList = () => {
     navigate('/searchactivity')
   }
-
+  //====================================================
+  //////// Render
   return (
     <div className="m-4 shadow">
       <Modal show={showModal} onHide={handleModalCancel}>

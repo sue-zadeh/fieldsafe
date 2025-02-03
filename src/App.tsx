@@ -21,6 +21,7 @@ import AddHazard from './components/addhazard'
 import SearchActivity from './components/searchactivity'
 import Report from './components/report'
 import ActivityWizard from './components/activitytabs'
+// import ParentLayout from './components/parentlayout'
 
 const GOOGLE_MAPS_API_KEY = import.meta.env.VITE_GOOGLE_MAPS_API_KEY || ''
 
@@ -272,7 +273,6 @@ const App: React.FC = () => {
                     path="/Addobjective"
                     element={<AddObjective isSidebarOpen={isSidebarOpen} />}
                   />
-
                   <Route
                     path="/SearchProject"
                     element={<SearchProject isSidebarOpen={isSidebarOpen} />}
@@ -289,7 +289,6 @@ const App: React.FC = () => {
                     path="/activity-notes"
                     element={<ActivityWizard isSidebarOpen={true} />}
                   />
-
                   <Route
                     path="/searchactivity"
                     element={<SearchActivity isSidebarOpen={isSidebarOpen} />}
@@ -298,6 +297,11 @@ const App: React.FC = () => {
                     path="/report"
                     element={<Report isSidebarOpen={isSidebarOpen} />}
                   />
+                  {/* ParentLayout
+                  <Route
+                    path="/parentLayout"
+                    element={<ParentLayout isSidebarOpen={isSidebarOpen} />}
+                  /> */}
                 </Routes>
               </LoadScript>
             </div>
