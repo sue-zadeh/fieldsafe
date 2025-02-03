@@ -317,7 +317,7 @@ const ActivityTabs: React.FC<ActivityTabsProps> = ({ isSidebarOpen }) => {
   }
 
   return (
-    <div
+<div
       className={`container-fluid ${
         isSidebarOpen ? 'content-expanded' : 'content-collapsed'
       }`}
@@ -326,11 +326,9 @@ const ActivityTabs: React.FC<ActivityTabsProps> = ({ isSidebarOpen }) => {
         transition: 'margin 0.3s ease',
         paddingTop: '2rem',
         minHeight: '100vh',
-        width: '100%',
       }}
     >
       {renderStepNav()}
-
       <div className="p-3 border rounded bg-white mx-2">
         {renderStepContent()}
       </div>
@@ -339,7 +337,7 @@ const ActivityTabs: React.FC<ActivityTabsProps> = ({ isSidebarOpen }) => {
         {currentStep > 0 && (
           <Button
             className="px-4 me-3"
-            style={{ backgroundColor: '#0094B6', border: 'none' }}
+            style={{ backgroundColor: '#0094B6' }}
             onClick={handleBack}
           >
             &laquo; Back
@@ -348,7 +346,7 @@ const ActivityTabs: React.FC<ActivityTabsProps> = ({ isSidebarOpen }) => {
         {currentStep < steps.length - 1 && (
           <Button
             className="px-4"
-            style={{ backgroundColor: '#0094B6', border: 'none' }}
+            style={{ backgroundColor: '#0094B6' }}
             onClick={handleNext}
           >
             Next &raquo;

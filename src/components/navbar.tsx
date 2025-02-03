@@ -1,6 +1,12 @@
 import React, { useState } from 'react'
 import { Link, useLocation } from 'react-router-dom'
-import { FaUserPlus, FaUsers, FaUserCog, FaTasks } from 'react-icons/fa'
+import {
+  FaUserPlus,
+  FaUsers,
+  FaUserCog,
+  FaTasks,
+  FaRegChartBar,
+} from 'react-icons/fa'
 import { MdGroups, MdVolunteerActivism, MdLocalActivity } from 'react-icons/md'
 import {
   BsCalendar2Plus,
@@ -194,21 +200,22 @@ const Navbar: React.FC<NavbarProps> = ({
             </li>
 
             {/* Report */}
-            <ul>
-              <li>
-                <Link
-                  to="/report"
-                  className="dropdown-item"
-                  style={{
-                    fontWeight: isActive('/report') ? 'bold' : 'normal',
-                  }}
-                  onClick={handleLinkClick}
-                >
-                  <MdLocalActivity style={{ marginRight: '5px' }} />
-                  Report
-                </Link>
-              </li>
-            </ul>
+
+            <li className="nav-item px-3">
+              <Link
+                to="/report"
+                style={{
+                  color: '#1A1A1A'}}
+                className={`nav-link d-flex align-items-center ${
+                  isActive('/report') ? 'fw-bold' : ''
+                }`}
+                onClick={handleLinkClick}
+              >
+                <FaRegChartBar style={{ marginRight: '5px' }} />
+                Report
+              </Link>
+            </li>
+
             {/* Organization Profile */}
             <li className="nav-item dropdown px-3">
               <a

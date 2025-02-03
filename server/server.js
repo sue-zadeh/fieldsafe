@@ -151,9 +151,10 @@ app.post('/api/forgot-password', async (req, res) => {
   }
 
   try {
-    const [rows] = await pool.query('SELECT * FROM login WHERE username = ?', [
+    const [rows] = await pool.query('SELECT * FROM staffs WHERE email = ?', [
       email,
     ])
+
     if (rows.length === 0) {
       return res.status(404).json({ message: 'Email not found' })
     }
@@ -163,7 +164,7 @@ app.post('/api/forgot-password', async (req, res) => {
     const newPassword = Math.random().toString(36).substring(2, 10)
     const hashedPassword = await bcrypt.hash(newPassword, 10)
 
-    await pool.query('UPDATE login SET password = ? WHERE id = ?', [
+    await pool.query('UPDATE staffs SET password = ? WHERE id = ?', [
       hashedPassword,
       user.id,
     ])

@@ -395,3 +395,17 @@ CREATE TABLE IF NOT EXISTS activity_incident_reports (
 
   created_at DATETIME DEFAULT CURRENT_TIMESTAMP
 );
+
+/*reports Table*/
+CREATE TABLE IF NOT EXISTS reports (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  project_id INT NOT NULL,
+  objective_id INT NOT NULL,
+  startDate DATE NOT NULL,
+  endDate DATE NOT NULL,
+  --  store summary JSON in a text field:
+  summary_json TEXT,
+  created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY (project_id) REFERENCES projects(id),
+  FOREIGN KEY (objective_id) REFERENCES objectives(id)
+);

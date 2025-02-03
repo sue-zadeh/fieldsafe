@@ -54,7 +54,7 @@ interface RiskRow {
 interface DetailedRiskControl {
   activityRiskControlId: number
   activity_id: number
-  risk_id: number            // We do want to store which risk this control belongs to
+  risk_id: number // We do want to store which risk this control belongs to
   risk_control_id: number
   control_text: string
   is_checked: boolean
@@ -143,7 +143,9 @@ const ActivityRisk: React.FC<ActivityRiskProps> = ({
   // 2) activity_risks bridging
   async function loadActivityRisks() {
     try {
-      const res = await axios.get(`/api/activity_risks?activityId=${activityId}`)
+      const res = await axios.get(
+        `/api/activity_risks?activityId=${activityId}`
+      )
       setActivityRisks(res.data)
     } catch (err) {
       console.error(err)
@@ -526,6 +528,7 @@ const ActivityRisk: React.FC<ActivityRiskProps> = ({
     const found = activityRisks.find((r) => r.risk_title_label === option.label)
     return !!found
   }
+  //===================================================
 
   return (
     <div>
