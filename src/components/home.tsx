@@ -14,33 +14,22 @@ const Home: React.FC<HomeProps> = ({ isSidebarOpen }) => {
 
   return (
     <div
-      className={`container-fluid ${
-        isSidebarOpen ? 'content-expanded' : 'content-collapsed'
-      }`}
+      className="container-fluid p-0 pt-5 "
       style={{
-        // Push content to the right if sidebar is open
         marginLeft: isSidebarOpen ? '220px' : '20px',
-
-        // Push content down so it appears *below* the navbar
-        // Your navbar is typically ~56px tall, so 5rem is a safe offset
-        paddingTop: '5rem',
-
-        minHeight: '100vh',
+        paddingTop: 'rem',
+        paddingBottom: 0,
         transition: 'margin 0.3s ease',
-
-        // Set the background to your welcome image:
         backgroundImage: `url(${Welcompage})`,
         backgroundSize: 'cover',
         backgroundPosition: 'center',
         backgroundRepeat: 'no-repeat',
       }}
     >
-      {/* Center content with flexbox */}
       <div
         className="d-flex justify-content-center align-items-center"
-        style={{ height: '80vh' }}
+        style={{ minHeight: '85vh' }}
       >
-        {/* A card in the middle */}
         <div
           className="shadow"
           style={{
