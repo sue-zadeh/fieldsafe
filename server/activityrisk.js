@@ -1,4 +1,3 @@
-// server/activity-risk.js
 import express from 'express'
 import { pool } from './db.js'
 
@@ -25,56 +24,45 @@ router.post('/risks-create-row', async (req, res) => {
 
 /**
  *  Update an existing "risks" row
- */  
- 
+ */
 router.put('/risks/:riskId', async (req, res) => {
   const { riskId } = req.params
-  const { title, likelihood, consequences, chosenControlIds, activity_id } = req.body
-
-  if (!title || !title.trim()) {
-    return res.status(400).json({ error: 'Title cannot be null or empty.' })
-  }
+  const { likelihood, consequences, chosenControlIds, activity_id } = req.body
+  // "title" is optional, but we only use it if read-only=0
 
   try {
-    // 1) Find the associated row in `risks` to see which risk_title_id it uses
-    const [[foundRisk]] = await pool.query(
-      `SELECT * FROM risks WHERE id=?`,
-      [riskId]
-    )
+    // Find the row in `risks` so we know which risk_title_id it belongs to
+    const [[foundRisk]] = await pool.query(`SELECT * FROM risks WHERE id=?`, [
+      riskId,
+    ])
     if (!foundRisk) {
-      return res.status(404).json({ error: `No risk row with id=${riskId}` })
+      return res.status(404).json({ error: `No such risk #${riskId}` })
     }
-
     const realTitleId = foundRisk.risk_title_id
 
-    // 2) Check if that risk_title is read-only
-    const [[titleRow]] = await pool.query(
-      `SELECT isReadOnly FROM risk_titles WHERE id=?`,
-      [realTitleId]
-    )
-    if (!titleRow) {
-      return res.status(404).json({ error: `No risk_title row with id=${realTitleId}` })
-    }
-
-    // 3) If it's NOT read-only, we can rename the risk_title
-    if (titleRow.isReadOnly === 0) {
-      await pool.query(
-        `UPDATE risk_titles SET title=? WHERE id=?`,
-        [title.trim(), realTitleId]
-      )
-    } 
-    // else if isReadOnly=1, skip updating the `risk_titles.title`
-
-    // 4) Always update "risks" row for likelihood & consequences
+    // Update the "risks" table for rating
     await pool.query(
-      `UPDATE risks
-          SET likelihood=?,
-              consequences=?
-        WHERE id=?`,
+      `UPDATE risks SET likelihood=?, consequences=? WHERE id=?`,
       [likelihood, consequences, riskId]
     )
 
-    // Remove old bridging controls for this risk in this activity
+    //  Optionally see if the user provided a "title" and it's not read-only
+    if (req.body.title) {
+      // See if isReadOnly=0
+      const [[titleRow]] = await pool.query(
+        `SELECT isReadOnly FROM risk_titles WHERE id=?`,
+        [realTitleId]
+      )
+      if (titleRow && titleRow.isReadOnly === 0) {
+        await pool.query(`UPDATE risk_titles SET title=? WHERE id=?`, [
+          req.body.title,
+          realTitleId,
+        ])
+      }
+      // else skip renaming if isReadOnly=1
+    }
+
+    // Remove old bridging in `activity_risk_controls` for this risk
     await pool.query(
       `DELETE FROM activity_risk_controls
         WHERE activity_id=? AND risk_control_id IN (
@@ -82,22 +70,25 @@ router.put('/risks/:riskId', async (req, res) => {
         )`,
       [activity_id, realTitleId]
     )
-    // `WHERE activity_id=? AND risk_id=?`)
+    // This or a direct "WHERE risk_id=?" approach,
+    // depends on your bridging schema.
 
-    // Insert new bridging controls
-    for (const controlId of chosenControlIds || []) {
+    //  Insert the newly chosen controls
+    for (const cid of chosenControlIds || []) {
       await pool.query(
         `INSERT INTO activity_risk_controls
            (activity_id, risk_control_id, is_checked)
-         VALUES (?,?,?)`,
-        [activity_id, controlId, 1]
+         VALUES (?,?,1)`,
+        [activity_id, cid]
       )
     }
 
-    return res.json({ message: 'Updated risk row and controls.' })
+    return res.json({
+      message: 'Risk updated (rating + bridging) successfully.',
+    })
   } catch (err) {
-    console.error('PUT /api/risks/:riskId error:', err)
-    return res.status(500).json({ error: 'Failed to update risk row/controls.' })
+    console.error(err)
+    return res.status(500).json({ error: 'Failed to update risk.' })
   }
 })
 

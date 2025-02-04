@@ -75,9 +75,7 @@ interface OptionType {
   label: string
 }
 
-const ActivityRisk: React.FC<ActivityRiskProps> = ({
-  activityId,
-}) => {
+const ActivityRisk: React.FC<ActivityRiskProps> = ({ activityId }) => {
   const [message, setMessage] = useState<string | null>(null)
 
   // ---------- RISK DATA ----------
@@ -528,6 +526,7 @@ const ActivityRisk: React.FC<ActivityRiskProps> = ({
     return !!found
   }
   //===================================================
+  //// Render
 
   return (
     <div>
@@ -544,7 +543,7 @@ const ActivityRisk: React.FC<ActivityRiskProps> = ({
         className="mb-3 text-center"
       >
         Determine 'Risk' & Hazards for Activity
-         {/* {activityName || '(Untitled)'} */}
+        {/* {activityName || '(Untitled)'} */}
       </h4>
 
       {/* Hazards */}
@@ -587,6 +586,7 @@ const ActivityRisk: React.FC<ActivityRiskProps> = ({
                   <td>
                     <ButtonGroup>
                       <Button
+                        style={{ backgroundColor: '#D37B49', color: 'white' }}
                         variant="danger"
                         size="sm"
                         onClick={() => handleRemoveSiteHazard(h)}
@@ -628,6 +628,7 @@ const ActivityRisk: React.FC<ActivityRiskProps> = ({
                   <td>
                     <ButtonGroup>
                       <Button
+                        style={{ backgroundColor: '#D37B49', color: 'white' }}
                         variant="danger"
                         size="sm"
                         onClick={() => handleRemoveActivityHazard(h)}
@@ -698,14 +699,18 @@ const ActivityRisk: React.FC<ActivityRiskProps> = ({
                 <td>{r.risk_rating}</td>
                 <td>
                   <ButtonGroup>
-                    <Button
+                    {/* <Button
+                                              style={{ backgroundColor: '#0094b6',
+                                                color: 'white' }}
+                    
                       variant="warning"
                       size="sm"
                       onClick={() => openEditRiskModal(r)}
                     >
                       Edit
-                    </Button>
+                    </Button> */}
                     <Button
+                      style={{ backgroundColor: '#D37B49', color: 'white' }}
                       variant="danger"
                       size="sm"
                       onClick={() => handleRemoveRisk(r)}

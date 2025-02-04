@@ -256,9 +256,12 @@ const ActivityComplete: React.FC<ActivityCompleteProps> = ({
   // ----------------------------------------------------------------------
   return (
     <div>
-      <div className="container mt-4 ">
-        <h4 className="mb-3 text-center" style={{ color: '#0094b6' }}>
-          Activity Complete 
+      <div className="container mt-4 shadow ">
+        <h4
+          className=" container mb-3 text-center fw-bold"
+          style={{ color: '#0094b6' }}
+        >
+          Activity Complete
         </h4>
 
         <form onSubmit={handleSubmit} className="card card-body mb-3">
@@ -389,7 +392,7 @@ const ActivityComplete: React.FC<ActivityCompleteProps> = ({
                   <input
                     className="form-control"
                     type="date"
-                    value={dateOfIncident}
+                    value={dateOfIncident || ''}
                     onChange={(e) => setDateOfIncident(e.target.value)}
                   />
                 </div>
@@ -480,7 +483,7 @@ const ActivityComplete: React.FC<ActivityCompleteProps> = ({
                   <input
                     className="form-control"
                     type="date"
-                    value={dateActionImplemented}
+                    value={dateActionImplemented || ''}
                     onChange={(e) => setDateActionImplemented(e.target.value)}
                   />
                 </div>
@@ -504,7 +507,7 @@ const ActivityComplete: React.FC<ActivityCompleteProps> = ({
                   <input
                     className="form-control"
                     type="date"
-                    value={injuredPersonSignatureDate}
+                    value={injuredPersonSignatureDate || ''}
                     onChange={(e) =>
                       setInjuredPersonSignatureDate(e.target.value)
                     }
@@ -545,7 +548,7 @@ const ActivityComplete: React.FC<ActivityCompleteProps> = ({
                   <input
                     className="form-control"
                     type="date"
-                    value={committeeMeetingDate}
+                    value={committeeMeetingDate || ''}
                     onChange={(e) => setCommitteeMeetingDate(e.target.value)}
                   />
                 </div>
@@ -580,7 +583,7 @@ const ActivityComplete: React.FC<ActivityCompleteProps> = ({
                   <input
                     className="form-control"
                     type="date"
-                    value={chairpersonSignatureDate}
+                    value={chairpersonSignatureDate || ''}
                     onChange={(e) =>
                       setChairpersonSignatureDate(e.target.value)
                     }

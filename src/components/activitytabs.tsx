@@ -77,7 +77,7 @@ const ActivityTabs: React.FC<ActivityTabsProps> = ({ isSidebarOpen }) => {
 
   /**
    * If user modifies the activity or picks a different project in the "Details" tab,
-   * we can update the wizard’s state so the new name(s) appear at the top of other tabs.
+   * we can update the tabs’s state so the new name(s) appear at the top of other tabs.
    */
   const handleActivityUpdate = (
     activityId: number,

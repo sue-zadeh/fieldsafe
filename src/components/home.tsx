@@ -18,61 +18,50 @@ const Home: React.FC<HomeProps> = ({ isSidebarOpen }) => {
         isSidebarOpen ? 'content-expanded' : 'content-collapsed'
       }`}
       style={{
-        marginLeft: isSidebarOpen ? '220px' : '50px',
-        transition: 'margin 0.3s ease',
-        padding: 0,
-        // Make sure our container can fill the viewport
+        // Push content to the right if sidebar is open
+        marginLeft: isSidebarOpen ? '220px' : '20px',
+
+        // Push content down so it appears *below* the navbar
+        // Your navbar is typically ~56px tall, so 5rem is a safe offset
+        paddingTop: '5rem',
+
         minHeight: '100vh',
-        width: '100%',
-        // Next 3 lines: the full-page background
+        transition: 'margin 0.3s ease',
+
+        // Set the background to your welcome image:
         backgroundImage: `url(${Welcompage})`,
         backgroundSize: 'cover',
         backgroundPosition: 'center',
+        backgroundRepeat: 'no-repeat',
       }}
     >
-      {/* Overlay to darken the background for readability */}
+      {/* Center content with flexbox */}
       <div
-        style={{
-          position: 'absolute',
-          top: 0,
-          left: isSidebarOpen ? '220px' : '10px', // so overlay matches the offset
-          width: '50%' ,
-          justifyItems: 'center',
-          height: '100%',
-          backgroundColor: 'rgba(0, 0, 0, 0.3)',
-          pointerEvents: 'none', // so clicks pass through
-          transition: 'left 0.3s ease',
-        }}
-      ></div>
-
-      {/* Content container: center everything */}
-      <div
-        className="d-flex flex-column align-items-center justify-content-center"
-        style={{
-          position: 'relative',
-          zIndex: 2, // above the overlay
-          width: '100%',
-          minHeight: '100vh',
-          textAlign: 'center',
-          color: '#fff',
-        }}
+        className="d-flex justify-content-center align-items-center"
+        style={{ height: '80vh' }}
       >
-        <h1
-          data-aos="fade-down-right"
+        {/* A card in the middle */}
+        <div
+          className="shadow"
           style={{
-            fontSize: 'clamp(2rem, 6vw, 4rem)',
-            marginBottom: '1rem',
-            fontWeight: 'bold',
+            width: '350px',
+            backgroundColor: 'rgba(230, 243, 243, 0.85)',
+            borderRadius: '8px',
+            padding: '2rem',
+            textAlign: 'center',
+            zIndex: '1',
           }}
         >
-          Welcome
-        </h1>
-        <h2
-          data-aos="fade-up"
-          style={{ fontSize: 'clamp(1.5rem, 4vw, 2.5rem)' }}
-        >
-          Nau mai, Haere mai
-        </h2>
+          <h1
+            className="mb-3 fw-bold"
+            style={{ color: '#738C40', wordSpacing: '4px' }}
+          >
+            Welcome
+          </h1>
+          <h3 className="mb-0" style={{ color: '#444' }}>
+            Nau mai, Haere mai
+          </h3>
+        </div>
       </div>
     </div>
   )

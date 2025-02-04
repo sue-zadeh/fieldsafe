@@ -73,14 +73,16 @@ const Report: React.FC<ReportProps> = ({ isSidebarOpen }) => {
   useEffect(() => {
     if (!selectedProjectId) {
       setObjectives([])
-      setSelectedObjectiveId(null)
+      // setSelectedObjectiveId(null)
       return
     }
 
     axios
-      .get<IObjective[]>(`/api/projects/${selectedProjectId}/objectives`)
+      .get(`/api/report/report_outcome/${selectedProjectId}`)
+
+      // .get<IObjective[]>(`/api/projects/${selectedProjectId}/objectives`)
       .then((res) => {
-        setObjectives(res.data || [])
+        setObjectives(res.data.objectives || [])
       })
       .catch((err) => {
         console.error('Error fetching objectives for project:', err)

@@ -141,6 +141,7 @@ CREATE TABLE IF NOT EXISTS project_predator (
   FOREIGN KEY (project_id) REFERENCES projects(id) ON DELETE CASCADE,
   FOREIGN KEY (predator_id) REFERENCES predator(id) ON DELETE CASCADE
 );
+/*---------------------------------*/
 
 /* site_hazards */
 CREATE TABLE site_hazards (

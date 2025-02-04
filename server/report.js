@@ -9,14 +9,15 @@ const router = express.Router()
  * (e.g. "2025-01-21T11:00:00.000Z") to "YYYY-MM-DD"
  */
 function parseDateForMySQL(isoString) {
+  if (!isoString) return null
   const dateObj = new Date(isoString)
-  if (isNaN(dateObj.getTime())) {
-    return null
-  }
+  if (isNaN(dateObj.getTime())) return null
+
+  // We always want plain year-month-day with no time offset
   const yyyy = dateObj.getUTCFullYear()
   const mm = String(dateObj.getUTCMonth() + 1).padStart(2, '0')
   const dd = String(dateObj.getUTCDate()).padStart(2, '0')
-  return `${yyyy}-${mm}-${dd}` // e.g. "2025-01-21"
+  return `${yyyy}-${mm}-${dd}`
 }
 //====================================
 
@@ -28,32 +29,31 @@ function parseDateForMySQL(isoString) {
 router.get('/report_outcome/:projectId', async (req, res) => {
   const { projectId } = req.params
   try {
-    // verify project exists:
+    // 1) (Optionally) verify the project actually exists
     const [projRows] = await pool.query(
-      'SELECT id, name FROM projects WHERE id=?',
+      'SELECT id FROM projects WHERE id = ?',
       [projectId]
     )
-    if (projRows.length === 0) {
+    if (!projRows.length) {
       return res.status(404).json({ message: 'No such project.' })
     }
 
-    // get the project objectives joined with objectives
+    // 2) Get the "project objectives" joined with "objectives"
     const [objRows] = await pool.query(
-      `
-      SELECT 
-        po.id AS projectObjectiveId,
-        po.objective_id,
-        po.amount,
-        o.title,
-        o.measurement
-      FROM project_objectives po
-      JOIN objectives o ON po.objective_id = o.id
-      WHERE po.project_id = ?
-    `,
+      `SELECT 
+         po.id AS projectObjectiveId,
+         po.objective_id,
+         po.amount,
+         o.title,
+         o.measurement
+       FROM project_objectives po
+       JOIN objectives o ON po.objective_id = o.id
+       WHERE po.project_id = ?`,
       [projectId]
     )
 
-    return res.json({ projectId, objectives: objRows })
+    // Return the same shape as activity_outcome: {projectId, objectives: [...]}
+    res.json({ projectId, objectives: objRows })
   } catch (err) {
     console.error('Error loading project objectives:', err)
     return res
@@ -61,7 +61,6 @@ router.get('/report_outcome/:projectId', async (req, res) => {
       .json({ message: 'Failed to load project objectives.' })
   }
 })
-
 /**
  * GET => /api/report/objective?projectId=..&objectiveId=..&startDate=..&endDate=..
  * For generating sums from activity_objectives or activity_predator
