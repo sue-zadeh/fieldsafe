@@ -101,5 +101,27 @@ router.get('/objective', async (req, res) => {
     return res.status(500).json({ message: 'Failed to generate report.' })
   }
 })
+router.get('/report_outcome/:projectId', async (req, res) => {
+  const { projectId } = req.params;
+  try {
+    // Query your “project_objectives” (and the “objectives” table) for the given project
+    const [rows] = await pool.query(`
+      SELECT
+        po.id AS projectObjectiveId,
+        po.objective_id,
+        o.title,
+        o.measurement
+      FROM project_objectives po
+      JOIN objectives o ON po.objective_id = o.id
+      WHERE po.project_id = ?
+    `, [projectId]);
+
+    // Return them to the client
+    res.json({ objectives: rows });
+  } catch (err) {
+    console.error('Error in GET /report_outcome/:projectId:', err);
+    res.status(500).json({ message: 'Failed to load objectives for the project.' });
+  }
+});
 
 export default router

@@ -127,6 +127,15 @@ const Report: React.FC<ReportProps> = ({ isSidebarOpen }) => {
       return
     }
 
+    // Convert date strings (e.g. "2025-01-10") into Date objects
+    const start = new Date(startDate)
+    const end = new Date(endDate)
+    if (end < start) {
+      // If user picked an End Date that is before Start Date, show warning
+      setNotification('End date cannot be earlier than Start date.')
+      return
+    }
+
     try {
       const resp = await axios.get('/api/report/objective', {
         params: {
@@ -153,7 +162,7 @@ const Report: React.FC<ReportProps> = ({ isSidebarOpen }) => {
       style={{
         marginLeft: isSidebarOpen ? '220px' : '30px',
         transition: 'margin 0.3s ease',
-        paddingTop: '2rem',
+        paddingTop: '5rem',
         minHeight: '100vh',
         width: '98%',
       }}
