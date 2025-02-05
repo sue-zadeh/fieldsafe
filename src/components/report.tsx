@@ -1,4 +1,3 @@
-// src/components/Report.tsx
 import React, { useState, useEffect } from 'react'
 import axios from 'axios'
 import { Form, Button, Alert, Table, Row, Col } from 'react-bootstrap'
@@ -23,9 +22,11 @@ interface IObjective {
  *   totalAmount => sum of all those amounts
  *
  * For predator objectives:
- *   trapsEstablishedTotal, trapsCheckedTotal, etc.
+ *   trapsEstablishedTotal, trapsCheckedTotal, catchesBreakdown => sums
+ *   plus optional detailRows for each predator record
  */
 interface IReportRow {
+  // Normal objective detail:
   detailRows?: {
     activityId: number
     activityName: string
@@ -34,7 +35,7 @@ interface IReportRow {
   }[]
   totalAmount?: number
 
-  // If predator logic is implemented on the server, these might appear:
+  // Predator control summary fields:
   trapsEstablishedTotal?: number
   trapsCheckedTotal?: number
   catchesBreakdown?: {
@@ -44,6 +45,20 @@ interface IReportRow {
     hedgehogs: number
     others: number
   }
+
+  // If you want to show each predator record in detail:
+  predatorDetailRows?: {
+    activityId: number
+    activityName: string
+    activityDate: string
+    subType: string
+    measurement: number
+    rats: number
+    possums: number
+    mustelids: number
+    hedgehogs: number
+    others: number
+  }[]
 }
 
 interface ReportProps {
@@ -60,17 +75,14 @@ const Report: React.FC<ReportProps> = ({ isSidebarOpen }) => {
     null
   )
 
-  // No restrictions on picking older or future dates in front-end
+  // Typically <input type="date"> => "YYYY-MM-DD"
   const [startDate, setStartDate] = useState('')
   const [endDate, setEndDate] = useState('')
-  const [notification, setNotification] = useState<string | null>(null)
 
-  // Data returned from the server
+  const [notification, setNotification] = useState<string | null>(null)
   const [reportData, setReportData] = useState<IReportRow | null>(null)
 
-  /**
-   * On mount => load all projects
-   */
+  // ----- Load all projects on mount -----
   useEffect(() => {
     axios
       .get('/api/projects')
@@ -81,18 +93,13 @@ const Report: React.FC<ReportProps> = ({ isSidebarOpen }) => {
       })
   }, [])
 
-  /**
-   * When user picks a project => load that project's objectives.
-   * This calls /api/report/report_outcome/:projectId
-   * which returns { projectId, objectives: [ ... ] }
-   */
+  // ----- When user picks a project => load that project's objectives -----
   useEffect(() => {
     if (!selectedProjectId) {
       setObjectives([])
       setSelectedObjectiveId(null)
       return
     }
-
     axios
       .get(`/api/report/report_outcome/${selectedProjectId}`)
       .then((res) => {
@@ -104,9 +111,7 @@ const Report: React.FC<ReportProps> = ({ isSidebarOpen }) => {
       })
   }, [selectedProjectId])
 
-  /**
-   * Auto-clear notification
-   */
+  // ----- Auto-clear any notification after 5 sec -----
   useEffect(() => {
     if (notification) {
       const timer = setTimeout(() => setNotification(null), 5000)
@@ -114,9 +119,7 @@ const Report: React.FC<ReportProps> = ({ isSidebarOpen }) => {
     }
   }, [notification])
 
-  /**
-   * "Generate Report" => calls /api/report/objective with query params
-   */
+  // ----- "Generate Report" => calls /api/report/objective?projectId=.. -----
   const handleGenerateReport = async () => {
     if (!selectedProjectId || !selectedObjectiveId) {
       setNotification('Please select both project and objective.')
@@ -127,11 +130,9 @@ const Report: React.FC<ReportProps> = ({ isSidebarOpen }) => {
       return
     }
 
-    // Convert date strings (e.g. "2025-01-10") into Date objects
     const start = new Date(startDate)
     const end = new Date(endDate)
     if (end < start) {
-      // If user picked an End Date that is before Start Date, show warning
       setNotification('End date cannot be earlier than Start date.')
       return
     }
@@ -141,8 +142,8 @@ const Report: React.FC<ReportProps> = ({ isSidebarOpen }) => {
         params: {
           projectId: selectedProjectId,
           objectiveId: selectedObjectiveId,
-          startDate,
-          endDate,
+          startDate, // e.g. "2025-02-05"
+          endDate, // e.g. "2025-02-20"
         },
       })
       setReportData(resp.data)
@@ -305,7 +306,7 @@ const Report: React.FC<ReportProps> = ({ isSidebarOpen }) => {
             </p>
           )}
 
-          {/* (B) Predator data (if the server returns it) */}
+          {/* (B) Predator data summary */}
           {(reportData.trapsEstablishedTotal !== undefined ||
             reportData.trapsCheckedTotal !== undefined ||
             reportData.catchesBreakdown) && (
@@ -337,6 +338,46 @@ const Report: React.FC<ReportProps> = ({ isSidebarOpen }) => {
               </Table>
             </>
           )}
+
+          {/* (C) Optional detail of each predator record */}
+          {reportData.predatorDetailRows &&
+            reportData.predatorDetailRows.length > 0 && (
+              <>
+                <h6>Predator Control Detail</h6>
+                <Table bordered hover className="mt-2">
+                  <thead>
+                    <tr
+                      style={{ backgroundColor: '#76D6E2', color: '#1A1A1A' }}
+                    >
+                      <th>Activity</th>
+                      <th>Date</th>
+                      <th>Sub‐Type</th>
+                      <th>Measurement</th>
+                      <th>Rats</th>
+                      <th>Possums</th>
+                      <th>Mustelids</th>
+                      <th>Hedgehogs</th>
+                      <th>Others (#)</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {reportData.predatorDetailRows.map((p, idx) => (
+                      <tr key={idx}>
+                        <td>{p.activityName}</td>
+                        <td>{p.activityDate}</td>
+                        <td>{p.subType}</td>
+                        <td>{p.measurement}</td>
+                        <td>{p.rats}</td>
+                        <td>{p.possums}</td>
+                        <td>{p.mustelids}</td>
+                        <td>{p.hedgehogs}</td>
+                        <td>{p.others}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </Table>
+              </>
+            )}
         </div>
       )}
     </div>

@@ -11,7 +11,6 @@ import ActivityCheckList from './activitychecklist'
 import ActivityOutcome from './activityoutcome'
 import ActivityComplete from './activitycomplete'
 
-/** We no longer accept isSidebarOpen, nor do we keep projectId. */
 interface ActivityTabsProps {
   activityName?: string
   isSidebarOpen: boolean
@@ -28,7 +27,6 @@ const steps = [
 ]
 
 const ActivityTabs: React.FC<ActivityTabsProps> = ({ isSidebarOpen }) => {
-  // We read some optional state if the caller used navigate('/activity-notes', { state: {...} });
   const location = useLocation() as {
     state?: {
       activityId?: number
@@ -46,11 +44,11 @@ const ActivityTabs: React.FC<ActivityTabsProps> = ({ isSidebarOpen }) => {
   const [selectedActivityId, setSelectedActivityId] = useState<number | null>(
     null
   )
-  // And for display:
+  // And for display Activity name and Project name in the header of tab pages
   const [selectedActivityName, setSelectedActivityName] = useState('')
   const [selectedProjectName, setSelectedProjectName] = useState('')
 
-  /** On mount, see if we have a known activityId or starting step. */
+  /**  see if we have a known activityId or starting step. */
   useEffect(() => {
     if (location.state?.startStep !== undefined) {
       setCurrentStep(location.state.startStep)
@@ -65,7 +63,6 @@ const ActivityTabs: React.FC<ActivityTabsProps> = ({ isSidebarOpen }) => {
     try {
       const res = await axios.get(`/api/activities/${id}`)
       const data = res.data
-      // data might have: id, activity_name, projectName, ...
       setSelectedActivityId(data.id)
       setSelectedActivityName(data.activity_name || '')
       setSelectedProjectName(data.projectName || '')
@@ -76,7 +73,7 @@ const ActivityTabs: React.FC<ActivityTabsProps> = ({ isSidebarOpen }) => {
 
   /**
    * If user modifies the activity or picks a different project in the "Details" tab,
-   * we can update the tabs’s state so the new name(s) appear at the top of other tabs.
+   * it update the tabs’s state so the new name(s) appear at the top of other tabs.
    */
   const handleActivityUpdate = (
     activityId: number,
@@ -103,7 +100,7 @@ const ActivityTabs: React.FC<ActivityTabsProps> = ({ isSidebarOpen }) => {
     }
   }
 
-  /** Renders the top “wizard steps” either horizontally or as a dropdown (for small screens). */
+  /** Renders the top 'wizard Tabs' either horizontally or as a dropdown (for small screens). */
   const renderStepNav = () => {
     const isSmallDevice = window.innerWidth < 768
 
@@ -149,6 +146,7 @@ const ActivityTabs: React.FC<ActivityTabsProps> = ({ isSidebarOpen }) => {
                       : 'bg-secondary text-white'
                   }`}
                   style={{
+                    backgroundColor: '#738c40', 
                     width: '2.15rem',
                     height: '2.15rem',
                     fontSize: '1.2rem',
@@ -187,7 +185,7 @@ const ActivityTabs: React.FC<ActivityTabsProps> = ({ isSidebarOpen }) => {
     switch (currentStep) {
       case 0:
         // The "Details" step => show AddActivity (edit form).
-        // We pass only activityId and the existing name(s).
+        //pass only activityId and the existing name(s).
         return (
           <AddActivity
             activityId={selectedActivityId}
@@ -198,7 +196,7 @@ const ActivityTabs: React.FC<ActivityTabsProps> = ({ isSidebarOpen }) => {
         )
 
       case 1:
-        // "Risk" step. We expect an activity to exist. If not, prompt user to do step 0 first.
+        // "Risk" step. expect an activity to exist. If not, prompt user to do step 0 first.
         if (!selectedActivityId) {
           return (
             <h5>
