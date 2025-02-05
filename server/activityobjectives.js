@@ -3,41 +3,74 @@ import { pool } from './db.js'
 
 const router = express.Router()
 
-// 1) GET => /api/activity_outcome/:activityId
+//  GET => /api/activity_outcome/:activityId
+// server/activityOutcome.js (for example)
 router.get('/activity_outcome/:activityId', async (req, res) => {
   const { activityId } = req.params
   try {
-    // Find projectId
+    //  Find which project this activity belongs to
     const [actRows] = await pool.query(
       'SELECT project_id FROM activities WHERE id = ?',
       [activityId]
     )
     if (!actRows.length) {
-      return res.status(404).json({ message: 'No such activity.' })
+      return res.status(404).json({ message: 'No such activity' })
     }
     const projectId = actRows[0].project_id
 
-    // Get project objectives joined to objectives
-    const [objRows] = await pool.query(
-      `SELECT 
-         po.id AS projectObjectiveId,
-         po.objective_id,
-         po.amount,
-         o.title,
-         o.measurement
-       FROM project_objectives po
-       JOIN objectives o ON po.objective_id = o.id
-       WHERE po.project_id = ?`,
+    // Find all objectives *for the project*
+    const [projObjRows] = await pool.query(
+      `
+        SELECT po.objective_id, po.id AS projectObjectiveId,
+               o.title, o.measurement
+        FROM project_objectives po
+        JOIN objectives o ON po.objective_id = o.id
+        WHERE po.project_id = ?
+      `,
       [projectId]
     )
-    res.json({ projectId, objectives: objRows })
+
+    // For each objective, see if there's already an activity_objectives row
+    //    for (activityId, objective_id). If not, insert one with default null "amount".
+    for (const row of projObjRows) {
+      const [actObjRows] = await pool.query(
+        'SELECT * FROM activity_objectives WHERE activity_id=? AND objective_id=?',
+        [activityId, row.objective_id]
+      )
+      if (actObjRows.length === 0) {
+        // Insert a blank row so each objective is visible in the UI
+        await pool.query(
+          `
+            INSERT INTO activity_objectives (activity_id, objective_id, amount)
+            VALUES (?, ?, NULL)
+          `,
+          [activityId, row.objective_id]
+        )
+      }
+    }
+
+    //  Then fetch the ACTUAL data from activity_objectives
+    //    so the front end sees the real amounts that belong to *this activity*.
+    const [actObjFull] = await pool.query(
+      `
+        SELECT ao.id AS activityObjectiveId,
+               ao.amount,
+               o.title,
+               o.measurement
+        FROM activity_objectives ao
+        JOIN objectives o ON ao.objective_id = o.id
+        WHERE ao.activity_id = ?
+      `,
+      [activityId]
+    )
+
+    res.json({ objectives: actObjFull })
   } catch (err) {
-    console.error(err)
-    res.status(500).json({ message: 'Failed to load project objectives.' })
+    console.error('Error in GET /activity_outcome/:activityId:', err)
+    res.status(500).json({ message: 'Failed to load activity outcome' })
   }
 })
-
-// 2) POST => /api/objectives
+//  POST => /api/objectives
 // Create a new objective in "objectives"
 router.post('/objectives', async (req, res) => {
   try {
@@ -59,7 +92,7 @@ router.post('/objectives', async (req, res) => {
   }
 })
 
-// 3) POST => /api/project_objectives
+//  POST => /api/project_objectives
 // Link the new objective to a project
 router.post('/project_objectives', async (req, res) => {
   try {
@@ -86,26 +119,29 @@ router.post('/project_objectives', async (req, res) => {
   }
 })
 
-// 4) PUT => /api/project_objectives/:id
-router.put('/project_objectives/:id', async (req, res) => {
+// PUT => /api/project_objectives/:id
+router.put('/activity_objectives/:id', async (req, res) => {
   const { id } = req.params
   const { amount } = req.body
+
   try {
     const [result] = await pool.query(
-      `UPDATE project_objectives
-       SET amount = ?
-       WHERE id = ?`,
+      `
+        UPDATE activity_objectives
+           SET amount = ?
+         WHERE id = ?
+      `,
       [amount ?? null, id]
     )
     if (result.affectedRows === 0) {
       return res
         .status(404)
-        .json({ message: 'No project objective row found.' })
+        .json({ message: 'No such activity_objectives row' })
     }
-    res.json({ message: 'Project objective updated.' })
+    res.json({ message: 'Activity objective updated successfully.' })
   } catch (err) {
-    console.error(err)
-    res.status(500).json({ message: 'Failed to update project objective.' })
+    console.error('PUT /activity_objectives/:id error:', err)
+    res.status(500).json({ message: 'Failed to update activity objective.' })
   }
 })
 

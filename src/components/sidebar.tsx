@@ -231,7 +231,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, toggleSidebar }) => {
         </NavItem>
 
         {/* Report */}
-        {/* <div>
+        <div>
           <Link
             to="/report"
             style={{
@@ -244,7 +244,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, toggleSidebar }) => {
             <FaRegChartBar style={{ marginRight: '8px' }} />
             {isOpen && 'Report'}
           </Link>
-        </div> */}
+        </div>
         {/* All USERS */}
         <NavItem label="Organisation Profile" dropdownId="organization">
           <ul style={dropdownListStyle}>

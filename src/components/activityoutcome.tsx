@@ -6,9 +6,10 @@ interface ActivityOutcomeProps {
   activityName: string
 }
 
-// ProjectObjective row from backend
+// Adjust your interface so it matches what the server actually returns:
+// i.e., “ao.id AS activityObjectiveId”
 interface IProjectObjective {
-  projectObjectiveId: number
+  activityObjectiveId: number
   objective_id: number
   title: string
   measurement: string
@@ -45,9 +46,7 @@ const ActivityOutcome: React.FC<ActivityOutcomeProps> = ({ activityId }) => {
   const [predatorRecords, setPredatorRecords] = useState<IPredatorRecord[]>([])
   const [editingPredId, setEditingPredId] = useState<number | null>(null)
 
-  const [selectedPredatorId, setSelectedPredatorId] = useState<number | null>(
-    null
-  )
+  const [selectedPredatorId, setSelectedPredatorId] = useState<number | null>(null)
   const [pMeasurement, setPMeasurement] = useState<number | null>(null)
   const [rats, setRats] = useState(0)
   const [possums, setPossums] = useState(0)
@@ -59,10 +58,10 @@ const ActivityOutcome: React.FC<ActivityOutcomeProps> = ({ activityId }) => {
   // ============ On Load, fetch project objectives & predator data ============
   useEffect(() => {
     if (!activityId) return
-    axios
-      .get(`/api/activity_outcome/${activityId}`)
+
+    // Load objectives for this activity
+    axios.get(`/api/activity_outcome/${activityId}`)
       .then((res) => {
-        // res.data = { projectId, objectives: [ ... ] }
         setObjectives(res.data.objectives || [])
       })
       .catch((err) => {
@@ -71,8 +70,7 @@ const ActivityOutcome: React.FC<ActivityOutcomeProps> = ({ activityId }) => {
       })
 
     // fetch the predator list
-    axios
-      .get<IPredatorOption[]>('/api/predator')
+    axios.get<IPredatorOption[]>('/api/predator')
       .then((res) => setPredatorList(res.data))
       .catch((err) => {
         console.error('Error fetching predator list:', err)
@@ -80,8 +78,7 @@ const ActivityOutcome: React.FC<ActivityOutcomeProps> = ({ activityId }) => {
       })
 
     // fetch activity's existing predator records
-    axios
-      .get<IPredatorRecord[]>(`/api/activity_predator/${activityId}`)
+    axios.get<IPredatorRecord[]>(`/api/activity_predator/${activityId}`)
       .then((res) => {
         setPredatorRecords(res.data)
       })
@@ -91,32 +88,50 @@ const ActivityOutcome: React.FC<ActivityOutcomeProps> = ({ activityId }) => {
       })
   }, [activityId])
 
-  // ============ Filter out any “Establishing Predator Control” objective ============
+  // Filter out any “Establishing Predator Control” objective
   const filteredObjectives = objectives.filter(
     (obj) => obj.title.toLowerCase() !== 'establishing predator control'
   )
 
-  // Should we show Predator Control section?
+  // Do we show the Predator Control section?
   const hasPredatorControl = objectives.some(
     (obj) => obj.title.toLowerCase() === 'establishing predator control'
   )
 
   // ============ Objective Edit Handlers ============
+  // Pass the entire objective so we can fill editing state from it
   const handleEditObjective = (obj: IProjectObjective) => {
-    setEditingObjId(obj.projectObjectiveId)
+    setEditingObjId(obj.activityObjectiveId)
     setEditAmount(obj.amount !== null ? String(obj.amount) : '')
   }
 
-  const handleSaveObjective = async (objId: number) => {
+  const handleSaveObjective = async (activityObjectiveId: number) => {
+
+
+    // For No change: first we need to Find the original objective in our state
+const originalObj = objectives.find(o => o.activityObjectiveId === activityObjectiveId);
+// convert `null` to an empty string, or number -> string
+const originalAmountStr = originalObj?.amount != null ? String(originalObj.amount) : '';
+
+//Then, If user didn’t change anything, confirm
+if (originalAmountStr === editAmount) {
+  const proceedAnyway = window.confirm(
+    "You haven't made any changes to the amount. Save anyway?"
+  );
+  if (!proceedAnyway) {
+    return; // user clicked "Cancel"
+  }
+}
+
+
     try {
-      await axios.put(`/api/project_objectives/${objId}`, {
-        amount: editAmount ? Number(editAmount) : null,
+      await axios.put(`/api/activity_objectives/${activityObjectiveId}`, {
+        amount: editAmount ? Number(editAmount) : null
       })
-      // reload
+      // Re-fetch the objectives for this activity
       const resp = await axios.get(`/api/activity_outcome/${activityId}`)
       setObjectives(resp.data.objectives || [])
-
-      alert('Objective saved successfully!') // <--- Success notification
+      alert('Saved successfully!')
     } catch (err) {
       console.error('Error saving objective:', err)
       alert('Failed to save objective.')
@@ -131,6 +146,7 @@ const ActivityOutcome: React.FC<ActivityOutcomeProps> = ({ activityId }) => {
   }
 
   // ============ Predator Add/Edit ============
+
   const resetPredatorForm = () => {
     setEditingPredId(null)
     setSelectedPredatorId(null)
@@ -179,10 +195,8 @@ const ActivityOutcome: React.FC<ActivityOutcomeProps> = ({ activityId }) => {
         alert('Predator record updated successfully!')
       }
 
-      // reload
-      const resp = await axios.get<IPredatorRecord[]>(
-        `/api/activity_predator/${activityId}`
-      )
+      // Reload after save
+      const resp = await axios.get<IPredatorRecord[]>(`/api/activity_predator/${activityId}`)
       setPredatorRecords(resp.data)
       resetPredatorForm()
     } catch (err) {
@@ -207,7 +221,7 @@ const ActivityOutcome: React.FC<ActivityOutcomeProps> = ({ activityId }) => {
     if (!window.confirm('Delete this predator record?')) return
     try {
       await axios.delete(`/api/activity_predator/${id}`)
-      setPredatorRecords((prev) => prev.filter((p) => p.id !== id))
+      setPredatorRecords(prev => prev.filter((p) => p.id !== id))
       alert('Predator record deleted successfully!')
     } catch (err) {
       console.error('Error deleting predator record:', err)
@@ -215,7 +229,7 @@ const ActivityOutcome: React.FC<ActivityOutcomeProps> = ({ activityId }) => {
     }
   }
 
-  // ============ Predator Grouping by sub_type ============
+  // Group the predator records by sub_type
   const trapsEstablishedRecords = predatorRecords.filter(
     (r) => r.sub_type.toLowerCase() === 'traps established'
   )
@@ -226,35 +240,20 @@ const ActivityOutcome: React.FC<ActivityOutcomeProps> = ({ activityId }) => {
     (r) => r.sub_type.toLowerCase() === 'catches'
   )
 
-  // ============ Style Helpers (using your brand colors) ============
-  const btnOceanBlue = {
-    backgroundColor: '#0094B6', // Ocean Blue
-    color: '#fff',
-  }
-  const btnKaraka = {
-    backgroundColor: '#D37B40', // Karaka
-    color: '#fff',
-  }
-  const btnForest = {
-    backgroundColor: '#738C40', // Forest Green
-    color: '#fff',
-  }
-  const btnSky = {
-    backgroundColor: '#76D6E2', // Sky Blue
-    color: '#fff',
-  }
-  // const btnSunshine = {
-  //   backgroundColor: '#F4F993', // Sunshine Yellow
-  //   color: '#1A1A1A', // black text
-  // }
+  // Simple styling (your brand colors)
+  const btnOceanBlue = { backgroundColor: '#0094B6', color: '#fff' }
+  const btnKaraka    = { backgroundColor: '#D37B40', color: '#fff' }
+  const btnForest    = { backgroundColor: '#738C40', color: '#fff' }
+  const btnSky       = { backgroundColor: '#76D6E2', color: '#fff' }
 
   return (
     <div>
       <div className="container-fluid px-2 py-2">
         {/* Main Outcome Table (filteredObjectives) */}
-        <h4 className="my-4  text-center" style={{ color: '#0094B6' }}>
+        <h4 className="my-4 text-center" style={{ color: '#0094B6' }}>
           Activity Outcome
         </h4>
+
         <div className="d-flex justify-content-center">
           <div className="table-responsive" style={{ maxWidth: '100%' }}>
             <table className="table table-striped table-bordered table-hover">
@@ -270,9 +269,9 @@ const ActivityOutcome: React.FC<ActivityOutcomeProps> = ({ activityId }) => {
               </thead>
               <tbody>
                 {filteredObjectives.map((obj) => {
-                  const isEditing = editingObjId === obj.projectObjectiveId
+                  const isEditing = editingObjId === obj.activityObjectiveId
                   return (
-                    <tr key={obj.projectObjectiveId}>
+                    <tr key={obj.activityObjectiveId}>
                       <td>{obj.title}</td>
                       <td className="text-center">{obj.measurement}</td>
                       <td className="text-center">
@@ -295,9 +294,7 @@ const ActivityOutcome: React.FC<ActivityOutcomeProps> = ({ activityId }) => {
                             <button
                               className="btn btn-sm me-1"
                               style={{ ...btnForest, width: '70px' }}
-                              onClick={() =>
-                                handleSaveObjective(obj.projectObjectiveId)
-                              }
+                              onClick={() => handleSaveObjective(obj.activityObjectiveId)}
                             >
                               Save
                             </button>
@@ -354,9 +351,7 @@ const ActivityOutcome: React.FC<ActivityOutcomeProps> = ({ activityId }) => {
                     className="form-select form-select-sm"
                     value={selectedPredatorId ?? ''}
                     onChange={(e) =>
-                      setSelectedPredatorId(
-                        e.target.value ? Number(e.target.value) : null
-                      )
+                      setSelectedPredatorId(e.target.value ? Number(e.target.value) : null)
                     }
                   >
                     <option value="">-- select one --</option>
@@ -375,9 +370,7 @@ const ActivityOutcome: React.FC<ActivityOutcomeProps> = ({ activityId }) => {
                     value={pMeasurement ?? ''}
                     min={0}
                     onChange={(e) =>
-                      setPMeasurement(
-                        e.target.value ? Number(e.target.value) : null
-                      )
+                      setPMeasurement(e.target.value ? Number(e.target.value) : null)
                     }
                   />
                 </div>
@@ -385,9 +378,7 @@ const ActivityOutcome: React.FC<ActivityOutcomeProps> = ({ activityId }) => {
 
               {/* Show species fields if sub_type === 'catches' */}
               {(() => {
-                const predObj = predatorList.find(
-                  (p) => p.id === selectedPredatorId
-                )
+                const predObj = predatorList.find(p => p.id === selectedPredatorId)
                 if (predObj && predObj.sub_type.toLowerCase() === 'catches') {
                   return (
                     <div className="row mb-2">
@@ -484,12 +475,8 @@ const ActivityOutcome: React.FC<ActivityOutcomeProps> = ({ activityId }) => {
                   <table className="table table-striped table-hover table-bordered">
                     <thead>
                       <tr>
-                        <th className="text-center" style={{ width: '50%' }}>
-                          Measurement
-                        </th>
-                        <th className="text-center" style={{ width: '50%' }}>
-                          Action
-                        </th>
+                        <th className="text-center" style={{ width: '50%' }}>Measurement</th>
+                        <th className="text-center" style={{ width: '50%' }}>Action</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -532,12 +519,8 @@ const ActivityOutcome: React.FC<ActivityOutcomeProps> = ({ activityId }) => {
                   <table className="table table-striped table-hover table-bordered">
                     <thead>
                       <tr>
-                        <th className="text-center" style={{ width: '50%' }}>
-                          Measurement
-                        </th>
-                        <th className="text-center" style={{ width: '50%' }}>
-                          Action
-                        </th>
+                        <th className="text-center" style={{ width: '50%' }}>Measurement</th>
+                        <th className="text-center" style={{ width: '50%' }}>Action</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -588,9 +571,7 @@ const ActivityOutcome: React.FC<ActivityOutcomeProps> = ({ activityId }) => {
                       <th className="text-center">Hedgehogs</th>
                       <th className="text-center">Others (#)</th>
                       <th className="text-center">Others (Species)</th>
-                      <th className="text-center" style={{ width: '150px' }}>
-                        Action
-                      </th>
+                      <th className="text-center" style={{ width: '150px' }}>Action</th>
                     </tr>
                   </thead>
                   <tbody>

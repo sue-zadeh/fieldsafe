@@ -35,6 +35,7 @@ const Home: React.FC<HomeProps> = ({ isSidebarOpen }) => {
           style={{
             width: '350px',
             backgroundColor: 'rgba(230, 243, 243, 0.85)',
+            // opacity: '0.5',
             borderRadius: '8px',
             padding: '2rem',
             textAlign: 'center',
@@ -43,7 +44,7 @@ const Home: React.FC<HomeProps> = ({ isSidebarOpen }) => {
         >
           <h1
             className="mb-3 fw-bold"
-            style={{ color: '#738C40', wordSpacing: '4px' }}
+            style={{ color: '#738C40',fontSize:'4rem', wordSpacing: '4px' }}
           >
             Welcome
           </h1>

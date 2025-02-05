@@ -1,3 +1,4 @@
+// src/components/Report.tsx
 import React, { useState, useEffect } from 'react'
 import axios from 'axios'
 import { Form, Button, Alert, Table, Row, Col } from 'react-bootstrap'
@@ -16,8 +17,24 @@ interface IObjective {
   amount?: number | null
 }
 
-interface ReportRow {
+/**
+ * For normal objectives:
+ *   detailRows => each row from activity_objectives + activities
+ *   totalAmount => sum of all those amounts
+ *
+ * For predator objectives:
+ *   trapsEstablishedTotal, trapsCheckedTotal, etc.
+ */
+interface IReportRow {
+  detailRows?: {
+    activityId: number
+    activityName: string
+    activityDate: string
+    amount: number
+  }[]
   totalAmount?: number
+
+  // If predator logic is implemented on the server, these might appear:
   trapsEstablishedTotal?: number
   trapsCheckedTotal?: number
   catchesBreakdown?: {
@@ -43,25 +60,20 @@ const Report: React.FC<ReportProps> = ({ isSidebarOpen }) => {
     null
   )
 
-  // For date picking
-  // to prevent picking any "past" date,we should set them to today at minimum
-  const [todayString] = useState(() => {
-    const d = new Date()
-    const yyyy = d.getFullYear()
-    const mm = String(d.getMonth() + 1).padStart(2, '0')
-    const dd = String(d.getDate()).padStart(2, '0')
-    return `${yyyy}-${mm}-${dd}` // e.g. "2025-09-04"
-  })
-
+  // No restrictions on picking older or future dates in front-end
   const [startDate, setStartDate] = useState('')
   const [endDate, setEndDate] = useState('')
   const [notification, setNotification] = useState<string | null>(null)
-  const [reportData, setReportData] = useState<ReportRow | null>(null)
 
-  // On mount => load all projects
+  // Data returned from the server
+  const [reportData, setReportData] = useState<IReportRow | null>(null)
+
+  /**
+   * On mount => load all projects
+   */
   useEffect(() => {
     axios
-      .get('/api/projects') // must match your server route
+      .get('/api/projects')
       .then((res) => setProjects(res.data))
       .catch((err) => {
         console.error('Error loading projects:', err)
@@ -69,18 +81,20 @@ const Report: React.FC<ReportProps> = ({ isSidebarOpen }) => {
       })
   }, [])
 
-  // When user picks a project => load that project’s objectives
+  /**
+   * When user picks a project => load that project's objectives.
+   * This calls /api/report/report_outcome/:projectId
+   * which returns { projectId, objectives: [ ... ] }
+   */
   useEffect(() => {
     if (!selectedProjectId) {
       setObjectives([])
-      // setSelectedObjectiveId(null)
+      setSelectedObjectiveId(null)
       return
     }
 
     axios
       .get(`/api/report/report_outcome/${selectedProjectId}`)
-
-      // .get<IObjective[]>(`/api/projects/${selectedProjectId}/objectives`)
       .then((res) => {
         setObjectives(res.data.objectives || [])
       })
@@ -90,7 +104,9 @@ const Report: React.FC<ReportProps> = ({ isSidebarOpen }) => {
       })
   }, [selectedProjectId])
 
-  // Auto-clear notification
+  /**
+   * Auto-clear notification
+   */
   useEffect(() => {
     if (notification) {
       const timer = setTimeout(() => setNotification(null), 5000)
@@ -98,7 +114,9 @@ const Report: React.FC<ReportProps> = ({ isSidebarOpen }) => {
     }
   }, [notification])
 
-  // Generate the report
+  /**
+   * "Generate Report" => calls /api/report/objective with query params
+   */
   const handleGenerateReport = async () => {
     if (!selectedProjectId || !selectedObjectiveId) {
       setNotification('Please select both project and objective.')
@@ -106,10 +124,6 @@ const Report: React.FC<ReportProps> = ({ isSidebarOpen }) => {
     }
     if (!startDate || !endDate) {
       setNotification('Please pick both start and end dates.')
-      return
-    }
-    if (endDate < startDate) {
-      setNotification('End Date cannot be before Start Date.')
       return
     }
 
@@ -154,7 +168,7 @@ const Report: React.FC<ReportProps> = ({ isSidebarOpen }) => {
         </Alert>
       )}
 
-      {/* Center the filter card with d-flex justify-content-center */}
+      {/* Filter Card */}
       <div className="d-flex justify-content-center mb-3">
         <div
           className="card p-3 shadow"
@@ -214,7 +228,6 @@ const Report: React.FC<ReportProps> = ({ isSidebarOpen }) => {
                 <Form.Control
                   type="date"
                   value={startDate}
-                  // min={todayString}
                   onChange={(e) => setStartDate(e.target.value)}
                 />
               </Form.Group>
@@ -225,7 +238,6 @@ const Report: React.FC<ReportProps> = ({ isSidebarOpen }) => {
                 <Form.Control
                   type="date"
                   value={endDate}
-                  min={startDate} // ensures user can't pick < start date
                   onChange={(e) => setEndDate(e.target.value)}
                 />
               </Form.Group>
@@ -247,46 +259,74 @@ const Report: React.FC<ReportProps> = ({ isSidebarOpen }) => {
         </div>
       </div>
 
-      {/* If we have reportData, show the results */}
+      {/* The Results Card */}
       {reportData && (
         <div className="card p-3 shadow w-75 mx-auto">
           <h5 style={{ color: '#0094B6' }}>Report Result</h5>
 
-          {/* Normal Objective */}
+          {/* (A) Normal Objective Rows */}
+          {reportData.detailRows && reportData.detailRows.length > 0 && (
+            <>
+              <h6>Details by Activity</h6>
+              <Table bordered hover className="mt-2">
+                <thead>
+                  <tr style={{ backgroundColor: '#76D6E2', color: '#1A1A1A' }}>
+                    <th>Activity Name</th>
+                    <th>Activity Date</th>
+                    <th>Amount</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {reportData.detailRows.map((row) => (
+                    <tr key={row.activityId}>
+                      <td>{row.activityName}</td>
+                      <td>{row.activityDate}</td>
+                      <td>{row.amount}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </Table>
+            </>
+          )}
+
+          {/* Show final total for normal objective */}
           {reportData.totalAmount !== undefined && (
             <p className="fs-5">
               Total Completed: <b>{reportData.totalAmount}</b>
             </p>
           )}
 
-          {/* Predator “Traps Established / Checked” + Catches breakdown */}
+          {/* (B) Predator data (if the server returns it) */}
           {(reportData.trapsEstablishedTotal !== undefined ||
             reportData.trapsCheckedTotal !== undefined ||
             reportData.catchesBreakdown) && (
-            <Table bordered hover className="mt-2">
-              <thead>
-                <tr style={{ backgroundColor: '#76D6E2', color: '#1A1A1A' }}>
-                  <th>Traps Established</th>
-                  <th>Traps Checked</th>
-                  <th>Rats</th>
-                  <th>Possums</th>
-                  <th>Mustelids</th>
-                  <th>Hedgehogs</th>
-                  <th>Others</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr>
-                  <td>{reportData.trapsEstablishedTotal || 0}</td>
-                  <td>{reportData.trapsCheckedTotal || 0}</td>
-                  <td>{reportData.catchesBreakdown?.rats || 0}</td>
-                  <td>{reportData.catchesBreakdown?.possums || 0}</td>
-                  <td>{reportData.catchesBreakdown?.mustelids || 0}</td>
-                  <td>{reportData.catchesBreakdown?.hedgehogs || 0}</td>
-                  <td>{reportData.catchesBreakdown?.others || 0}</td>
-                </tr>
-              </tbody>
-            </Table>
+            <>
+              <h6>Predator Control Summary</h6>
+              <Table bordered hover className="mt-2">
+                <thead>
+                  <tr style={{ backgroundColor: '#76D6E2', color: '#1A1A1A' }}>
+                    <th>Traps Established</th>
+                    <th>Traps Checked</th>
+                    <th>Rats</th>
+                    <th>Possums</th>
+                    <th>Mustelids</th>
+                    <th>Hedgehogs</th>
+                    <th>Others</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td>{reportData.trapsEstablishedTotal || 0}</td>
+                    <td>{reportData.trapsCheckedTotal || 0}</td>
+                    <td>{reportData.catchesBreakdown?.rats || 0}</td>
+                    <td>{reportData.catchesBreakdown?.possums || 0}</td>
+                    <td>{reportData.catchesBreakdown?.mustelids || 0}</td>
+                    <td>{reportData.catchesBreakdown?.hedgehogs || 0}</td>
+                    <td>{reportData.catchesBreakdown?.others || 0}</td>
+                  </tr>
+                </tbody>
+              </Table>
+            </>
           )}
         </div>
       )}

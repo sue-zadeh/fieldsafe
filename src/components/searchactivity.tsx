@@ -227,7 +227,11 @@ const SearchActivity: React.FC<SearchActivityProps> = ({ isSidebarOpen }) => {
         </thead>
         <tbody>
           {filteredActivities.map((act) => (
-            <tr key={act.id} style={{ cursor: 'pointer' }}>
+            <tr
+              key={act.id}
+              style={{ cursor: 'pointer' }}
+              onClick={(e) => handleGoToDetail(act, e)}
+            >
               <td>{formatDate(act.activity_date)}</td>
               <td>{act.activity_name}</td>
               <td>{act.projectName || ''}</td>
@@ -235,7 +239,7 @@ const SearchActivity: React.FC<SearchActivityProps> = ({ isSidebarOpen }) => {
               <td>{act.status}</td>
               <td className="text-center">{act.createdBy || 'N/A'}</td>
               <td className="text-end">
-                {/* We removed the trash bin entirely */}
+                {/* removed the trash bin entirely */}
                 <span
                   style={{ fontSize: '1.5rem', cursor: 'pointer' }}
                   onClick={(e) => handleGoToDetail(act, e)}

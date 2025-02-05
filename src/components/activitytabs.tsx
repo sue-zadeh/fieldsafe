@@ -1,4 +1,3 @@
-// src/components/ActivityTabs.tsx
 import React, { useState, useEffect } from 'react'
 import { Button } from 'react-bootstrap'
 import { useLocation } from 'react-router-dom'
