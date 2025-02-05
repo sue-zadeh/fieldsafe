@@ -1,4 +1,3 @@
-// server/report.js
 import express from 'express'
 import { pool } from './db.js'
 
@@ -26,7 +25,8 @@ function parseDateForMySQL(isoString) {
 router.get('/report_outcome/:projectId', async (req, res) => {
   const { projectId } = req.params
   try {
-    const [rows] = await pool.query(`
+    const [rows] = await pool.query(
+      `
       SELECT
         po.id AS projectObjectiveId,
         po.objective_id,
@@ -35,12 +35,16 @@ router.get('/report_outcome/:projectId', async (req, res) => {
       FROM project_objectives po
       JOIN objectives o ON po.objective_id = o.id
       WHERE po.project_id = ?
-    `, [ projectId ])
+    `,
+      [projectId]
+    )
 
     res.json({ objectives: rows })
   } catch (err) {
     console.error('Error in GET /report_outcome/:projectId:', err)
-    res.status(500).json({ message: 'Failed to load objectives for the project.' })
+    res
+      .status(500)
+      .json({ message: 'Failed to load objectives for the project.' })
   }
 })
 
@@ -52,7 +56,7 @@ router.get('/objective', async (req, res) => {
   let { projectId, objectiveId, startDate, endDate } = req.query
   if (!projectId || !objectiveId || !startDate || !endDate) {
     return res.status(400).json({
-      message: 'Missing projectId, objectiveId, startDate, or endDate.'
+      message: 'Missing projectId, objectiveId, startDate, or endDate.',
     })
   }
 
@@ -61,7 +65,7 @@ router.get('/objective', async (req, res) => {
   const sqlEnd = parseDateForMySQL(endDate)
   if (!sqlStart || !sqlEnd) {
     return res.status(400).json({
-      message: 'Invalid or unparseable start/end dates.'
+      message: 'Invalid or unparseable start/end dates.',
     })
   }
 
@@ -79,8 +83,9 @@ router.get('/objective', async (req, res) => {
 
     // =========== Predator Objective ===========
     if (isPredator) {
-      // We'll gather data from activity_predator + activities + predator
-      const [predRows] = await pool.query(`
+      // Gathering data from activity_predator + activities + predator
+      const [predRows] = await pool.query(
+        `
         SELECT
           ap.id AS activityPredatorId,
           ap.measurement,
@@ -101,7 +106,9 @@ router.get('/objective', async (req, res) => {
           AND a.activity_date >= ?
           AND a.activity_date <= ?
         ORDER BY a.activity_date ASC
-      `, [ projectId, sqlStart, sqlEnd ])
+      `,
+        [projectId, sqlStart, sqlEnd]
+      )
 
       let trapsEstablishedTotal = 0
       let trapsCheckedTotal = 0
@@ -122,11 +129,11 @@ router.get('/objective', async (req, res) => {
         } else if (st === 'traps checked') {
           trapsCheckedTotal += meas
         } else if (st === 'catches') {
-          totalRats       += row.rats       || 0
-          totalPossums    += row.possums    || 0
-          totalMustelids  += row.mustelids  || 0
-          totalHedgehogs  += row.hedgehogs  || 0
-          totalOthers     += row.others     || 0
+          totalRats += row.rats || 0
+          totalPossums += row.possums || 0
+          totalMustelids += row.mustelids || 0
+          totalHedgehogs += row.hedgehogs || 0
+          totalOthers += row.others || 0
         }
 
         return {
@@ -139,7 +146,7 @@ router.get('/objective', async (req, res) => {
           possums: row.possums || 0,
           mustelids: row.mustelids || 0,
           hedgehogs: row.hedgehogs || 0,
-          others: row.others || 0
+          others: row.others || 0,
         }
       })
 
@@ -152,16 +159,17 @@ router.get('/objective', async (req, res) => {
           possums: totalPossums,
           mustelids: totalMustelids,
           hedgehogs: totalHedgehogs,
-          others: totalOthers
+          others: totalOthers,
         },
         // Optional detail for each predator record
-        predatorDetailRows
+        predatorDetailRows,
       })
     }
 
     // =========== Normal Objective ===========
-    // We sum from activity_objectives + activities in the given date range.
-    const [rows] = await pool.query(`
+    // This sum from activity_objectives + activities in the given date range.
+    const [rows] = await pool.query(
+      `
       SELECT
         a.id AS activityId,
         a.activity_name,
@@ -175,7 +183,9 @@ router.get('/objective', async (req, res) => {
         AND a.activity_date >= ?
         AND a.activity_date <= ?
       ORDER BY a.activity_date ASC
-    `, [ projectId, objectiveId, sqlStart, sqlEnd ])
+    `,
+      [projectId, objectiveId, sqlStart, sqlEnd]
+    )
 
     let totalAmount = 0
     const detailRows = rows.map((r) => {
@@ -184,14 +194,14 @@ router.get('/objective', async (req, res) => {
       return {
         activityId: r.activityId,
         activityName: r.activity_name,
-        activityDate: r.activity_date,  // "YYYY-MM-DD"
-        amount: amt
+        activityDate: r.activity_date,
+        amount: amt,
       }
     })
 
     return res.json({
       detailRows,
-      totalAmount
+      totalAmount,
     })
   } catch (err) {
     console.error('Error generating objective report:', err)
