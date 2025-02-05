@@ -16,15 +16,7 @@ interface IObjective {
   amount?: number | null
 }
 
-/**
- * For normal objectives:
- *   detailRows => each row from activity_objectives + activities
- *   totalAmount => sum of all those amounts
- *
- * For predator objectives:
- *   trapsEstablishedTotal, trapsCheckedTotal, catchesBreakdown => sums
- *   plus optional detailRows for each predator record
- */
+
 interface IReportRow {
   // Normal objective detail:
   detailRows?: {
@@ -46,7 +38,7 @@ interface IReportRow {
     others: number
   }
 
-  // If you want to show each predator record in detail:
+  // to show each predator record in detail
   predatorDetailRows?: {
     activityId: number
     activityName: string
@@ -82,7 +74,7 @@ const Report: React.FC<ReportProps> = ({ isSidebarOpen }) => {
   const [notification, setNotification] = useState<string | null>(null)
   const [reportData, setReportData] = useState<IReportRow | null>(null)
 
-  // ----- Load all projects on mount -----
+  // ----- Load all projects -----
   useEffect(() => {
     axios
       .get('/api/projects')
@@ -142,8 +134,8 @@ const Report: React.FC<ReportProps> = ({ isSidebarOpen }) => {
         params: {
           projectId: selectedProjectId,
           objectiveId: selectedObjectiveId,
-          startDate, // e.g. "2025-02-05"
-          endDate, // e.g. "2025-02-20"
+          startDate, 
+          endDate, 
         },
       })
       setReportData(resp.data)
@@ -178,15 +170,15 @@ const Report: React.FC<ReportProps> = ({ isSidebarOpen }) => {
         </Alert>
       )}
 
-      {/* Filter Card */}
+      {/* Filter Card- The form */}
       <div className="d-flex justify-content-center mb-3">
         <div
           className="card p-3 shadow"
           style={{ width: '480px', backgroundColor: '#F4F7F1' }}
         >
-          <h5 className="mb-3" style={{ color: '#0094B6' }}>
+          <h4 className="mb-3" style={{ color: '#0094B6' }}>
             Filters
-          </h5>
+          </h4>
           <Row className="mb-3">
             <Col sm={6}>
               <Form.Group>
@@ -274,7 +266,7 @@ const Report: React.FC<ReportProps> = ({ isSidebarOpen }) => {
         <div className="card p-3 shadow w-75 mx-auto">
           <h5 style={{ color: '#0094B6' }}>Report Result</h5>
 
-          {/* (A) Normal Objective Rows */}
+          {/* Normal Objective Rows */}
           {reportData.detailRows && reportData.detailRows.length > 0 && (
             <>
               <h6>Details by Activity</h6>
@@ -306,7 +298,7 @@ const Report: React.FC<ReportProps> = ({ isSidebarOpen }) => {
             </p>
           )}
 
-          {/* (B) Predator data summary */}
+          {/*  Predator data summary */}
           {(reportData.trapsEstablishedTotal !== undefined ||
             reportData.trapsCheckedTotal !== undefined ||
             reportData.catchesBreakdown) && (
@@ -339,7 +331,7 @@ const Report: React.FC<ReportProps> = ({ isSidebarOpen }) => {
             </>
           )}
 
-          {/* (C) Optional detail of each predator record */}
+          {/* detail of each predator record */}
           {reportData.predatorDetailRows &&
             reportData.predatorDetailRows.length > 0 && (
               <>

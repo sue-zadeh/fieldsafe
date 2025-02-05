@@ -100,7 +100,7 @@ const ActivityTabs: React.FC<ActivityTabsProps> = ({ isSidebarOpen }) => {
     }
   }
 
-  /** Renders the top 'wizard Tabs' either horizontally or as a dropdown (for small screens). */
+  /** Renders the top 'wizard Tabs' as a dropdown (for small screens). */
   const renderStepNav = () => {
     const isSmallDevice = window.innerWidth < 768
 
