@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react'
-import { Routes, Route, useNavigate } from 'react-router-dom'
+import { Routes, Route, useNavigate, Navigate } from 'react-router-dom'
 import { LoadScript } from '@react-google-maps/api'
-import { Modal, Button } from 'react-bootstrap'
+// import { Modal, Button } from 'react-bootstrap'
 
 import Navbar from './components/navbar'
 import Login from './components/login'
@@ -36,8 +36,8 @@ const App: React.FC = () => {
   // For inactivity:
   const INACTIVITY_LIMIT = 1000 * 60_000 // 1000 minutes in ms
   const [showSessionModal, setShowSessionModal] = useState(false)
-  const [countdown, setCountdown] = useState(120) // 2 minutes
-  const [showSessionExpiredAlert, setShowSessionExpiredAlert] = useState(false)
+  const [, setCountdown] = useState(120) // 2 minutes
+  const [showSessionExpiredAlert, ] = useState(false)
 
   // references for timeouts so we can clear them
   const sessionTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
@@ -56,117 +56,84 @@ const App: React.FC = () => {
   // ------------------------------------------
   // Inactivity watchers
   useEffect(() => {
-    // 1) Start or reset the inactivity timers
     const startTimers = () => {
-      // Timer #1: after (INACTIVITY_LIMIT - 120_000), show the modal
-      // For 20 min total, show the modal after 19 min.
       sessionTimerRef.current = setTimeout(() => {
         setShowSessionModal(true)
-        // Now we also start the logout timer:
         logoutTimerRef.current = setTimeout(() => {
-          handleAutoLogout()
-        }, 120_000) // 1 minute after the modal
-      }, INACTIVITY_LIMIT - 120_000) // 200 minutes
+          // handleAutoLogout()
+        }, 120_000)
+      }, INACTIVITY_LIMIT - 120_000)
     }
-    // If the user does any mouse or key activity BEFORE the modal is shown,
-    //    reset both timers. But if the modal is already visible,
-    //    it do NOT reset (the user must click "Stay Logged In")
+
     const handleUserActivity = () => {
       if (!showSessionModal) {
-        // reset timers
         if (sessionTimerRef.current) clearTimeout(sessionTimerRef.current)
         if (logoutTimerRef.current) clearTimeout(logoutTimerRef.current)
         setCountdown(60)
-        // hide the modal if it was showing (shouldn't be if !showSessionModal, but just in case)
         setShowSessionModal(false)
         startTimers()
       }
     }
 
-    // Start the timers when the component mounts
     startTimers()
-
-    // Listen for user activity
     window.addEventListener('mousemove', handleUserActivity)
     window.addEventListener('keydown', handleUserActivity)
 
     return () => {
-      // cleanup
       if (sessionTimerRef.current) clearTimeout(sessionTimerRef.current)
       if (logoutTimerRef.current) clearTimeout(logoutTimerRef.current)
       window.removeEventListener('mousemove', handleUserActivity)
       window.removeEventListener('keydown', handleUserActivity)
     }
-  }, [showSessionModal]) //depends on showSessionModal
+  }, [showSessionModal])
 
   // If the session modal is visible, start the 120-sec countdown
   useEffect(() => {
     if (showSessionModal) {
-      setCountdown(120) // reset to 120
+      setCountdown(120)
       const intervalId = setInterval(() => {
-        setCountdown((prev) => {
-          if (prev <= 1) {
-            clearInterval(intervalId)
-          }
-          return prev > 0 ? prev - 1 : 0
-        })
+        setCountdown((prev) => (prev > 0 ? prev - 1 : 0))
       }, 1000)
       return () => clearInterval(intervalId)
     }
   }, [showSessionModal])
 
   // If countdown hits 0 while the modal is open, auto-logout
-  useEffect(() => {
-    if (countdown === 0 && showSessionModal) {
-      handleAutoLogout()
-    }
-  }, [countdown, showSessionModal])
+  // useEffect(() => {
+  //   if (countdown === 0 && showSessionModal) {
+  //     handleAutoLogout()
+  //   }
+  // }, [countdown, showSessionModal])
 
-  const handleStayLoggedIn = () => {
-    // user clicked "Stay Logged In"
-    setShowSessionModal(false)
-    setCountdown(120)
-    // reset the inactivity timers for another full 20 minutes
-    if (sessionTimerRef.current) clearTimeout(sessionTimerRef.current)
-    if (logoutTimerRef.current) clearTimeout(logoutTimerRef.current)
-  }
+  // const handleStayLoggedIn = () => {
+  //   setShowSessionModal(false)
+  //   setCountdown(120)
+  //   if (sessionTimerRef.current) clearTimeout(sessionTimerRef.current)
+  //   if (logoutTimerRef.current) clearTimeout(logoutTimerRef.current)
+  // }
 
-  const handleAutoLogout = () => {
-    setShowSessionModal(false)
-    setCountdown(60)
-    setShowSessionExpiredAlert(true)
-    handleLogout()
-  }
+  // const handleAutoLogout = () => {
+  //   setShowSessionModal(false)
+  //   setCountdown(60)
+  //   setShowSessionExpiredAlert(true)
+  //   handleLogout()
+  // }
+
   // ------------------------------------------
-  // Token validation on page load
+  // Token validation on page load (Removed JWT usage)
   useEffect(() => {
-    const validateToken = async () => {
-      const token = localStorage.getItem('authToken')
-      if (token) {
-        try {
-          const response = await fetch('/api/validate-token', {
-            method: 'GET',
-            headers: {
-              'Content-Type': 'application/json',
-              Authorization: `Bearer ${token}`,
-            },
-          })
-          if (response.ok) {
-            setIsLoggedIn(true)
-          } else {
-            console.error('Invalid token or session expired')
-            localStorage.removeItem('authToken')
-            // So if user had a stale token, show an alert once:
-            setShowSessionExpiredAlert(true)
-          }
-        } catch (error) {
-          console.error('Error validating token:', error)
-          localStorage.removeItem('authToken')
-        }
-      }
-      setIsLoading(false)
+    // In older code, you fetched /api/validate-token. It's removed now.
+    // So we simply do: if there's "auth data" in localStorage, maybe set isLoggedIn?
+    // Or skip entirely if you rely on the user to log in each time:
+    // e.g.:
+
+    const maybeUserName = localStorage.getItem('firstname')
+    if (maybeUserName) {
+      // If there's a name stored, assume we are "logged in" - or you can do more checks
+      setIsLoggedIn(true)
     }
-    validateToken()
+    // done
+    setIsLoading(false)
   }, [])
 
   const handleLoginSuccess = () => {
@@ -176,11 +143,16 @@ const App: React.FC = () => {
 
   const handleLogout = () => {
     setIsLoggingOut(true)
-    localStorage.removeItem('authToken')
+    // Remove any stored user data
+    localStorage.removeItem('firstname')
+    localStorage.removeItem('lastname')
+    localStorage.removeItem('role')
+    // Remove old token if any
+    // localStorage.removeItem('authToken') // not used now
+
     setIsLoggedIn(false)
     setLogoutMessage('You have successfully logged out.')
 
-    // Redirect after a slight delay
     setTimeout(() => {
       setLogoutMessage(null)
       setIsLoggingOut(false)
@@ -217,6 +189,7 @@ const App: React.FC = () => {
         <div className="alert alert-success text-center">{logoutMessage}</div>
       )}
 
+      {/* If NOT logged in => show Login alone; else => show everything else */}
       {!isLoggedIn ? (
         <Login onLoginSuccess={handleLoginSuccess} />
       ) : (
@@ -235,6 +208,9 @@ const App: React.FC = () => {
                 version="beta"
               >
                 <Routes>
+                  {/* If user is logged in and goes to "/", let's redirect them to /home */}
+                  <Route path="/" element={<Navigate to="/home" replace />} />
+
                   <Route
                     path="/home"
                     element={<Home isSidebarOpen={isSidebarOpen} />}
@@ -297,7 +273,9 @@ const App: React.FC = () => {
                     path="/report"
                     element={<Report isSidebarOpen={isSidebarOpen} />}
                   />
-                 
+
+                  {/* 404 fallback */}
+                  <Route path="*" element={<div>404 Not Found</div>} />
                 </Routes>
               </LoadScript>
             </div>
@@ -306,7 +284,7 @@ const App: React.FC = () => {
       )}
 
       {/* Session Timeout Warning Modal */}
-      <Modal show={showSessionModal} onHide={handleAutoLogout}>
+      {/* <Modal show={showSessionModal} onHide={handleAutoLogout}>
         <Modal.Header closeButton>
           <Modal.Title>Session Timeout Warning</Modal.Title>
         </Modal.Header>
@@ -322,7 +300,7 @@ const App: React.FC = () => {
             Logout
           </Button>
         </Modal.Footer>
-      </Modal>
+      </Modal> */}
     </div>
   )
 }

@@ -14,10 +14,11 @@ const Home: React.FC<HomeProps> = ({ isSidebarOpen }) => {
 
   return (
     <div
-      className="container-fluid p-0 pt-5 "
-      style={{
+    className= 'container-fluid' 
+     
+    style={{
         marginLeft: isSidebarOpen ? '220px' : '20px',
-        paddingTop: 'rem',
+        paddingTop: '4rem',
         paddingBottom: 0,
         transition: 'margin 0.3s ease',
         backgroundImage: `url(${Welcompage})`,
@@ -28,15 +29,15 @@ const Home: React.FC<HomeProps> = ({ isSidebarOpen }) => {
     >
       <div
         className="d-flex justify-content-center align-items-center"
-        style={{ minHeight: '85vh' }}
+        style={{ minHeight: '81vh' }}
       >
         <div
           className="shadow"
           style={{
-            width: '350px',
+            width: '22rem',
             backgroundColor: 'rgba(230, 243, 243, 0.85)',
-            // opacity: '0.5',
-            borderRadius: '8px',
+            opacity: '0.75',
+            borderRadius: '15px',
             padding: '2rem',
             textAlign: 'center',
             zIndex: '1',
@@ -53,6 +54,7 @@ const Home: React.FC<HomeProps> = ({ isSidebarOpen }) => {
           </h3>
         </div>
       </div>
+      
     </div>
   )
 }

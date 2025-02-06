@@ -7,7 +7,7 @@ import { fileURLToPath } from 'url'
 import mysql from 'mysql2/promise'
 import bcrypt from 'bcrypt'
 import dotenv from 'dotenv'
-import jwt from 'jsonwebtoken'
+// import jwt from 'jsonwebtoken'
 
 // Import  routes - ES Module
 import staffRoutes from './register.js'
@@ -27,12 +27,17 @@ import reportRouter from './report.js'
 
 dotenv.config()
 
+dotenv.config()
+
+const app = express()
+app.use(express.json())
+
 // For find __dirname in ES Modules---------------
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
+// Serve the dist folder
+app.use(express.static(path.join(__dirname, '../dist')))
 //------------------------------
-const app = express()
-app.use(express.json())
 // logging with Winston
 app.get('/', (req, res) => {
   logger.info('GET request received at /')
@@ -40,13 +45,12 @@ app.get('/', (req, res) => {
 })
 // Serve "uploads" folder for images/docs
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')))
-// Use routers for pages---------------------------
+
+// Use routers for pages
 app.use('/api/projects', projectsRouter)
 app.use('/api/objectives', objectivesRouter)
-
 app.use('/api', staffRoutes)
 app.use('/api', volunteerRoutes)
-
 app.use('/api', hazardRiskRoutes)
 app.use('/api', riskRouter)
 app.use('/api', ActivityRiskRouter)
@@ -57,11 +61,20 @@ app.use('/api/activities', activitiesRouter)
 app.use('/api/activities/complete', completeRouter)
 app.use('/api/report', reportRouter)
 
+
+
+// For a Single-Page App: fallback any other route to index.html
+app.get('*', (req, res) => {
+  res.sendFile(path.join(__dirname, '../dist', 'index.html'))
+})
+//==================================
+
 // test route
 app.get('/api/ping', (req, res) => {
   res.json({ message: 'pong' })
 })
-// MySQL pool-------
+
+// MySQL pool
 const pool = mysql.createPool({
   host: process.env.db_host,
   user: process.env.db_user,
@@ -91,7 +104,7 @@ app.post('/api/login', async (req, res) => {
   }
 
   try {
-    //Check the staffs table by email
+    // Check the staffs table by email
     const [rows] = await pool.query('SELECT * FROM staffs WHERE email = ?', [
       email,
     ])
@@ -101,23 +114,21 @@ app.post('/api/login', async (req, res) => {
       console.log('No user found with the provided email.')
       return res.status(401).json({ message: 'Invalid email or password' })
     }
-    //Compare hashed password
+
     const user = rows[0]
     // Compare plaintext password with hashed password
     const isMatch = await bcrypt.compare(password, user.password)
     if (!isMatch) {
       return res.status(401).json({ message: 'Invalid email or password' })
     }
-    //Create JWT
-    const token = jwt.sign(
-      { userId: user.id, role: user.role },
-      process.env.JWT_SECRET,
-      { expiresIn: '100h' }
-    )
-    //Return success notification
+
+    // Instead of creating a JWT, just define a placeholder token
+    const token = 'FAKE_NO_JWT_USED'
+
+    // Return success response (front end may still expect 'token')
     return res.json({
       message: 'Login successful',
-      token,
+      token, //  placeholder string
       firstname: user.firstname,
       lastname: user.lastname,
       role: user.role,
@@ -128,20 +139,10 @@ app.post('/api/login', async (req, res) => {
   }
 })
 
-// ================= Validate token-Generate JWT
-app.get('/api/validate-token', (req, res) => {
-  const token = req.headers.authorization?.split(' ')[1]
-  if (!token) {
-    return res.status(401).json({ message: 'No token provided' })
-  }
-  try {
-    const decoded = jwt.verify(token, process.env.JWT_SECRET)
-    return res.status(200).json({ message: 'Token is valid', user: decoded })
-  } catch (err) {
-    console.error('Token validation failed:', err.message)
-    return res.status(401).json({ message: 'Invalid or expired token' })
-  }
-})
+// ================= Validate token - REMOVED / COMMENTED OUT
+// app.get('/api/validate-token', (req, res) => {
+//   // We no longer use JWT. This endpoint is removed.
+// })
 
 // ================= Forgot Password
 app.post('/api/forgot-password', async (req, res) => {
@@ -156,26 +157,24 @@ app.post('/api/forgot-password', async (req, res) => {
     ])
 
     if (rows.length === 0) {
-      console.log('→ Email not found in staffs') // for debugging
-
+      console.log('→ Email not found in staffs')
       return res.status(404).json({ message: 'Email not found' })
     }
 
     const user = rows[0]
-    console.log('→ Found user:', user) // for debugging
+    console.log('→ Found user:', user)
 
     // Generate random new password
     const newPassword = Math.random().toString(36).substring(2, 10)
-    console.log('→ newPassword to hash:', newPassword) // for debugging
+    console.log('→ newPassword to hash:', newPassword)
 
     const hashedPassword = await bcrypt.hash(newPassword, 10)
-
     await pool.query('UPDATE staffs SET password = ? WHERE id = ?', [
       hashedPassword,
       user.id,
     ])
 
-    // Instead of local transporter, call our 'sendEmail' function:
+    // Send email
     try {
       await sendEmail(
         email,

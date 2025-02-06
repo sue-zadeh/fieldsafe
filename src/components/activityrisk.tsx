@@ -290,34 +290,34 @@ const ActivityRisk: React.FC<ActivityRiskProps> = ({ activityId }) => {
   // =========================
   // EDIT RISK
   // =========================
-  function openEditRiskModal(r: RiskRow) {
-    setShowRiskModal(true)
-    setIsEditing(true)
-    setEditingRisk(r)
+  // function openEditRiskModal(r: RiskRow) {
+  //   setShowRiskModal(true)
+  //   setIsEditing(true)
+  //   setEditingRisk(r)
 
-    setLikelihood(r.likelihood)
-    setConsequences(r.consequences)
-    setLocalRiskRating(r.risk_rating)
-    setSelectedRiskTitleId(r.riskTitleId)
+  //   setLikelihood(r.likelihood)
+  //   setConsequences(r.consequences)
+  //   setLocalRiskRating(r.risk_rating)
+  //   setSelectedRiskTitleId(r.riskTitleId)
 
-    // fetch controls for that riskTitle
-    axios
-      .get(`/api/risks/${r.riskTitleId}/controls`)
-      .then((resp) => {
-        setRiskControlsForTitle(resp.data)
-        // find bridging for this risk specifically:
-        // filter by "dc.risk_id === r.riskId"
-        const relevant = detailedRiskControls.filter(
-          (dc) => dc.risk_id === r.riskId
-        )
-        setChosenControlIds(relevant.map((rc) => rc.risk_control_id))
-      })
-      .catch((err) => {
-        console.error(err)
-        setMessage('Failed to load controls for editing.')
-      })
-    setNewControlText('')
-  }
+  //   // fetch controls for that riskTitle
+  //   axios
+  //     .get(`/api/risks/${r.riskTitleId}/controls`)
+  //     .then((resp) => {
+  //       setRiskControlsForTitle(resp.data)
+  //       // find bridging for this risk specifically:
+  //       // filter by "dc.risk_id === r.riskId"
+  //       const relevant = detailedRiskControls.filter(
+  //         (dc) => dc.risk_id === r.riskId
+  //       )
+  //       setChosenControlIds(relevant.map((rc) => rc.risk_control_id))
+  //     })
+  //     .catch((err) => {
+  //       console.error(err)
+  //       setMessage('Failed to load controls for editing.')
+  //     })
+  //   setNewControlText('')
+  // }
 
   // =========================
   // SAVE RISK
@@ -699,16 +699,16 @@ const ActivityRisk: React.FC<ActivityRiskProps> = ({ activityId }) => {
                 <td>{r.risk_rating}</td>
                 <td>
                   <ButtonGroup>
-                    {/* <Button
-                                              style={{ backgroundColor: '#0094b6',
-                                                color: 'white' }}
-                    
-                      variant="warning"
+                    {/* <Button */}
+                      {/* // style={{ backgroundColor: '#0094b6', */}
+                      {/* //   color: 'white' }}
+
+                      // variant="warning"
                       size="sm"
                       onClick={() => openEditRiskModal(r)}
                     >
-                      Edit
-                    </Button> */}
+                      {/* Edit */}
+                    {/* </Button> */} 
                     <Button
                       style={{ backgroundColor: '#D37B49', color: 'white' }}
                       variant="danger"

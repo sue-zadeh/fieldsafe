@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react'
 import { FaEye, FaEyeSlash } from 'react-icons/fa'
 import axios, { AxiosError } from 'axios'
 import { useNavigate } from 'react-router-dom'
+
 interface LoginProps {
   onLoginSuccess: () => void
 }
@@ -37,25 +38,27 @@ const Login: React.FC<LoginProps> = ({ onLoginSuccess }) => {
     try {
       const response = await axios.post('/api/login', { email, password })
 
-      if (response.data.message === 'Login successful' && response.data.token) {
-        // Store the token and user details in localStorage
-        localStorage.setItem('authToken', response.data.token)
+      // 1) remove "&& response.data.token" so we accept "Login successful" alone
+      if (response.data.message === 'Login successful') {
+        // 2) comment out storing any token
+        // localStorage.setItem('authToken', response.data.token)
 
-        // **Store firstname and lastname in localStorage - used for welcome in sidebar
+        // Store firstname and lastname in localStorage - used for welcome
         localStorage.setItem('firstname', response.data.firstname)
         localStorage.setItem('lastname', response.data.lastname)
-        localStorage.setItem('role', response.data.role) // Store role
+        localStorage.setItem('role', response.data.role)
 
-        // Optionally store email if remember me is checked
+        // "Remember Me"
         if (rememberMe) {
           localStorage.setItem('email', email)
         } else {
           localStorage.removeItem('email')
         }
-        // Navigate to firstpage
-        navigate('/home')
-        // To tell App we’re logged in
+        // Tell App we’re logged in
         onLoginSuccess()
+
+        // Navigate to home page
+        navigate('/home')
       } else {
         setError(response.data.message || 'Login failed. Please try again.')
       }
@@ -78,13 +81,11 @@ const Login: React.FC<LoginProps> = ({ onLoginSuccess }) => {
       setError('Please enter your email.')
       return
     }
-
     setIsLoading(true)
     setError('')
 
     try {
       const response = await axios.post('/api/forgot-password', { email })
-
       if (response.data.message === 'Password reset email sent successfully') {
         alert('Password reset email sent. Check your inbox.')
         setError('')

@@ -238,9 +238,7 @@ const AddHazard: React.FC<AddHazardsProps> = ({ isSidebarOpen }) => {
                   >
                     Hazard Description
                   </th>
-                  <th className="text-center" style={{ width: '80px' }}>
-                    Actions
-                  </th>
+                  <th className="text-center">Actions</th>
                 </tr>
               </thead>
               <tbody>
@@ -376,9 +374,7 @@ const AddHazard: React.FC<AddHazardsProps> = ({ isSidebarOpen }) => {
                   >
                     Hazard Description
                   </th>
-                  <th className="text-center" style={{ width: '80px' }}>
-                    Actions
-                  </th>
+                  <th className="text-center">Actions</th>
                 </tr>
               </thead>
               <tbody>
