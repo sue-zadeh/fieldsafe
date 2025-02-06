@@ -1,4 +1,3 @@
-// src/components/AddActivity.tsx
 import React, { useState, useEffect } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 import axios from 'axios'
@@ -86,7 +85,7 @@ const AddActivity: React.FC<AddActivityProps> = ({}) => {
   useEffect(() => {
     if (!fromSearch) {
       if (activityId) {
-        // We do have an ID, so presumably user was 'in progress,'
+        // We do have an ID, so assume user was 'in progress,'
         // so show the "You already have a Field Note in progress..." text
         setModalText(
           'You already have a Field Note in progress. Would you like to start a new one?'
@@ -95,7 +94,7 @@ const AddActivity: React.FC<AddActivityProps> = ({}) => {
       } else {
         // No activityId => brand new
         setModalText(
-          'Would you like to choose an activity from list? Or start a new one?'
+          'Would you like to choose an activity from the list? Or start a new one?'
         )
         setShowModal(true)
       }
@@ -289,12 +288,12 @@ const AddActivity: React.FC<AddActivityProps> = ({}) => {
     }
   }
 
-  // “Edit” button => allow changing the fields
+  // 'Edit' button => allow changing the fields
   const handleEdit = () => setReadOnly(false)
 
   // =========== MODAL LOGIC =============
   const handleModalCancel = () => {
-    // “Close” => user can keep doing whatever they're doing
+    // 'Close' => user can keep doing whatever they're doing
     setShowModal(false)
   }
 

@@ -175,7 +175,8 @@ const ActivityChecklist: React.FC<ActivityChecklistProps> = ({
                 <td>{c.description}</td>
                 <td>
                   <button
-                    className="btn btn-danger btn-sm"
+                    className="btn btn-danger btn-sm rounded"
+                    style={{ backgroundColor: '#D37B40' }}
                     onClick={() => handleRemoveChecklist(c.id)}
                   >
                     Remove

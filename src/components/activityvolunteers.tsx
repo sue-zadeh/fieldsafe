@@ -12,11 +12,10 @@ interface Volunteer {
 
 interface VolunteerTabProps {
   activityId: number
-  activityName ?: string
+  activityName?: string
 }
 
-const ActivityVolunteerTab: React.FC<VolunteerTabProps> = ({ activityId 
-   }) => {
+const ActivityVolunteerTab: React.FC<VolunteerTabProps> = ({ activityId }) => {
   const [unassignedVolunteers, setUnassignedVolunteers] = useState<Volunteer[]>(
     []
   )
@@ -172,7 +171,8 @@ const ActivityVolunteerTab: React.FC<VolunteerTabProps> = ({ activityId
                 </td>
                 <td>
                   <button
-                    className="btn btn-danger btn-sm"
+                    className="btn btn-danger btn-sm rounded"
+                    style={{ backgroundColor: '#D37B40' }}
                     onClick={() => handleRemoveVolunteer(volunteer.id)}
                   >
                     Remove

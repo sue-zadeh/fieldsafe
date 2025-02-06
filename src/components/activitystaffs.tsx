@@ -11,7 +11,7 @@ interface Staff {
 
 interface StaffTabProps {
   activityId?: number
-  activityName ?: string
+  activityName?: string
 }
 
 const ActivityStaffsTab: React.FC<StaffTabProps> = ({ activityId }) => {
@@ -202,7 +202,8 @@ const ActivityStaffsTab: React.FC<StaffTabProps> = ({ activityId }) => {
               <td>{staff.role}</td>
               <td>
                 <button
-                  className="btn btn-danger btn-sm"
+                  className="btn btn-danger btn-sm rounded"
+                  style={{ backgroundColor: '#D37B40' }}
                   onClick={() => handleRemoveStaff(staff.id)}
                 >
                   Remove
