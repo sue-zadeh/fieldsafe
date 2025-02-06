@@ -115,7 +115,7 @@ const AddProject: React.FC<AddProjectProps> = ({ isSidebarOpen }) => {
 
   // LOAD objectives and project data if editing
   useEffect(() => {
-    axios
+    axios /// fetch objectives
       .get('/api/objectives')
       .then((res) => setAllObjectives(res.data))
       .catch((err) => console.error('Error fetching objectives:', err))
@@ -165,6 +165,16 @@ const AddProject: React.FC<AddProjectProps> = ({ isSidebarOpen }) => {
         .catch((err) => console.error('Error loading project for edit:', err))
     }
   }, [locationState])
+
+  // re-fetch objectives so we can see new ones immediately
+  const reloadObjectives = async () => {
+    try {
+      const response = await axios.get('/api/objectives')
+      setAllObjectives(response.data)
+    } catch (err) {
+      console.error('Error reloading objectives:', err)
+    }
+  }
 
   // Auto-clear notification after 10s
   useEffect(() => {
@@ -913,7 +923,13 @@ const AddProject: React.FC<AddProjectProps> = ({ isSidebarOpen }) => {
         {/* Additional tabs: Objectives, Hazards, Risks */}
         {activeTab === 'objectives' && (
           <div className="py-2">
-            <AddObjectives isSidebarOpen={isSidebarOpen} />
+            {/* Pass a callback so child can refresh objectives */}
+            <AddObjectives
+              isSidebarOpen={isSidebarOpen}
+              onNewObjectiveCreated={reloadObjectives}
+              onObjectivesChanged={reloadObjectives}
+              onObjectivesEdited={reloadObjectives}
+            />
           </div>
         )}
         {activeTab === 'hazards' && (
@@ -929,7 +945,7 @@ const AddProject: React.FC<AddProjectProps> = ({ isSidebarOpen }) => {
       </div>
 
       {/* Modal for objectives */}
-      <Modal show={showObjModal} onHide={closeObjModal} size="lg">
+      <Modal show={showObjModal} onHide={closeObjModal} size="sm">
         <Modal.Header closeButton>
           <Modal.Title>Select Objectives</Modal.Title>
         </Modal.Header>

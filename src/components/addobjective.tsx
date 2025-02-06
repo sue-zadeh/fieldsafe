@@ -1,14 +1,6 @@
 import React, { useState, useEffect, FormEvent } from 'react'
 import axios from 'axios'
-import {
-  Table,
-  Form,
-  Button,
-  Alert,
-  Card,
-  Row,
-  Col,
-} from 'react-bootstrap'
+import { Table, Form, Button, Alert, Card, Row, Col } from 'react-bootstrap'
 
 interface Objective {
   id: number
@@ -20,9 +12,17 @@ interface Objective {
 
 interface AddObjectivesProps {
   isSidebarOpen: boolean
+  onNewObjectiveCreated?: () => void
+  onObjectivesChanged?: () => void
+  onObjectivesEdited?: () => void
 }
 
-const AddObjectives: React.FC<AddObjectivesProps> = ({ isSidebarOpen }) => {
+const AddObjectives: React.FC<AddObjectivesProps> = ({
+  isSidebarOpen,
+  onNewObjectiveCreated,
+  onObjectivesChanged,
+  onObjectivesEdited
+}) => {
   const [objectives, setObjectives] = useState<Objective[]>([])
   const [title, setTitle] = useState('')
   const [measurement, setMeasurement] = useState('')
@@ -72,9 +72,14 @@ const AddObjectives: React.FC<AddObjectivesProps> = ({ isSidebarOpen }) => {
         measurement: measurement.trim(),
       })
       setNotification('Objective added successfully!')
+
       setTitle('')
       setMeasurement('')
       fetchObjectives()
+      // Call the parent's callback so the parent can re-fetch
+      if (onNewObjectiveCreated) {
+        onNewObjectiveCreated()
+      }
     } catch (err: any) {
       console.error('Error adding objective:', err.response?.data || err)
       setNotification(err.response?.data?.message || 'Failed to add objective.')
@@ -106,6 +111,7 @@ const AddObjectives: React.FC<AddObjectivesProps> = ({ isSidebarOpen }) => {
       setNotification('Objective updated successfully!')
       setEditObj(null)
       fetchObjectives()
+      onObjectivesEdited?.()
     } catch (err: any) {
       console.error('Error updating objective:', err.response?.data || err)
       setNotification(
@@ -123,7 +129,11 @@ const AddObjectives: React.FC<AddObjectivesProps> = ({ isSidebarOpen }) => {
     try {
       await axios.delete(`/api/objectives/${id}`)
       setNotification('Objective deleted successfully!')
+
+      // To updates the child’s local objective list
       fetchObjectives()
+      // tell the parent to re-fetch
+      onObjectivesChanged?.()
     } catch (err: any) {
       console.error('Error deleting objective:', err.response?.data || err)
       setNotification(
