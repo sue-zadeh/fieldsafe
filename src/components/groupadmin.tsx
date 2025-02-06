@@ -209,7 +209,8 @@ const GroupAdmin: React.FC<GroupAdminProps> = ({ isSidebarOpen }) => {
               </td>
               <td className="text-center">
                 <button
-                  className="btn btn-warning btn-sm me-2"
+                  className="btn btn-warning btn-sm me-2 text-light rounded"
+                  style={{ backgroundColor: '#0094B6' }}
                   onClick={() =>
                     currentUserRole === 'Group Admin' &&
                     navigate('/registerroles', {
@@ -221,7 +222,8 @@ const GroupAdmin: React.FC<GroupAdminProps> = ({ isSidebarOpen }) => {
                   Edit
                 </button>
                 <button
-                  className="btn btn-danger btn-sm"
+                  className="btn btn-danger btn-sm rounded"
+                  style={{ backgroundColor: '#D37B40' }}
                   onClick={() =>
                     currentUserRole === 'Group Admin' && handleDelete(u.id)
                   }

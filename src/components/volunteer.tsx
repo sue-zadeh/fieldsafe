@@ -161,7 +161,8 @@ const Volunteer: React.FC<VolunteerProps> = ({ isSidebarOpen }) => {
             </td>
             <td className="text-center">
               <button
-                className="btn btn-warning btn-sm me-2"
+                className="btn btn-warning btn-sm me-2 text-light rounded"
+                style={{ backgroundColor: '#0094b6' }}
                 onClick={() =>
                   navigate('/registervolunteer', {
                     state: { user: u, isEdit: true },
@@ -171,7 +172,8 @@ const Volunteer: React.FC<VolunteerProps> = ({ isSidebarOpen }) => {
                 Edit
               </button>
               <button
-                className="btn btn-danger btn-sm"
+                className="btn btn-danger btn-sm rounded"
+                style={{ backgroundColor: '#D37B40' }}
                 onClick={() => handleDelete(u.id)}
               >
                 Delete
