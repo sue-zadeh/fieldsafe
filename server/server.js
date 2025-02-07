@@ -1,4 +1,3 @@
-// server/server.js
 import express from 'express'
 import logger from './logger.js'
 
@@ -7,7 +6,6 @@ import { fileURLToPath } from 'url'
 import mysql from 'mysql2/promise'
 import bcrypt from 'bcrypt'
 import dotenv from 'dotenv'
-// import jwt from 'jsonwebtoken'
 
 // Import  routes - ES Module
 import staffRoutes from './register.js'
@@ -140,9 +138,8 @@ app.post('/api/login', async (req, res) => {
 })
 
 // ================= Validate token - REMOVED / COMMENTED OUT
-// app.get('/api/validate-token', (req, res) => {
-//   // We no longer use JWT. This endpoint is removed.
-// })
+//    
+//
 
 // ================= Forgot Password
 app.post('/api/forgot-password', async (req, res) => {
