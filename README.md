@@ -1,4 +1,4 @@
-# CVNZ Admin Dashboard
+<h1 align="center">CVNZ Admin Dashboard</h1>
 
 ## Tech Stack
 
