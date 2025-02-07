@@ -159,6 +159,9 @@ const RegisterRoles: React.FC<RegisterroleProps> = ({ isSidebarOpen }) => {
         
         Please keep this password secure. 
         If you wish to change it, use the "Forgot Password" link to get a reset.
+
+        You can log in at: https://www.fieldsafe.org.nz
+
         
         Best regards,
         FieldSafe Team

@@ -37,7 +37,7 @@ const App: React.FC = () => {
   const INACTIVITY_LIMIT = 1000 * 60_000 // 1000 minutes in ms
   const [showSessionModal, setShowSessionModal] = useState(false)
   const [, setCountdown] = useState(120) // 2 minutes
-  const [showSessionExpiredAlert, ] = useState(false)
+  const [showSessionExpiredAlert] = useState(false)
 
   // references for timeouts so we can clear them
   const sessionTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
@@ -69,7 +69,7 @@ const App: React.FC = () => {
       if (!showSessionModal) {
         if (sessionTimerRef.current) clearTimeout(sessionTimerRef.current)
         if (logoutTimerRef.current) clearTimeout(logoutTimerRef.current)
-        setCountdown(60)
+        setCountdown(120)
         setShowSessionModal(false)
         startTimers()
       }
@@ -157,7 +157,7 @@ const App: React.FC = () => {
       setLogoutMessage(null)
       setIsLoggingOut(false)
       navigate('/')
-    }, 1500)
+    }, 10000)
   }
 
   const toggleSidebar = () => {
