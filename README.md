@@ -1,4 +1,4 @@
-                          ## CVNZ Admin Dashboard
+# CVNZ Admin Dashboard
 
 ## Tech Stack
 
