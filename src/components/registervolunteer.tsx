@@ -59,8 +59,12 @@ const Addvolunteer: React.FC<AddvolunteerProps> = ({ isSidebarOpen }) => {
     ) {
       return 'All fields are required.'
     }
-    if (!/\S+@\S+\.\S+/.test(email)) return 'Invalid email format.'
-    if (!/^\d{10}$/.test(phone)) return 'Phone must be exactly 10 digits.'
+    if (!/\S+@\S+\.\S+/.test(email)) {
+      return 'Invalid email format.'
+    }
+    if (!/^[+\d]+$/.test(phone)) {
+      return 'Phone must contain only numbers and may start with +.'
+    }
     return null
   }
 

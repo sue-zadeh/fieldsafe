@@ -61,7 +61,7 @@ app.use('/api/report', reportRouter)
 
 // For a Single-Page App: fallback any other route to index.html
 app.get('*', (req, res) => {
-  res.sendFile(path.join(__dirname,  '..', 'dist','index.html'))
+  res.sendFile(path.join(__dirname, '..', 'dist', 'index.html'))
 })
 //==================================
 
