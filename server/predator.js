@@ -1,10 +1,9 @@
-// server/predator.js
 import express from 'express'
 import { pool } from './db.js'
 
 const router = express.Router()
 
-// 1) GET => /api/predator
+// GET => /api/predator
 router.get('/predator', async (req, res) => {
   try {
     const [rows] = await pool.query('SELECT * FROM predator')
@@ -15,7 +14,7 @@ router.get('/predator', async (req, res) => {
   }
 })
 
-// 2) GET => /api/activity_predator/:activity_id
+// GET => /api/activity_predator/:activity_id
 router.get('/activity_predator/:activity_id', async (req, res) => {
   const { activity_id } = req.params
   try {
@@ -46,7 +45,7 @@ router.get('/activity_predator/:activity_id', async (req, res) => {
   }
 })
 
-// 3) POST => /api/activity_predator
+// POST => /api/activity_predator
 router.post('/activity_predator', async (req, res) => {
   try {
     const {
@@ -101,7 +100,7 @@ router.post('/activity_predator', async (req, res) => {
   }
 })
 
-// 4) PUT => /api/activity_predator/:id
+// PUT => /api/activity_predator/:id
 router.put('/activity_predator/:id', async (req, res) => {
   try {
     const { id } = req.params
@@ -161,7 +160,7 @@ router.put('/activity_predator/:id', async (req, res) => {
   }
 })
 
-// 5) DELETE => /api/activity_predator/:id
+// DELETE => /api/activity_predator/:id
 router.delete('/activity_predator/:id', async (req, res) => {
   try {
     const { id } = req.params

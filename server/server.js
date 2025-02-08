@@ -34,7 +34,7 @@ app.use(express.json())
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
 // Serve the dist folder
-app.use(express.static(path.join(__dirname, '../dist')))
+app.use(express.static(path.join(__dirname, '..', 'dist')))
 //------------------------------
 // logging with Winston
 app.get('/', (req, res) => {
@@ -59,11 +59,9 @@ app.use('/api/activities', activitiesRouter)
 app.use('/api/activities/complete', completeRouter)
 app.use('/api/report', reportRouter)
 
-
-
 // For a Single-Page App: fallback any other route to index.html
 app.get('*', (req, res) => {
-  res.sendFile(path.join(__dirname, '../dist', 'index.html'))
+  res.sendFile(path.join(__dirname,  '..', 'dist','index.html'))
 })
 //==================================
 
@@ -138,7 +136,7 @@ app.post('/api/login', async (req, res) => {
 })
 
 // ================= Validate token - REMOVED / COMMENTED OUT
-//    
+//
 //
 
 // ================= Forgot Password
