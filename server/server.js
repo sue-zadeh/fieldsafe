@@ -58,12 +58,12 @@ app.use('/api', predatorRouter)
 app.use('/api/activities', activitiesRouter)
 app.use('/api/activities/complete', completeRouter)
 app.use('/api/report', reportRouter)
-
+//=================================
 // For a Single-Page App: fallback any other route to index.html
 app.get('*', (req, res) => {
   res.sendFile(path.join(__dirname, '..', 'dist', 'index.html'))
 })
-//==================================
+//========================================
 
 // test route
 app.get('/api/ping', (req, res) => {
