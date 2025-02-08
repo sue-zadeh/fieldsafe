@@ -1,14 +1,15 @@
 // server/projects.js
 import express from 'express'
-import { pool } from './db.js'
-import multer from 'multer'
 import path from 'path'
+import { fileURLToPath } from 'url'
+import multer from 'multer'
+import { pool } from './db.js'
 
 const router = express.Router()
 
 /**
- * Helper to convert an incoming ISO date string
- * (e.g. "2025-01-21T11:00:00.000Z") to "YYYY-MM-DD"
+ * Utility to parse a date string (like "2025-01-21T11:00:00.000Z")
+ * into "YYYY-MM-DD" for MySQL.
  */
 function parseDateForMySQL(isoString) {
   const dateObj = new Date(isoString)
@@ -18,25 +19,38 @@ function parseDateForMySQL(isoString) {
   const yyyy = dateObj.getUTCFullYear()
   const mm = String(dateObj.getUTCMonth() + 1).padStart(2, '0')
   const dd = String(dateObj.getUTCDate()).padStart(2, '0')
-  return `${yyyy}-${mm}-${dd}` // e.g. "2025-01-21"
+  return `${yyyy}-${mm}-${dd}`
 }
 
-// ================= Multer Setup =================
+// -------------------------------------------------------------------
+//  Setup absolute __dirname for ES modules
+// -------------------------------------------------------------------
+const __filename = fileURLToPath(import.meta.url)
+const __dirname = path.dirname(__filename)
+
+// -------------------------------------------------------------------
+//  Multer Disk Storage: Save to "uploads" folder next to this file
+// -------------------------------------------------------------------
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
-    cb(null, 'server/uploads/')
+    // Use an absolute path to ensure files go in "<this folder>/uploads"
+    cb(null, path.join(__dirname, 'uploads'))
   },
   filename: (req, file, cb) => {
     const ext = path.extname(file.originalname)
     const base = path.basename(file.originalname, ext)
-    cb(null, base + '-' + Date.now() + ext)
+    // Append a timestamp to avoid name collisions
+    cb(null, `${base}-${Date.now()}${ext}`)
   },
 })
+
 const upload = multer({ storage })
 
-// ================= GET /api/projects =================
-// If ?name= is given, return {exists:true} for uniqueness check
-// Otherwise, return a list of all projects.
+// -------------------------------------------------------------------
+//  GET /api/projects
+//    - ?name= => Check if project name exists
+//    - otherwise => List all projects
+// -------------------------------------------------------------------
 router.get('/', async (req, res) => {
   const { name } = req.query
   try {
@@ -58,8 +72,10 @@ router.get('/', async (req, res) => {
   }
 })
 
-// ================= GET /api/projects/projList =================
-// "SearchProject" can use bridging data
+// -------------------------------------------------------------------
+//  GET /api/projects/projList
+//    - Return projects + concatenated objective titles
+// -------------------------------------------------------------------
 router.get('/projList', async (req, res) => {
   try {
     const [rows] = await pool.query(`
@@ -79,13 +95,13 @@ router.get('/projList', async (req, res) => {
   }
 })
 
-// ============ GET /api/projects/:id ============
-// Return single project + array of objective IDs,
-// with the project's date in "YYYY-MM-DD" format
+// -------------------------------------------------------------------
+//  GET /api/projects/:id
+//    - Return single project + objective IDs
+// -------------------------------------------------------------------
 router.get('/:id', async (req, res) => {
   const { id } = req.params
   try {
-    // We do a SELECT that uses DATE_FORMAT so front end sees "YYYY-MM-DD"
     const sql = `
       SELECT
         p.id,
@@ -125,7 +141,11 @@ router.get('/:id', async (req, res) => {
   }
 })
 
-// ============ POST /api/projects (CREATE) ============
+// -------------------------------------------------------------------
+//  POST /api/projects (CREATE)
+//    - Upload 'image' + 'inductionFile' via Multer
+//    - Insert row into 'projects' + bridging table
+// -------------------------------------------------------------------
 router.post(
   '/',
   upload.fields([
@@ -149,7 +169,6 @@ router.post(
         objectives, // JSON string
       } = req.body
 
-      // Convert date to "YYYY-MM-DD"
       const sqlDate = parseDateForMySQL(startDate)
       if (!sqlDate) {
         return res.status(400).json({ message: 'Invalid or unparseable date.' })
@@ -164,14 +183,20 @@ router.post(
         return res.status(400).json({ message: 'Project name already taken.' })
       }
 
-      // handle files
+      // Handle files
       let imageUrl = null
       let inductionFileUrl = null
+
       if (req.files['image']) {
-        imageUrl = req.files['image'][0].path
+        const fullPath = req.files['image'][0].path // absolute path
+        const fileName = path.basename(fullPath) // e.g. "myImage-1687423.png"
+        // Store a relative path "uploads/myImage-..."
+        imageUrl = `uploads/${fileName}`
       }
       if (req.files['inductionFile']) {
-        inductionFileUrl = req.files['inductionFile'][0].path
+        const fullPath = req.files['inductionFile'][0].path
+        const fileName = path.basename(fullPath)
+        inductionFileUrl = `uploads/${fileName}`
       }
 
       // Insert project
@@ -189,7 +214,7 @@ router.post(
       const [result] = await pool.query(insertSql, [
         name,
         location,
-        sqlDate, // store "YYYY-MM-DD"
+        sqlDate,
         status,
         createdBy || null,
         emergencyServices || '111 will contact all emergency services',
@@ -219,10 +244,9 @@ router.post(
         }
       }
 
-      return res.status(201).json({
-        id: projectId,
-        message: 'Project created successfully',
-      })
+      return res
+        .status(201)
+        .json({ id: projectId, message: 'Project created successfully' })
     } catch (error) {
       console.error('Error creating project:', error)
       return res.status(500).json({ message: 'Failed to create project' })
@@ -230,7 +254,11 @@ router.post(
   }
 )
 
-// ============ PUT /api/projects/:id (UPDATE) ============
+// -------------------------------------------------------------------
+//  PUT /api/projects/:id (UPDATE)
+//    - Upload 'image' + 'inductionFile' via Multer
+//    - Update row, bridging table
+// -------------------------------------------------------------------
 router.put(
   '/:id',
   upload.fields([
@@ -252,12 +280,11 @@ router.put(
         localHospital,
         primaryContactName,
         primaryContactPhone,
-        objectives, // JSON array
+        objectives,
       } = req.body
 
-      // Convert date to "YYYY-MM-DD"
+      // Convert date
       const sqlDate = parseDateForMySQL(startDate)
-      // It's OK if user didn't change date => maybe it's empty => we keep old below
 
       // Check if project exists
       const [existingRows] = await pool.query(
@@ -282,23 +309,24 @@ router.put(
         }
       }
 
-      // If we have new files
+      // If we have new files, store them
       let imageUrl = old.imageUrl
       let inductionFileUrl = old.inductionFileUrl
       if (req.files['image']) {
-        imageUrl = req.files['image'][0].path
+        const fullPath = req.files['image'][0].path
+        const fileName = path.basename(fullPath)
+        imageUrl = `uploads/${fileName}`
       }
       if (req.files['inductionFile']) {
-        inductionFileUrl = req.files['inductionFile'][0].path
+        const fullPath = req.files['inductionFile'][0].path
+        const fileName = path.basename(fullPath)
+        inductionFileUrl = `uploads/${fileName}`
       }
 
-      // Partial update logic: if a field wasn't provided, keep old
+      // Keep old fields if not provided
       const finalName = name !== undefined ? name : old.name
       const finalLocation = location !== undefined ? location : old.location
-      // If user gave a new date => use sqlDate. Else keep old.startDate as is.
-      // We'll store old.startDate in the DB if user didn't specify anything new.
-      // old.startDate is a full date/time; let's keep it as is or you can parse it:
-      const finalStartDate = sqlDate || old.startDate
+      const finalStartDate = sqlDate || old.startDate // keep old if none
       const finalStatus = status !== undefined ? status : old.status
       const finalCreatedBy = createdBy !== undefined ? createdBy : old.createdBy
       const finalEmergency =
@@ -324,6 +352,7 @@ router.put(
           ? primaryContactPhone
           : old.primaryContactPhone
 
+      // Update row
       const updateSql = `
         UPDATE projects
         SET 
@@ -336,7 +365,7 @@ router.put(
       await pool.query(updateSql, [
         finalName,
         finalLocation,
-        finalStartDate, // "YYYY-MM-DD" if user changed date, else old
+        finalStartDate,
         finalStatus,
         finalCreatedBy,
         finalEmergency,
@@ -377,15 +406,15 @@ router.put(
   }
 )
 
-// ============ DELETE /api/projects/:id ============
+// -------------------------------------------------------------------
+//  DELETE /api/projects/:id
+// -------------------------------------------------------------------
 router.delete('/:id', async (req, res) => {
   const { id } = req.params
   try {
-    // remove bridging
     await pool.query('DELETE FROM project_objectives WHERE project_id = ?', [
       id,
     ])
-    // remove project
     const [result] = await pool.query('DELETE FROM projects WHERE id = ?', [id])
     if (result.affectedRows === 0) {
       return res.status(404).json({ message: 'Project not found' })
