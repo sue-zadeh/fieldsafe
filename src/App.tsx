@@ -276,25 +276,6 @@ const App: React.FC = () => {
           </div>
         </div>
       )}
-
-      {/* Session Timeout Warning Modal */}
-      {/* <Modal show={showSessionModal} onHide={handleAutoLogout}>
-        <Modal.Header closeButton>
-          <Modal.Title>Session Timeout Warning</Modal.Title>
-        </Modal.Header>
-        <Modal.Body>
-          Your session will expire in {countdown} seconds. Do you want to stay
-          logged in?
-        </Modal.Body>
-        <Modal.Footer>
-          <Button variant="primary" onClick={handleStayLoggedIn}>
-            Stay Logged In
-          </Button>
-          <Button variant="danger" onClick={handleAutoLogout}>
-            Logout
-          </Button>
-        </Modal.Footer>
-      </Modal> */}
     </div>
   )
 }
