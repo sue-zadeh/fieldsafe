@@ -44,7 +44,7 @@ const App: React.FC = () => {
   const logoutTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   // ------------------------------------------
-  // On mount: handle window resize for sidebar responsiveness
+  // handle window resize for sidebar responsiveness
   useEffect(() => {
     const handleResize = () => {
       setIsSidebarOpen(window.innerWidth >= 768)
@@ -122,14 +122,9 @@ const App: React.FC = () => {
   // ------------------------------------------
   // Token validation on page load (Removed JWT usage)
   useEffect(() => {
-    // In older code, you fetched /api/validate-token. It's removed now.
-    // So we simply do: if there's "auth data" in localStorage, maybe set isLoggedIn?
-    // Or skip entirely if you rely on the user to log in each time:
-    // e.g.:
-
     const maybeUserName = localStorage.getItem('firstname')
     if (maybeUserName) {
-      // If there's a name stored, assume we are "logged in" - or you can do more checks
+      // If there's a name stored, assume we are "logged in" - or can do more checks
       setIsLoggedIn(true)
     }
     // done
@@ -147,7 +142,6 @@ const App: React.FC = () => {
     localStorage.removeItem('firstname')
     localStorage.removeItem('lastname')
     localStorage.removeItem('role')
-    // Remove old token if any
     // localStorage.removeItem('authToken') // not used now
 
     setIsLoggedIn(false)

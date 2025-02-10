@@ -66,7 +66,6 @@ router.post('/', async (req, res) => {
     )
     const newActivityId = actResult.insertId
 
-    // copy from project_objectives => activity_objectives
     await pool.query(
       `
       INSERT INTO activity_objectives (activity_id, objective_id)
@@ -113,7 +112,6 @@ router.get('/', async (req, res) => {
 })
 
 // ============== GET => /api/activities/:id =============
-// server/activities.js (EXAMPLE)
 router.get('/:id', async (req, res) => {
   const { id } = req.params
   try {
@@ -137,7 +135,6 @@ router.get('/:id', async (req, res) => {
     if (!rows.length) {
       return res.status(404).json({ message: 'Activity not found' })
     }
-    // activity_date will now be something like "2025-01-21"
     res.json(rows[0])
   } catch (err) {
     console.error('GET /activities/:id error:', err)
@@ -197,7 +194,7 @@ router.put('/:id', async (req, res) => {
     await pool.query(sql, [
       activity_name,
       project_id,
-      sqlDate, // the corrected date
+      sqlDate,
       notes || '',
       createdBy || null,
       status || 'InProgress',

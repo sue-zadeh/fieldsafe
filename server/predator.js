@@ -62,7 +62,7 @@ router.post('/activity_predator', async (req, res) => {
       othersDescription,
     } = req.body
 
-    // block date < 2024 if you want
+    // block date < 2024
     let dStart = dateStart ?? null
     let dEnd = dateEnd ?? null
     if (dStart && dStart < '2024-01-01') dStart = '2024-01-01'

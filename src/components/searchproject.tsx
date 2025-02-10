@@ -1,4 +1,3 @@
-// src/components/SearchProject.tsx
 import React, { useState, useEffect } from 'react'
 import axios from 'axios'
 import { useNavigate, useLocation } from 'react-router-dom'
@@ -170,7 +169,7 @@ const SearchProject: React.FC<SearchProjectProps> = ({ isSidebarOpen }) => {
             <Nav.Link
               onClick={() => {
                 handleNavClick('archiveprojects')
-                setExpanded(false) // close the nav
+                setExpanded(false)
               }}
               style={{
                 fontWeight: activeTab === 'archiveprojects' ? 'bold' : 'normal',

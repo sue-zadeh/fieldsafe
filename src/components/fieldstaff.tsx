@@ -40,7 +40,7 @@ const FieldStaff: React.FC<FieldStaffProps> = ({ isSidebarOpen }) => {
   const navigate = useNavigate()
 
   //------------------------------------------------------------
-  // On mount, fetch ALL "Field Staff"
+  // fetch ALL "Field Staff"
   const fetchAllStaff = async () => {
     try {
       const res = await axios.get('/api/staff', {
@@ -61,7 +61,7 @@ const FieldStaff: React.FC<FieldStaffProps> = ({ isSidebarOpen }) => {
   }, [])
 
   //------------------------------------------------------------
-  // Immediate search on typing
+  // Immediate search
   useEffect(() => {
     const doSearch = async () => {
       if (!searchQuery.trim()) {
@@ -250,7 +250,7 @@ const FieldStaff: React.FC<FieldStaffProps> = ({ isSidebarOpen }) => {
         <div className="alert alert-info text-center">{notification}</div>
       )}
 
-      {/* The search bar (no button). Searching as you type */}
+      {/* The search bar (no button). Searching as type */}
       <div className="mb-4 d-flex justify-content-center">
         <input
           className="form-control w-50 me-2 fs-6"

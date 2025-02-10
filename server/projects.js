@@ -1,4 +1,3 @@
-// server/projects.js
 import express from 'express'
 import path from 'path'
 import { fileURLToPath } from 'url'
@@ -29,11 +28,11 @@ const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
 
 // -------------------------------------------------------------------
-//  Multer Disk Storage: Save to "uploads" folder next to this file
+//  Multer Disk Storage: Save to "uploads" folder
 // -------------------------------------------------------------------
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
-    // Use an absolute path to ensure files go in "<this folder>/uploads"
+    // Using an absolute path to ensure files go in "server/uploads"
     cb(null, path.join(__dirname, 'uploads'))
   },
   filename: (req, file, cb) => {
@@ -166,7 +165,7 @@ router.post(
         localHospital,
         primaryContactName,
         primaryContactPhone,
-        objectives, // JSON string
+        objectives,
       } = req.body
 
       const sqlDate = parseDateForMySQL(startDate)
@@ -188,9 +187,9 @@ router.post(
       let inductionFileUrl = null
 
       if (req.files['image']) {
-        const fullPath = req.files['image'][0].path // absolute path
-        const fileName = path.basename(fullPath) // e.g. "myImage-1687423.png"
-        // Store a relative path "uploads/myImage-..."
+        const fullPath = req.files['image'][0].path
+        const fileName = path.basename(fullPath)
+        // Store a relative path "uploads/myImage..."
         imageUrl = `uploads/${fileName}`
       }
       if (req.files['inductionFile']) {

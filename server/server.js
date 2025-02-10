@@ -85,10 +85,10 @@ const pool = mysql.createPool({
   try {
     const connection = await pool.getConnection()
     console.log('Database connected!')
-    connection.release()
+    connection.release() // Release the connection
   } catch (err) {
     console.error('Database connection failed:', err.message)
-    process.exit(1)
+    process.exit(1) // Exit the app if the DB connection fails
   }
 })()
 

@@ -6,8 +6,6 @@ interface ActivityOutcomeProps {
   activityName: string
 }
 
-// Adjust your interface so it matches what the server actually returns:
-// i.e., “ao.id AS activityObjectiveId”
 interface IProjectObjective {
   activityObjectiveId: number
   objective_id: number
@@ -46,7 +44,9 @@ const ActivityOutcome: React.FC<ActivityOutcomeProps> = ({ activityId }) => {
   const [predatorRecords, setPredatorRecords] = useState<IPredatorRecord[]>([])
   const [editingPredId, setEditingPredId] = useState<number | null>(null)
 
-  const [selectedPredatorId, setSelectedPredatorId] = useState<number | null>(null)
+  const [selectedPredatorId, setSelectedPredatorId] = useState<number | null>(
+    null
+  )
   const [pMeasurement, setPMeasurement] = useState<number | null>(null)
   const [rats, setRats] = useState(0)
   const [possums, setPossums] = useState(0)
@@ -60,7 +60,8 @@ const ActivityOutcome: React.FC<ActivityOutcomeProps> = ({ activityId }) => {
     if (!activityId) return
 
     // Load objectives for this activity
-    axios.get(`/api/activity_outcome/${activityId}`)
+    axios
+      .get(`/api/activity_outcome/${activityId}`)
       .then((res) => {
         setObjectives(res.data.objectives || [])
       })
@@ -70,7 +71,8 @@ const ActivityOutcome: React.FC<ActivityOutcomeProps> = ({ activityId }) => {
       })
 
     // fetch the predator list
-    axios.get<IPredatorOption[]>('/api/predator')
+    axios
+      .get<IPredatorOption[]>('/api/predator')
       .then((res) => setPredatorList(res.data))
       .catch((err) => {
         console.error('Error fetching predator list:', err)
@@ -78,7 +80,8 @@ const ActivityOutcome: React.FC<ActivityOutcomeProps> = ({ activityId }) => {
       })
 
     // fetch activity's existing predator records
-    axios.get<IPredatorRecord[]>(`/api/activity_predator/${activityId}`)
+    axios
+      .get<IPredatorRecord[]>(`/api/activity_predator/${activityId}`)
       .then((res) => {
         setPredatorRecords(res.data)
       })
@@ -106,27 +109,27 @@ const ActivityOutcome: React.FC<ActivityOutcomeProps> = ({ activityId }) => {
   }
 
   const handleSaveObjective = async (activityObjectiveId: number) => {
+    //  No change: first should Find the original objective in our state
+    const originalObj = objectives.find(
+      (o) => o.activityObjectiveId === activityObjectiveId
+    )
+    // convert `null` to an empty string, or number -> string
+    const originalAmountStr =
+      originalObj?.amount != null ? String(originalObj.amount) : ''
 
-
-    // For No change: first we need to Find the original objective in our state
-const originalObj = objectives.find(o => o.activityObjectiveId === activityObjectiveId);
-// convert `null` to an empty string, or number -> string
-const originalAmountStr = originalObj?.amount != null ? String(originalObj.amount) : '';
-
-//Then, If user didn’t change anything, confirm
-if (originalAmountStr === editAmount) {
-  const proceedAnyway = window.confirm(
-    "You haven't made any changes to the amount. Save anyway?"
-  );
-  if (!proceedAnyway) {
-    return; // user clicked "Cancel"
-  }
-}
-
+    //Then, If user didn’t change anything, confirm
+    if (originalAmountStr === editAmount) {
+      const proceedAnyway = window.confirm(
+        "You haven't made any changes to the amount. Save anyway?"
+      )
+      if (!proceedAnyway) {
+        return // user clicked "Cancel"
+      }
+    }
 
     try {
       await axios.put(`/api/activity_objectives/${activityObjectiveId}`, {
-        amount: editAmount ? Number(editAmount) : null
+        amount: editAmount ? Number(editAmount) : null,
       })
       // Re-fetch the objectives for this activity
       const resp = await axios.get(`/api/activity_outcome/${activityId}`)
@@ -196,7 +199,9 @@ if (originalAmountStr === editAmount) {
       }
 
       // Reload after save
-      const resp = await axios.get<IPredatorRecord[]>(`/api/activity_predator/${activityId}`)
+      const resp = await axios.get<IPredatorRecord[]>(
+        `/api/activity_predator/${activityId}`
+      )
       setPredatorRecords(resp.data)
       resetPredatorForm()
     } catch (err) {
@@ -221,7 +226,7 @@ if (originalAmountStr === editAmount) {
     if (!window.confirm('Delete this predator record?')) return
     try {
       await axios.delete(`/api/activity_predator/${id}`)
-      setPredatorRecords(prev => prev.filter((p) => p.id !== id))
+      setPredatorRecords((prev) => prev.filter((p) => p.id !== id))
       alert('Predator record deleted successfully!')
     } catch (err) {
       console.error('Error deleting predator record:', err)
@@ -240,11 +245,11 @@ if (originalAmountStr === editAmount) {
     (r) => r.sub_type.toLowerCase() === 'catches'
   )
 
-  // Simple styling (your brand colors)
+  // Color pallette
   const btnOceanBlue = { backgroundColor: '#0094B6', color: '#fff' }
-  const btnKaraka    = { backgroundColor: '#D37B40', color: '#fff' }
-  const btnForest    = { backgroundColor: '#738C40', color: '#fff' }
-  const btnSky       = { backgroundColor: '#76D6E2', color: '#fff' }
+  const btnKaraka = { backgroundColor: '#D37B40', color: '#fff' }
+  const btnForest = { backgroundColor: '#738C40', color: '#fff' }
+  const btnSky = { backgroundColor: '#76D6E2', color: '#fff' }
 
   return (
     <div>
@@ -294,7 +299,9 @@ if (originalAmountStr === editAmount) {
                             <button
                               className="btn btn-sm me-1"
                               style={{ ...btnForest, width: '70px' }}
-                              onClick={() => handleSaveObjective(obj.activityObjectiveId)}
+                              onClick={() =>
+                                handleSaveObjective(obj.activityObjectiveId)
+                              }
                             >
                               Save
                             </button>
@@ -351,7 +358,9 @@ if (originalAmountStr === editAmount) {
                     className="form-select form-select-sm"
                     value={selectedPredatorId ?? ''}
                     onChange={(e) =>
-                      setSelectedPredatorId(e.target.value ? Number(e.target.value) : null)
+                      setSelectedPredatorId(
+                        e.target.value ? Number(e.target.value) : null
+                      )
                     }
                   >
                     <option value="">-- select one --</option>
@@ -370,7 +379,9 @@ if (originalAmountStr === editAmount) {
                     value={pMeasurement ?? ''}
                     min={0}
                     onChange={(e) =>
-                      setPMeasurement(e.target.value ? Number(e.target.value) : null)
+                      setPMeasurement(
+                        e.target.value ? Number(e.target.value) : null
+                      )
                     }
                   />
                 </div>
@@ -378,7 +389,9 @@ if (originalAmountStr === editAmount) {
 
               {/* Show species fields if sub_type === 'catches' */}
               {(() => {
-                const predObj = predatorList.find(p => p.id === selectedPredatorId)
+                const predObj = predatorList.find(
+                  (p) => p.id === selectedPredatorId
+                )
                 if (predObj && predObj.sub_type.toLowerCase() === 'catches') {
                   return (
                     <div className="row mb-2">
@@ -475,8 +488,12 @@ if (originalAmountStr === editAmount) {
                   <table className="table table-striped table-hover table-bordered">
                     <thead>
                       <tr>
-                        <th className="text-center" style={{ width: '50%' }}>Measurement</th>
-                        <th className="text-center" style={{ width: '50%' }}>Action</th>
+                        <th className="text-center" style={{ width: '50%' }}>
+                          Measurement
+                        </th>
+                        <th className="text-center" style={{ width: '50%' }}>
+                          Action
+                        </th>
                       </tr>
                     </thead>
                     <tbody>
@@ -519,8 +536,12 @@ if (originalAmountStr === editAmount) {
                   <table className="table table-striped table-hover table-bordered">
                     <thead>
                       <tr>
-                        <th className="text-center" style={{ width: '50%' }}>Measurement</th>
-                        <th className="text-center" style={{ width: '50%' }}>Action</th>
+                        <th className="text-center" style={{ width: '50%' }}>
+                          Measurement
+                        </th>
+                        <th className="text-center" style={{ width: '50%' }}>
+                          Action
+                        </th>
                       </tr>
                     </thead>
                     <tbody>
@@ -571,7 +592,9 @@ if (originalAmountStr === editAmount) {
                       <th className="text-center">Hedgehogs</th>
                       <th className="text-center">Others (#)</th>
                       <th className="text-center">Others (Species)</th>
-                      <th className="text-center" style={{ width: '150px' }}>Action</th>
+                      <th className="text-center" style={{ width: '150px' }}>
+                        Action
+                      </th>
                     </tr>
                   </thead>
                   <tbody>

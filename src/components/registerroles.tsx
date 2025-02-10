@@ -84,7 +84,6 @@ const RegisterRoles: React.FC<RegisterroleProps> = ({ isSidebarOpen }) => {
 
   // ----------------------------------------------------------------
   // Handle form changes
-  // We cast the event to the correct type to avoid TS error with Form.Control
   const handleInputChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
   ) => {
@@ -99,7 +98,6 @@ const RegisterRoles: React.FC<RegisterroleProps> = ({ isSidebarOpen }) => {
   // Validate password complexity
   // Example: min 8 chars, at least 1 uppercase, 1 digit, 1 special char
   const passwordIsValid = (pwd: string) => {
-    // You can adjust these rules as needed
     return (
       pwd.length >= 8 &&
       /[A-Z]/.test(pwd) &&
@@ -231,7 +229,6 @@ const RegisterRoles: React.FC<RegisterroleProps> = ({ isSidebarOpen }) => {
         setNotification(`${formData.firstname} registered successfully!`)
       }
 
-      // Let user see success notification
       setTimeout(() => {
         setIsSendingEmail(false)
 
@@ -288,7 +285,6 @@ const RegisterRoles: React.FC<RegisterroleProps> = ({ isSidebarOpen }) => {
                         <FaUser className="me-1" />
                         First Name
                       </Form.Label>
-                      {/* Cast the event in onChange to avoid TS error */}
                       <Form.Control
                         type="text"
                         name="firstname"

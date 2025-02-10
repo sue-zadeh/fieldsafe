@@ -41,8 +41,7 @@ const containerStyle = {
 
 const defaultCenter = { lat: -36.8485, lng: 174.7633 }
 
-// We'll store the text we want for the "in progress" modal in this variable
-// so we can swap it out if the user is "already in progress" or "totally new".
+//storing the text we want for the "in progress" modal in this variable
 const AddActivity: React.FC<AddActivityProps> = ({}) => {
   const navigate = useNavigate()
   const locState = useLocation().state as {
@@ -73,7 +72,7 @@ const AddActivity: React.FC<AddActivityProps> = ({}) => {
 
   // If we came from search => we skip the "in‐progress" modal
   const fromSearch = locState?.fromSearch
-  // Possibly editing an existing activity
+  // editing an activity
   const activityId = locState?.activityId
 
   // Map center
@@ -118,12 +117,11 @@ const AddActivity: React.FC<AddActivityProps> = ({}) => {
         .get(`/api/activities/${activityId}`)
         .then((res) => {
           const data = res.data
-          // data.activity_date is already "YYYY-MM-DD" because of the server fix
           setActivity({
             id: data.id,
             activity_name: data.activity_name,
             project_id: data.project_id,
-            activity_date: data.activity_date, // already the correct format date from search activity date
+            activity_date: data.activity_date,
             notes: data.notes || '',
             createdBy: data.createdBy || '',
             status: data.status || 'InProgress',
@@ -149,8 +147,6 @@ const AddActivity: React.FC<AddActivityProps> = ({}) => {
 
   async function geocodeAddress(address: string) {
     try {
-      // In production, we usually should include our Google Maps key:
-      // const url = `https://maps.googleapis.com/maps/api/geocode/json?address=${encodeURIComponent(address)}&key=${GOOGLE_MAPS_API_KEY}`
       const url = `https://maps.googleapis.com/maps/api/geocode/json?address=${encodeURIComponent(
         address
       )}&key=${GOOGLE_MAPS_API_KEY}`
@@ -272,7 +268,7 @@ const AddActivity: React.FC<AddActivityProps> = ({}) => {
       })
       alert('Activity duplicated successfully!')
 
-      // Possibly also jump to the new one or just go to the list
+      // Select the new one or go to the list
       const redirectTo =
         activity.status === 'archived'
           ? 'archivedactivities'
@@ -293,7 +289,6 @@ const AddActivity: React.FC<AddActivityProps> = ({}) => {
 
   // =========== MODAL LOGIC =============
   const handleModalCancel = () => {
-    // 'Close' => user can keep doing whatever they're doing
     setShowModal(false)
   }
 
@@ -401,8 +396,8 @@ const AddActivity: React.FC<AddActivityProps> = ({}) => {
                   <Form.Control
                     type="date"
                     name="activity_date"
-                    value={activity.activity_date || ''} // no substring needed
-                    onChange={handleChange} // handles changes
+                    value={activity.activity_date || ''}
+                    onChange={handleChange}
                     min="2024-01-01"
                     disabled={readOnly}
                   />
@@ -466,7 +461,6 @@ const AddActivity: React.FC<AddActivityProps> = ({}) => {
               />
             </Form.Group>
 
-            {/* Buttons: depends on whether new vs existing and readOnly */}
             {activityId && readOnly && (
               <div className="mt-3">
                 <Button variant="warning" onClick={handleEdit}>

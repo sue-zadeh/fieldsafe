@@ -40,7 +40,7 @@ const TeamLead: React.FC<TeamLeadProps> = ({ isSidebarOpen }) => {
   const navigate = useNavigate()
 
   //------------------------------------------------------------
-  // (A) Fetch ALL "Team Leader" records on mount
+  // Fetch ALL "Team Leader" records on mount
   const fetchAllLeads = async () => {
     try {
       const res = await axios.get('/api/staff', {
@@ -62,8 +62,7 @@ const TeamLead: React.FC<TeamLeadProps> = ({ isSidebarOpen }) => {
 
   //------------------------------------------------------------
   // Auto-search as the user types (immediate)
-  // If searchQuery is empty, clear searchResults.
-  // Otherwise, fetch filtered list from server.
+  // fetch filtered list
   useEffect(() => {
     const doSearch = async () => {
       if (!searchQuery.trim()) {
@@ -116,7 +115,7 @@ const TeamLead: React.FC<TeamLeadProps> = ({ isSidebarOpen }) => {
   }
 
   //------------------------------------------------------------
-  // (D) Delete user
+  // Delete user
   const handleDelete = async (userId: number) => {
     // Find the user being deleted
     const userToDelete = allLeads.find((user) => user.id === userId)

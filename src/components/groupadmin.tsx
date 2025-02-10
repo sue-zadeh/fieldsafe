@@ -44,7 +44,7 @@ const GroupAdmin: React.FC<GroupAdminProps> = ({ isSidebarOpen }) => {
   const navigate = useNavigate()
 
   //----------------------------------------------------------------
-  // On mount, fetch ALL Group Admins
+  // fetch ALL Group Admins
   const fetchAllAdmins = async () => {
     try {
       const res = await axios.get('/api/staff', {
@@ -240,7 +240,8 @@ const GroupAdmin: React.FC<GroupAdminProps> = ({ isSidebarOpen }) => {
   }
 
   //----------------------------------------------------------------
-  // Component Layout
+  // Render
+  //---------------------
   return (
     <div
       className="container-fluid"

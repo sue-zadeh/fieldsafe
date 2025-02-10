@@ -1,4 +1,3 @@
-// src/components/SearchActivity.tsx
 import React, { useState, useEffect } from 'react'
 import axios from 'axios'
 import {
@@ -44,7 +43,7 @@ const SearchActivity: React.FC<SearchActivityProps> = ({ isSidebarOpen }) => {
   // Search term
   const [searchTerm, setSearchTerm] = useState('')
 
-  // On mount, fetch all activities
+  // fetch all activities
   useEffect(() => {
     ;(async () => {
       try {
@@ -60,8 +59,6 @@ const SearchActivity: React.FC<SearchActivityProps> = ({ isSidebarOpen }) => {
     })()
   }, [])
 
-  // If we came from AddActivity with { state: { redirectTo: 'archivedactivities' } }
-  // set that tab automatically
   useEffect(() => {
     const st = location.state as { redirectTo?: string }
     if (st?.redirectTo === 'archivedactivities') {
@@ -71,7 +68,7 @@ const SearchActivity: React.FC<SearchActivityProps> = ({ isSidebarOpen }) => {
     }
   }, [location.state])
 
-  // Split out “active” vs. “archived”
+  // Split out 'active' vs. 'archived' tabs
   const activeActivities = allActivities.filter(
     (act) => act.status !== 'archived'
   )
@@ -104,7 +101,7 @@ const SearchActivity: React.FC<SearchActivityProps> = ({ isSidebarOpen }) => {
   // Switch tabs
   const handleTabChange = (tab: 'activeactivities' | 'archivedactivities') => {
     setActiveTab(tab)
-    setSearchTerm('') // optional: reset search each time
+    setSearchTerm('') //reset search each time
   }
 
   /** Arrow => go to AddActivity in read‐only mode */
@@ -239,7 +236,6 @@ const SearchActivity: React.FC<SearchActivityProps> = ({ isSidebarOpen }) => {
               <td>{act.status}</td>
               <td className="text-center">{act.createdBy || 'N/A'}</td>
               <td className="text-end">
-                {/* removed the trash bin entirely */}
                 <span
                   style={{ fontSize: '1.5rem', cursor: 'pointer' }}
                   onClick={(e) => handleGoToDetail(act, e)}

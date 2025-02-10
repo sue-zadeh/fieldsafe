@@ -178,7 +178,7 @@ const AddHazard: React.FC<AddHazardsProps> = ({ isSidebarOpen }) => {
       */}
       <div className="row g-4">
         {/* ============ Site Hazards Column =========== */}
-        <div className="col-md-6" style={{ minWidth: '500px' /* CHANGED */ }}>
+        <div className="col-md-6" style={{ minWidth: '500px' }}>
           <div className="bg-white rounded shadow p-3 mb-4">
             <h4 style={{ color: '#0094B6', paddingBottom: '2rem' }}>
               <b>Add Site Hazard</b>
@@ -208,7 +208,6 @@ const AddHazard: React.FC<AddHazardsProps> = ({ isSidebarOpen }) => {
           {/* -------------- TABLE FOR SITE HAZARDS --------------- */}
           <div className="table-responsive">
             {' '}
-            {/* table-responsive wrapper */}
             <Table
               bordered
               hover

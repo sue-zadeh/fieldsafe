@@ -57,8 +57,7 @@ const Volunteer: React.FC<VolunteerProps> = ({ isSidebarOpen }) => {
 
   //------------------------------------------------------------
   // Auto-search as the user types (immediate)
-  // If searchQuery is empty, clear searchResults.
-  // Otherwise, fetch filtered list from server.
+  //fetch filtered list
   useEffect(() => {
     const doSearch = async () => {
       if (!searchQuery.trim()) {

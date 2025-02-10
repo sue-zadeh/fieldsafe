@@ -161,7 +161,7 @@ router.get('/objective', async (req, res) => {
           hedgehogs: totalHedgehogs,
           others: totalOthers,
         },
-        // Optional detail for each predator record
+        // detail for each predator record
         predatorDetailRows,
       })
     }

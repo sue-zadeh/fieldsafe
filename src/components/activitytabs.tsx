@@ -40,11 +40,11 @@ const ActivityTabs: React.FC<ActivityTabsProps> = ({ isSidebarOpen }) => {
   // Current step in the wizard (0..6)
   const [currentStep, setCurrentStep] = useState(0)
 
-  // Minimal required data: which activity are we working on?
+  // which activity are we working on?
   const [selectedActivityId, setSelectedActivityId] = useState<number | null>(
     null
   )
-  // And for display Activity name and Project name in the header of tab pages
+  // display Activity name and Project name in the header of tab pages
   const [selectedActivityName, setSelectedActivityName] = useState('')
   const [selectedProjectName, setSelectedProjectName] = useState('')
 
@@ -71,10 +71,6 @@ const ActivityTabs: React.FC<ActivityTabsProps> = ({ isSidebarOpen }) => {
     }
   }
 
-  /**
-   * If user modifies the activity or picks a different project in the "Details" tab,
-   * it update the tabs’s state so the new name(s) appear at the top of other tabs.
-   */
   const handleActivityUpdate = (
     activityId: number,
     activityName: string,
@@ -146,7 +142,7 @@ const ActivityTabs: React.FC<ActivityTabsProps> = ({ isSidebarOpen }) => {
                       : 'bg-secondary text-white'
                   }`}
                   style={{
-                    backgroundColor: '#738c40', 
+                    backgroundColor: '#738c40',
                     width: '2.15rem',
                     height: '2.15rem',
                     fontSize: '1.2rem',
@@ -210,7 +206,7 @@ const ActivityTabs: React.FC<ActivityTabsProps> = ({ isSidebarOpen }) => {
               Activity: {selectedActivityName || '(no name)'} — Project:{' '}
               {selectedProjectName || '(none)'}
             </h5>
-            {/* Let your child component take `activityId`, `activityName`, etc. if needed */}
+            {/* child component can take `activityId`, `activityName`*/}
             <ActivityRisk
               activityId={selectedActivityId}
               activityName={selectedActivityName}

@@ -1,43 +1,45 @@
-import React, { useState, useEffect } from 'react';
-import { useParams } from 'react-router-dom';
-import axios from 'axios';
+import React, { useState, useEffect } from 'react'
+import { useParams } from 'react-router-dom'
+import axios from 'axios'
 
 interface User {
-  id: number;
-  firstname: string;
-  lastname: string;
-  email: string;
-  phone: string;
-  role: string;
+  id: number
+  firstname: string
+  lastname: string
+  email: string
+  phone: string
+  role: string
 }
 
 interface UserTableProps {
-  isSidebarOpen: boolean;
+  isSidebarOpen: boolean
 }
 
 const UserTable: React.FC<UserTableProps> = ({ isSidebarOpen }) => {
-  const { role } = useParams<{ role: string }>(); // Extract role from the URL
-  const [users, setUsers] = useState<User[]>([]);
-  const [search, setSearch] = useState('');
-  const [loading, setLoading] = useState(true);
+  const { role } = useParams<{ role: string }>()
+  const [users, setUsers] = useState<User[]>([])
+  const [search, setSearch] = useState('')
+  const [loading, setLoading] = useState(true)
 
   const fetchUsers = async () => {
-    setLoading(true);
+    setLoading(true)
     try {
-      const response = await axios.get('/api/users', { params: { role, search } });
-      setUsers(response.data);
+      const response = await axios.get('/api/users', {
+        params: { role, search },
+      })
+      setUsers(response.data)
     } catch (error) {
-      console.error('Error fetching users:', error);
+      console.error('Error fetching users:', error)
     } finally {
-      setLoading(false);
+      setLoading(false)
     }
-  };
+  }
 
   useEffect(() => {
-    fetchUsers();
-  }, [role, search]);
+    fetchUsers()
+  }, [role, search])
 
-  if (loading) return <p>Loading...</p>;
+  if (loading) return <p>Loading...</p>
 
   return (
     <div
@@ -92,7 +94,7 @@ const UserTable: React.FC<UserTableProps> = ({ isSidebarOpen }) => {
         </table>
       </div>
     </div>
-  );
-};
+  )
+}
 
-export default UserTable;
+export default UserTable

@@ -1,5 +1,3 @@
-// src/components/AddProject.tsx
-
 import React, { useState, useEffect, useRef } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 import axios, { AxiosError } from 'axios'
@@ -215,7 +213,6 @@ const AddProject: React.FC<AddProjectProps> = ({ isSidebarOpen }) => {
     }
   }
 
-  // Navigate back to search after success
   const navigateToSearch = () => navigate('/searchproject')
 
   // ===========================
@@ -328,7 +325,6 @@ const AddProject: React.FC<AddProjectProps> = ({ isSidebarOpen }) => {
         }
       }
     } else {
-      // CREATE
       try {
         await axios.post('/api/projects', formData, {
           headers: { 'Content-Type': 'multipart/form-data' },
@@ -377,7 +373,7 @@ const AddProject: React.FC<AddProjectProps> = ({ isSidebarOpen }) => {
   //   SAVE as a new project in edit page
   // ===========================
   const handleSaveAsNewProject = async () => {
-    // This duplicates the current form data into a new project
+    // duplicates the current form data into a new project
     if (!name || !location || !startDate || !emergencyServices) {
       notify('All fields are required, including Emergency Services.')
       return
@@ -480,7 +476,7 @@ const AddProject: React.FC<AddProjectProps> = ({ isSidebarOpen }) => {
             <Nav.Link
               onClick={() => {
                 handleNavClick('details')
-                setExpanded(false) // close the nav
+                setExpanded(false) // close the nav after clicking
               }}
               style={{
                 fontWeight: activeTab === 'details' ? 'bold' : 'normal',
@@ -493,7 +489,7 @@ const AddProject: React.FC<AddProjectProps> = ({ isSidebarOpen }) => {
             <Nav.Link
               onClick={() => {
                 handleNavClick('objectives')
-                setExpanded(false) // close the nav
+                setExpanded(false)
               }}
               style={{
                 fontWeight: activeTab === 'objectives' ? 'bold' : 'normal',
@@ -506,7 +502,7 @@ const AddProject: React.FC<AddProjectProps> = ({ isSidebarOpen }) => {
             <Nav.Link
               onClick={() => {
                 handleNavClick('hazards')
-                setExpanded(false) // close the nav
+                setExpanded(false)
               }}
               style={{
                 fontWeight: activeTab === 'hazards' ? 'bold' : 'normal',
@@ -519,7 +515,7 @@ const AddProject: React.FC<AddProjectProps> = ({ isSidebarOpen }) => {
             <Nav.Link
               onClick={() => {
                 handleNavClick('risks')
-                setExpanded(false) // close the nav
+                setExpanded(false)
               }}
               style={{
                 fontWeight: activeTab === 'risks' ? 'bold' : 'normal',
@@ -569,7 +565,7 @@ const AddProject: React.FC<AddProjectProps> = ({ isSidebarOpen }) => {
       <div style={{ marginTop: '2rem' }}>
         {activeTab === 'details' && (
           <div className="row">
-            {/* MAIN FORM - on the LEFT on desktops (order-md-1), but FIRST on mobile (order-1) */}
+            {/* MAIN FORM */}
             <div className="col-md-7 order-1 order-md-1 form-container bg-white rounded shadow px-3 pt-0">
               <Form onSubmit={handleSubmit}>
                 <Form.Group controlId="projectName" className="my-3 fw-bold">
@@ -717,7 +713,7 @@ const AddProject: React.FC<AddProjectProps> = ({ isSidebarOpen }) => {
               </Form>
             </div>
 
-            {/* SMALLER SIDE - on the RIGHT on desktops (order-md-2), but SECOND on mobile (order-2) */}
+            {/* On the RIGHT side */}
             <div className="col-md-5 order-2 order-md-2 p-0 rounded p-3">
               <h4 style={{ color: OCEAN_BLUE }}>{name || '[Project Name]'}</h4>
 
@@ -923,7 +919,7 @@ const AddProject: React.FC<AddProjectProps> = ({ isSidebarOpen }) => {
         {/* Additional tabs: Objectives, Hazards, Risks */}
         {activeTab === 'objectives' && (
           <div className="py-2">
-            {/* Pass a callback so child can refresh objectives */}
+            {/* Pass a callback so can refresh objectives */}
             <AddObjectives
               isSidebarOpen={isSidebarOpen}
               onNewObjectiveCreated={reloadObjectives}

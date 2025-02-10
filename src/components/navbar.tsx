@@ -28,13 +28,13 @@ const Navbar: React.FC<NavbarProps> = ({
 }) => {
   const location = useLocation()
 
-  // 1) Track whether navbar is collapsed or not
+  // Track whether navbar is collapsed or not
   const [navCollapsed, setNavCollapsed] = useState(true)
 
-  // Helper for current route
+  // current route
   const isActive = (path: string) => location.pathname === path
 
-  // Helper to close the navbar after any link click
+  // close the navbar after any link click
   const handleLinkClick = () => {
     setNavCollapsed(true)
   }
@@ -70,7 +70,7 @@ const Navbar: React.FC<NavbarProps> = ({
           />
         </Link>
 
-        {/* 2) Toggler uses onClick to update navCollapsed */}
+        {/* Toggler uses onClick to update navCollapsed */}
         <button
           className="navbar-toggler"
           type="button"
@@ -83,7 +83,6 @@ const Navbar: React.FC<NavbarProps> = ({
           <span className="navbar-toggler-icon"></span>
         </button>
 
-        {/* 3) Conditionally apply "show" class if navCollapsed is false */}
         <div
           className={`collapse navbar-collapse ${navCollapsed ? '' : 'show'}`}
           id="navbarNavDropdown"
@@ -205,7 +204,8 @@ const Navbar: React.FC<NavbarProps> = ({
               <Link
                 to="/report"
                 style={{
-                  color: '#1A1A1A'}}
+                  color: '#1A1A1A',
+                }}
                 className={`nav-link d-flex align-items-center ${
                   isActive('/report') ? 'fw-bold' : ''
                 }`}

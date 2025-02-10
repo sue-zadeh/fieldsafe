@@ -1,4 +1,3 @@
-// server/register.js
 import express from 'express'
 import bcrypt from 'bcrypt'
 import { pool } from './db.js'
@@ -9,7 +8,7 @@ dotenv.config()
 
 const router = express.Router()
 
-// 1) Simple endpoint to send an email
+// endpoint to send an email
 router.post('/send-email', async (req, res) => {
   const { email, subject, message } = req.body
   try {
@@ -64,7 +63,7 @@ router.post('/staff', async (req, res) => {
   const sRole = sanitizeInput(role)
 
   try {
-    // 1) Check for email duplicates
+    // Check for email duplicates
     const [exists] = await pool.query(
       'SELECT email FROM staffs WHERE email = ?',
       [sEmail]
@@ -73,10 +72,10 @@ router.post('/staff', async (req, res) => {
       return res.status(400).json({ message: 'Email is already in use.' })
     }
 
-    // 2) Hash the password
+    // Hash the password
     const hashedPassword = await bcrypt.hash(password, 10)
 
-    // 3) Insert staff with hashed password
+    // Insert staff with hashed password
     const sql = `
       INSERT INTO staffs (firstname, lastname, email, phone, role, password)
       VALUES (?, ?, ?, ?, ?, ?)

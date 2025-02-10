@@ -31,7 +31,7 @@ router.get('/activity_outcome/:activityId', async (req, res) => {
     )
 
     // For each objective, see if there's already an activity_objectives row
-    //    for (activityId, objective_id). If not, insert one with default null "amount".
+    //    for (activityId, objective_id). If not, insert one with default null "amount" in mysql.
     for (const row of projObjRows) {
       const [actObjRows] = await pool.query(
         'SELECT * FROM activity_objectives WHERE activity_id=? AND objective_id=?',
@@ -50,7 +50,7 @@ router.get('/activity_outcome/:activityId', async (req, res) => {
     }
 
     //  Then fetch the ACTUAL data from activity_objectives
-    //    so the front end sees the real amounts that belong to *this activity*.
+    //    so the front end sees the real amounts that belong to this activity
     const [actObjFull] = await pool.query(
       `
         SELECT ao.id AS activityObjectiveId,

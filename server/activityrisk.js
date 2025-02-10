@@ -28,7 +28,6 @@ router.post('/risks-create-row', async (req, res) => {
 router.put('/risks/:riskId', async (req, res) => {
   const { riskId } = req.params
   const { likelihood, consequences, chosenControlIds, activity_id } = req.body
-  // "title" is optional, but we only use it if read-only=0
 
   try {
     // Find the row in `risks` so we know which risk_title_id it belongs to
@@ -46,7 +45,7 @@ router.put('/risks/:riskId', async (req, res) => {
       [likelihood, consequences, riskId]
     )
 
-    //  Optionally see if the user provided a "title" and it's not read-only
+    // see if the user provided a "title" and it's not read-only
     if (req.body.title) {
       // See if isReadOnly=0
       const [[titleRow]] = await pool.query(
@@ -71,7 +70,7 @@ router.put('/risks/:riskId', async (req, res) => {
       [activity_id, realTitleId]
     )
     // This or a direct "WHERE risk_id=?" approach,
-    // depends on your bridging schema.
+    // depends on bridging
 
     //  Insert the newly chosen controls
     for (const cid of chosenControlIds || []) {
@@ -285,7 +284,7 @@ router.delete('/activity_risk_controls', async (req, res) => {
 })
 
 // =========== HAZARDS endpoints ===========
-//             HAZARDS endpoints
+
 // ====== activity_site_hazards =========
 
 router.get('/activity_site_hazards', async (req, res) => {

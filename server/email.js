@@ -1,4 +1,3 @@
-// server/email.js
 import nodemailer from 'nodemailer'
 import dotenv from 'dotenv'
 
@@ -24,6 +23,6 @@ export async function sendEmail(to, subject, message) {
     console.log('Email sent successfully')
   } catch (error) {
     console.error('Error sending email:', error)
-    throw error // re-throw if you want the caller to know
+    throw error
   }
 }

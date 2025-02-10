@@ -1,4 +1,3 @@
-// server/objectives.js
 import express from 'express'
 import { pool } from './db.js'
 
@@ -31,7 +30,6 @@ router.post('/', async (req, res) => {
     return res.status(201).json({ message: 'Objective added successfully!' })
   } catch (error) {
     if (error.code === 'ER_DUP_ENTRY') {
-      // MySQL duplicate key error => "title" not unique
       return res
         .status(400)
         .json({ message: 'Objective title already exists.' })

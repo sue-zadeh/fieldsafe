@@ -6,6 +6,6 @@
   ],
  
   "compilerOptions": {
-    "types": ["vite/client", "node", "react", "react-dom"],
+    "types": ["vite/client", "node", "react", "react-dom", "jest"],
   }
 }

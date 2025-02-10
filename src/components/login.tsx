@@ -38,11 +38,7 @@ const Login: React.FC<LoginProps> = ({ onLoginSuccess }) => {
     try {
       const response = await axios.post('/api/login', { email, password })
 
-      // 1) remove "&& response.data.token" so we accept "Login successful" alone
       if (response.data.message === 'Login successful') {
-        // 2) comment out storing any token
-        // localStorage.setItem('authToken', response.data.token)
-
         // Store firstname and lastname in localStorage - used for welcome
         localStorage.setItem('firstname', response.data.firstname)
         localStorage.setItem('lastname', response.data.lastname)

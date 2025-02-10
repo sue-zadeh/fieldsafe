@@ -1,11 +1,10 @@
-// file: complete.js
 import { Router } from 'express'
 import { pool } from './db.js'
 import { sendEmail } from './email.js'
 
 const completeRouter = Router()
 
-// Simple endpoint to send an email
+// endpoint to send an email
 completeRouter.post('/send-email', async (req, res) => {
   const { email, subject, message } = req.body
   try {
@@ -51,7 +50,7 @@ completeRouter.get('/:activityId', async (req, res) => {
     }
     const activity = activityRows[0]
 
-    // 2) Check if there's an incident record
+    // Check if there's an incident record
     const [incidentRows] = await pool.query(
       `SELECT * 
        FROM activity_incident_reports 
@@ -64,8 +63,6 @@ completeRouter.get('/:activityId', async (req, res) => {
     let incidentData = null
     if (incidentRows.length > 0) {
       const inc = incidentRows[0]
-      // If we do inc.date_of_incident.toISOString() in UTC, it can shift days
-      // So either use SQL's DATE_FORMAT or manually convert:
       incidentData = {
         any_incident: inc.any_incident,
         typeOfIncident: inc.type_of_incident,
@@ -131,7 +128,7 @@ completeRouter.get('/:activityId', async (req, res) => {
   }
 })
 
-// A tiny helper for reading MySQL Date objects => "YYYY-MM-DD"
+// A helper for reading MySQL Date objects => "YYYY-MM-DD"
 function convertMySQLDate(mysqlDate) {
   if (!mysqlDate) return null
   const yyyy = mysqlDate.getFullYear()
@@ -145,7 +142,7 @@ completeRouter.post('/', async (req, res) => {
   try {
     const { activityId, notes, anyIncident, incidentDetails } = req.body
 
-    // 1) Mark the activity as Completed + update notes
+    // Mark the activity as Completed + update notes
     await pool.query(
       `UPDATE activities
           SET notes = ?, status = 'Completed'
@@ -153,7 +150,7 @@ completeRouter.post('/', async (req, res) => {
       [notes || '', activityId]
     )
 
-    // 2) Grab the project_id from that activity
+    // Grab the project_id from that activity
     const [rows] = await pool.query(
       `SELECT project_id
          FROM activities
@@ -168,7 +165,7 @@ completeRouter.post('/', async (req, res) => {
     }
     const projectId = rows[0].project_id
 
-    // 3) If anyIncident==='Yes', insert an incident row
+    // If anyIncident==='Yes', insert an incident row
     if (anyIncident === 'Yes' && incidentDetails) {
       // Destructure the incident detail fields
       const {
@@ -298,12 +295,6 @@ completeRouter.post('/', async (req, res) => {
           ?, ?, ?,?,?, 'Yes'                  -- placeholders for col31..33, plus col34='Yes'
         )
       `
-      /*
-        Explanation:
-         - col3 => 'Yes' (any_incident)
-         - col34 => 'Yes' (report_completed)
-         => That means 32 placeholders for the other columns
-      */
 
       await pool.query(insertSql, [
         // col1..2

@@ -26,7 +26,7 @@ const ActivityComplete: React.FC<ActivityCompleteProps> = ({
   const [projectLocation, setProjectLocation] = useState('')
   const [projectSiteManager, setProjectSiteManager] = useState('')
 
-  // CHANGE #1: Store date fields simply as "YYYY-MM-DD".
+  // Store date fields as "YYYY-MM-DD".
   const [dateOfIncident, setDateOfIncident] = useState('')
   const [timeOfIncident, setTimeOfIncident] = useState('')
   const [injuredPerson, setInjuredPerson] = useState('')
@@ -89,7 +89,7 @@ const ActivityComplete: React.FC<ActivityCompleteProps> = ({
           setMedicalTreatmentObtained(incident.medicalTreatmentObtained || '')
           setProjectLocation(incident.projectLocation || '')
           setProjectSiteManager(incident.projectSiteManager || '')
-          // CHANGE #2: We simply store the date string exactly as returned
+          // store the date string exactly as returned
           setDateOfIncident(incident.dateOfIncident || '')
           setTimeOfIncident(incident.timeOfIncident || '')
           setInjuredPerson(incident.injuredPerson || '')
@@ -388,7 +388,7 @@ const ActivityComplete: React.FC<ActivityCompleteProps> = ({
                   <label className="form-label fw-bold">
                     Date of Incident:
                   </label>
-                  {/* CHANGE #3: Simple approach, store the raw string */}
+                  {/* store the raw string */}
                   <input
                     className="form-control"
                     type="date"
@@ -435,7 +435,6 @@ const ActivityComplete: React.FC<ActivityCompleteProps> = ({
                 </div>
               </div>
 
-              {/* ... the rest remain the same, just remove “handleDateChange.” */}
               <div className="row">
                 <div className="col-md-6 mb-3">
                   <label className="form-label fw-bold">Type of Injury:</label>
@@ -458,10 +457,6 @@ const ActivityComplete: React.FC<ActivityCompleteProps> = ({
                   />
                 </div>
               </div>
-
-              {/* ...Skipping some rows for brevity, but you do the same approach: 
-                  plain onChange={(e) => setXYZ(e.target.value)} for date fields. 
-              */}
 
               {/* Date Action Implemented */}
               <div className="row">

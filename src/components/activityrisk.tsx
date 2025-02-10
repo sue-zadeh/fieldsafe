@@ -13,7 +13,7 @@ import {
 import axios from 'axios'
 
 // -------------------------------------------
-// Inline <style> to override active tab color
+// Inline <style> to get rid of bootstrap style for tab color
 // -------------------------------------------
 const inlineTabStyle = `
   .nav-tabs .nav-link.active {
@@ -49,12 +49,12 @@ interface RiskRow {
 }
 
 //
-// IMPORTANT: We do have "risk_id" in bridging. So let's keep it in DetailedRiskControl:
+// IMPORTANT: We have "risk_id" in bridging. should keep it in DetailedRiskControl:
 //
 interface DetailedRiskControl {
   activityRiskControlId: number
   activity_id: number
-  risk_id: number // We do want to store which risk this control belongs to
+  risk_id: number // to store which risk this control belongs to
   risk_control_id: number
   control_text: string
   is_checked: boolean
@@ -126,7 +126,7 @@ const ActivityRisk: React.FC<ActivityRiskProps> = ({ activityId }) => {
     loadActivityHazards()
   }, [activityId])
 
-  // 1) risk titles
+  // risk titles
   async function loadAllRiskTitles() {
     try {
       const res = await axios.get('/api/risks')
@@ -137,7 +137,7 @@ const ActivityRisk: React.FC<ActivityRiskProps> = ({ activityId }) => {
     }
   }
 
-  // 2) activity_risks bridging
+  // activity_risks bridging
   async function loadActivityRisks() {
     try {
       const res = await axios.get(
@@ -150,11 +150,9 @@ const ActivityRisk: React.FC<ActivityRiskProps> = ({ activityId }) => {
     }
   }
 
-  // 3) activity_risk_controls/detailed
+  // activity_risk_controls/detailed
   async function loadDetailedRiskControls() {
     try {
-      // IMPORTANT: Make sure your server route returns risk_id.
-      // e.g. SELECT arc.risk_id, ...
       const res = await axios.get(
         `/api/activity_risk_controls/detailed?activityId=${activityId}`
       )
@@ -164,7 +162,7 @@ const ActivityRisk: React.FC<ActivityRiskProps> = ({ activityId }) => {
     }
   }
 
-  // 4) hazards
+  // hazards
   async function loadAllHazards() {
     try {
       const siteRes = await axios.get('/api/site_hazards')
@@ -348,7 +346,7 @@ const ActivityRisk: React.FC<ActivityRiskProps> = ({ activityId }) => {
         for (const cid of chosenControlIds) {
           await axios.post('/api/activity_risk_controls', {
             activity_id: activityId,
-            risk_id: newRiskId, // must pass the new risk
+            risk_id: newRiskId,
             risk_control_id: cid,
             is_checked: true,
           })
@@ -700,15 +698,15 @@ const ActivityRisk: React.FC<ActivityRiskProps> = ({ activityId }) => {
                 <td>
                   <ButtonGroup>
                     {/* <Button */}
-                      {/* // style={{ backgroundColor: '#0094b6', */}
-                      {/* //   color: 'white' }}
+                    {/* // style={{ backgroundColor: '#0094b6', */}
+                    {/* //   color: 'white' }}
 
                       // variant="warning"
                       size="sm"
                       onClick={() => openEditRiskModal(r)}
                     >
                       {/* Edit */}
-                    {/* </Button> */} 
+                    {/* </Button> */}
                     <Button
                       style={{ backgroundColor: '#D37B49', color: 'white' }}
                       variant="danger"

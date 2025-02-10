@@ -21,7 +21,7 @@ const AddObjectives: React.FC<AddObjectivesProps> = ({
   isSidebarOpen,
   onNewObjectiveCreated,
   onObjectivesChanged,
-  onObjectivesEdited
+  onObjectivesEdited,
 }) => {
   const [objectives, setObjectives] = useState<Objective[]>([])
   const [title, setTitle] = useState('')
@@ -193,7 +193,6 @@ const AddObjectives: React.FC<AddObjectivesProps> = ({
                   No objectives have been added yet.
                 </p>
               ) : (
-                // Make table horizontally scrollable
                 <div className="table-responsive">
                   <Table bordered hover striped size="sm" className="mb-0">
                     <thead>
