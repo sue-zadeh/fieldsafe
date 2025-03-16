@@ -593,7 +593,7 @@ const ActivityComplete: React.FC<ActivityCompleteProps> = ({
             className="btn btn-primary fs-6"
             style={{ backgroundColor: '#0094b6' }}
           >
-            {anyIncident === 'No' ? 'Complete' : 'Submit'}
+            {anyIncident === 'No' ? 'Complete' : 'SAVE AND SEND TO GROUP ADMIN'}
           </button>
         </form>
 
@@ -616,6 +616,7 @@ const ActivityComplete: React.FC<ActivityCompleteProps> = ({
                     onClick={() => setShowEmailModal(false)}
                   />
                 </div>
+                {/* Modal Body */}
                 <div className="modal-body">
                   <label htmlFor="recipient" className="form-label">
                     Enter email address:

@@ -20,8 +20,21 @@ const ActivityChecklist: React.FC<ActivityChecklistProps> = ({
   )
   const [activityChecklists, setActivityChecklists] = useState<Checklist[]>([])
   const [selectedChecklists, setSelectedChecklists] = useState<number[]>([])
+  const [checklistNotes, setChecklistNotes] = useState('')
 
   const [, setProjectName] = useState<string>('') // Store project name
+
+  // Fetch checklist notes
+  useEffect(() => {
+    axios
+      .get(`/api/activity_checklist/notes/${activityId}`)
+      .then((res) => {
+        if (res.data.notes) {
+          setChecklistNotes(res.data.notes)
+        }
+      })
+      .catch((err) => console.error('Error fetching checklist notes:', err))
+  }, [activityId])
 
   // Fetch the project name for the activity
   useEffect(() => {
@@ -68,6 +81,16 @@ const ActivityChecklist: React.FC<ActivityChecklistProps> = ({
       fetchActivityChecklists()
     }
   }, [activityId])
+
+  const handleSaveNotes = () => {
+    axios
+      .post('/api/activity_checklist/notes', {
+        activity_id: activityId,
+        notes: checklistNotes,
+      })
+      .then((res) => alert('Checklist notes saved!'))
+      .catch((err) => console.error('Error saving notes:', err))
+  }
 
   // Add selected checklists to the activity
   const handleAddChecklists = async () => {
@@ -186,6 +209,24 @@ const ActivityChecklist: React.FC<ActivityChecklistProps> = ({
             ))}
           </tbody>
         </table>
+      </div>
+
+      <div className="mt-4">
+        <label className="form-label fw-bold">Checklist Notes:</label>
+        <textarea
+          className="form-control mb-2"
+          rows={3}
+          placeholder="Write any notes/issues related to the checklist..."
+          value={checklistNotes}
+          onChange={(e) => setChecklistNotes(e.target.value)}
+        />
+        <button
+          className="btn btn-primary"
+          style={{ backgroundColor: '#0094b6' }}
+          onClick={handleSaveNotes}
+        >
+          Save Notes
+        </button>
       </div>
     </div>
   )

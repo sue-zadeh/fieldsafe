@@ -218,7 +218,7 @@ router.delete('/:id', async (req, res) => {
     )
     if (childRows.length > 0) {
       return res.status(409).json({
-        message: 'Cannot delete an activity that has data in other tabs.',
+        message: 'Cannot  delete an activity that has data in other tabs.',
       })
     }
 

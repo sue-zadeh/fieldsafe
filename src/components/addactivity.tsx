@@ -85,9 +85,9 @@ const AddActivity: React.FC<AddActivityProps> = ({}) => {
     if (!fromSearch) {
       if (activityId) {
         // We do have an ID, so assume user was 'in progress,'
-        // so show the "You already have a Field Note in progress..." text
+        // so show the "You already have an Activity Note in progress..." text
         setModalText(
-          'You already have a Field Note in progress. Would you like to start a new one?'
+          'You already have an Activity Note in progress. Would you like to start a new one?'
         )
         setShowModal(true)
       } else {
@@ -284,7 +284,7 @@ const AddActivity: React.FC<AddActivityProps> = ({}) => {
     }
   }
 
-  // 'Edit' button => allow changing the fields
+  // 'Edit' button => allow changing the activities
   const handleEdit = () => setReadOnly(false)
 
   // =========== MODAL LOGIC =============
@@ -293,7 +293,7 @@ const AddActivity: React.FC<AddActivityProps> = ({}) => {
   }
 
   const handleModalNew = () => {
-    // "New Field Note" => blank out the form
+    // "New Activity Note" => blank out the form
     setActivity({
       activity_name: '',
       project_id: 0,
@@ -316,7 +316,7 @@ const AddActivity: React.FC<AddActivityProps> = ({}) => {
     <div className="m-4 shadow">
       <Modal show={showModal} onHide={handleModalCancel}>
         <Modal.Header closeButton>
-          <Modal.Title>Field Note In Progress</Modal.Title>
+          <Modal.Title>Activity Note In Progress</Modal.Title>
         </Modal.Header>
         <Modal.Body>{modalText}</Modal.Body>
         <Modal.Footer>
@@ -324,7 +324,7 @@ const AddActivity: React.FC<AddActivityProps> = ({}) => {
             Go To List
           </Button>
           <Button variant="primary" onClick={handleModalNew}>
-            New Field Note
+            New Activity Note
           </Button>
         </Modal.Footer>
       </Modal>

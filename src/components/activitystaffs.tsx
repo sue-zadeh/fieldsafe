@@ -17,9 +17,9 @@ interface StaffTabProps {
 const ActivityStaffsTab: React.FC<StaffTabProps> = ({ activityId }) => {
   const [unassignedStaff, setUnassignedStaff] = useState<Staff[]>([])
   const [activityStaffs, setActivityStaffs] = useState<Staff[]>([])
-  const [selectedGroupAdmin, setSelectedGroupAdmin] = useState<number | null>(
-    null
-  )
+  // const [selectedGroupAdmin, setSelectedGroupAdmin] = useState<number | null>(
+  //   null
+  // )
   const [selectedFieldStaff, setSelectedFieldStaff] = useState<number | null>(
     null
   )
@@ -68,7 +68,7 @@ const ActivityStaffsTab: React.FC<StaffTabProps> = ({ activityId }) => {
       const res = await axios.get(`/api/activity_staff/${activityId}`)
       setActivityStaffs(res.data)
       // Reset dropdowns
-      setSelectedGroupAdmin(null)
+      // setSelectedGroupAdmin(null)
       setSelectedFieldStaff(null)
       setSelectedTeamLeader(null)
     } catch (err) {
@@ -99,6 +99,7 @@ const ActivityStaffsTab: React.FC<StaffTabProps> = ({ activityId }) => {
     return unassignedStaff.filter((staff) => staff.role === role)
   }
 
+  /////////// Rendering
   return (
     <div>
       <h4 className="pb-4 fw-bold text-center" style={{ color: '#0094B6' }}>
@@ -108,9 +109,9 @@ const ActivityStaffsTab: React.FC<StaffTabProps> = ({ activityId }) => {
         Activity: {activityName} || Project: {projectName}
       </h5> */}
       {/* Dropdowns for each staff type */}
-      <div className="row mb-3">
+      <div className="row mb-3 justify-content-center">
         {/* Group Admins */}
-        <div className="col-md-4">
+        {/* <div className="col-md-4">
           <h5>Group Admins</h5>
           <select
             className="form-select mb-2"
@@ -132,7 +133,7 @@ const ActivityStaffsTab: React.FC<StaffTabProps> = ({ activityId }) => {
           >
             Add Group Admin
           </button>
-        </div>
+        </div> */}
 
         {/* Field Staff */}
         <div className="col-md-4">

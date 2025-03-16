@@ -540,7 +540,7 @@ const ActivityRisk: React.FC<ActivityRiskProps> = ({ activityId }) => {
         style={{ fontWeight: 'bold', color: '#0094B6' }}
         className="mb-3 text-center"
       >
-        Determine 'Risk' & Hazards for Activity
+        Determine Hazards & 'Risk'for Activity
         {/* {activityName || '(Untitled)'} */}
       </h4>
 
@@ -548,6 +548,10 @@ const ActivityRisk: React.FC<ActivityRiskProps> = ({ activityId }) => {
       <h4 style={{ color: '#0094B6' }} className="mt-4 fw-bold">
         Hazards
       </h4>
+      <h6 className="p-3">
+        Reminder: A hazard is anything that has the potential to cause harm or
+        damage if we interact with it
+      </h6>
       <Tabs
         activeKey={hazardTab}
         onSelect={(k) => {

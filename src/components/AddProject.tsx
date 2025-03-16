@@ -497,7 +497,7 @@ const AddProject: React.FC<AddProjectProps> = ({ isSidebarOpen }) => {
                 marginRight: '1rem',
               }}
             >
-              add Objectives
+              Add Objectives
             </Nav.Link>
             <Nav.Link
               onClick={() => {
