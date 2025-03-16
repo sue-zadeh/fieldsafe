@@ -88,7 +88,7 @@ const ActivityChecklist: React.FC<ActivityChecklistProps> = ({
         activity_id: activityId,
         notes: checklistNotes,
       })
-      .then((res) => alert('Checklist notes saved!'))
+      .then((res) => alert(res.data.message || 'Checklist notes saved!'))
       .catch((err) => console.error('Error saving notes:', err))
   }
 

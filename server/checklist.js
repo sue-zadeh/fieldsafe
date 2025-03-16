@@ -78,4 +78,41 @@ checklistRouter.delete('/activity_checklist/:id', async (req, res) => {
   }
 })
 
+// GET route to fetch notes
+
+checklistRouter.get(
+  '/activity_checklist/notes/:activity_id',
+  async (req, res) => {
+    const { activity_id } = req.params
+    try {
+      const [rows] = await pool.query(
+        `SELECT checklist_notes FROM activities WHERE id = ?`,
+        [activity_id]
+      )
+      if (rows.length > 0) {
+        res.json({ notes: rows[0].checklist_notes || '' })
+      } else {
+        res.status(404).json({ message: 'Activity not found' })
+      }
+    } catch (error) {
+      console.error('Error fetching checklist notes:', error)
+      res.status(500).json({ message: 'Error fetching checklist notes' })
+    }
+  }
+)
+// POST route to save notes
+checklistRouter.post('/activity_checklist/notes', async (req, res) => {
+  const { activity_id, notes } = req.body
+  try {
+    await pool.query(`UPDATE activities SET checklist_notes = ? WHERE id = ?`, [
+      notes,
+      activity_id,
+    ])
+    res.json({ message: 'Checklist notes saved successfully' })
+  } catch (error) {
+    console.error('Error saving checklist notes:', error)
+    res.status(500).json({ message: 'Error saving checklist notes' })
+  }
+})
+
 export default checklistRouter
