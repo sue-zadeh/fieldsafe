@@ -214,7 +214,7 @@ const ActivityChecklist: React.FC<ActivityChecklistProps> = ({
       <div className="mt-4">
         <label className="form-label fw-bold">Checklist Notes:</label>
         <textarea
-          className="form-control mb-2"
+          className="form-control mb-2 w-50 justify-content-center"
           rows={3}
           placeholder="Write any notes/issues related to the checklist..."
           value={checklistNotes}
