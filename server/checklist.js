@@ -100,6 +100,7 @@ checklistRouter.get(
     }
   }
 )
+
 // POST route to save notes
 checklistRouter.post('/activity_checklist/notes', async (req, res) => {
   const { activity_id, notes } = req.body
