@@ -117,6 +117,8 @@ const ActivityRisk: React.FC<ActivityRiskProps> = ({ activityId }) => {
   const [newSiteHazard, setNewSiteHazard] = useState('')
   const [newActivityHazard, setNewActivityHazard] = useState('')
 
+  const [newRiskTitle, setNewRiskTitle] = useState('')
+
   // On mount, load everything
   useEffect(() => {
     loadAllRiskTitles()
@@ -316,6 +318,26 @@ const ActivityRisk: React.FC<ActivityRiskProps> = ({ activityId }) => {
   //     })
   //   setNewControlText('')
   // }
+
+  // =========================
+  // ADD RISK Title
+  // =========================
+  async function handleAddNewRiskTitle() {
+    if (!newRiskTitle.trim()) return
+    try {
+      const res = await axios.post('/api/risk_titles', {
+        title: newRiskTitle.trim(),
+      })
+      // After adding, reload the risk titles list
+      await loadAllRiskTitles()
+      // Optionally, auto-select the newly added risk title:
+      setSelectedRiskTitleId(res.data.id)
+      setNewRiskTitle('')
+    } catch (err) {
+      console.error(err)
+      setMessage('Failed to add new risk title.')
+    }
+  }
 
   // =========================
   // SAVE RISK
@@ -764,6 +786,24 @@ const ActivityRisk: React.FC<ActivityRiskProps> = ({ activityId }) => {
               />
             </Form.Group>
           )}
+          <Form.Group className="mb-3">
+            <Form.Label>Add New Risk Title:</Form.Label>
+            <div className="d-flex">
+              <Form.Control
+                type="text"
+                placeholder="New risk title..."
+                value={newRiskTitle}
+                onChange={(e) => setNewRiskTitle(e.target.value)}
+              />
+              <Button
+                variant="success"
+                onClick={handleAddNewRiskTitle}
+                style={{ marginLeft: '6px' }}
+              >
+                +
+              </Button>
+            </div>
+          </Form.Group>
 
           <div className="d-flex gap-3">
             <Form.Group className="mb-3 flex-fill">

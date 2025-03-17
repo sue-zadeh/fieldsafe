@@ -426,5 +426,23 @@ router.delete('/activity_activity_people_hazards', async (req, res) => {
     return res.status(500).json({ message: 'Failed to remove hazard.' })
   }
 })
+// POST /api/risk_titles — Add new Risk Title
+router.post('/risk_titles', async (req, res) => {
+  const { title } = req.body
+  if (!title) {
+    return res.status(400).json({ message: 'Title is required' })
+  }
+  try {
+    const [result] = await pool.query(
+      `INSERT INTO risk_titles (title, isReadOnly) VALUES (?, 0)`, // You can set isReadOnly to 0
+      [title.trim()]
+    )
+    return res.status(201).json({ message: 'Risk title added', id: result.insertId })
+  } catch (err) {
+    console.error('POST /risk_titles error:', err)
+    return res.status(500).json({ message: 'Failed to add risk title.' })
+  }
+})
+
 
 export default router

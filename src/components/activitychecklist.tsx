@@ -211,15 +211,17 @@ const ActivityChecklist: React.FC<ActivityChecklistProps> = ({
         </table>
       </div>
 
-      <div className="mt-4">
+      <div className="mt-4 text-center">
         <label className="form-label fw-bold">Checklist Notes:</label>
-        <textarea
-          className="form-control mb-2 w-50 justify-content-center"
-          rows={3}
-          placeholder="Write any notes/issues related to the checklist..."
-          value={checklistNotes}
-          onChange={(e) => setChecklistNotes(e.target.value)}
-        />
+        <div className="d-flex justify-content-center">
+          <textarea
+            className="form-control mb-2 w-50 justify-content-center"
+            rows={3}
+            placeholder="Write any notes/issues related to the checklist..."
+            value={checklistNotes}
+            onChange={(e) => setChecklistNotes(e.target.value)}
+          />
+        </div>
         <button
           className="btn btn-primary"
           style={{ backgroundColor: '#0094b6' }}
