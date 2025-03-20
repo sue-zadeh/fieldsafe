@@ -765,7 +765,7 @@ const ActivityRisk: React.FC<ActivityRiskProps> = ({ activityId }) => {
           }}
         >
           {!isEditing && (
-            <Form.Group className="mb-3">
+            <Form.Group className="">
               <Form.Label>Risk Title</Form.Label>
               <Select
                 options={riskTitleOptions}
@@ -786,12 +786,12 @@ const ActivityRisk: React.FC<ActivityRiskProps> = ({ activityId }) => {
               />
             </Form.Group>
           )}
-          <Form.Group className="mb-3">
-            <Form.Label>Add New Risk Title:</Form.Label>
+          <Form.Group className="mb-4">
+            <Form.Label></Form.Label>
             <div className="d-flex">
               <Form.Control
                 type="text"
-                placeholder="New risk title..."
+                placeholder="You can add new risk title here, if you want..."
                 value={newRiskTitle}
                 onChange={(e) => setNewRiskTitle(e.target.value)}
               />

@@ -259,5 +259,34 @@ router.delete('/api/activity_predator/:id', async (req, res) => {
     res.status(500).json({ message: 'Failed to delete predator record.' })
   }
 })
+//====================================
+// POST => /api/activity_objectives_direct/// add objective to activity
+router.post('/activity_objectives_direct', async (req, res) => {
+  try {
+    const { activity_id, title, measurement } = req.body
+    if (!activity_id || !title || !measurement) {
+      return res.status(400).json({ message: 'Missing fields.' })
+    }
+
+    // Step 1: Add to objectives
+    const [objResult] = await pool.query(
+      'INSERT INTO objectives (title, measurement) VALUES (?, ?)',
+      [title, measurement]
+    )
+    const objectiveId = objResult.insertId
+
+    // Step 2: Insert into activity_objectives
+    await pool.query(
+      `INSERT INTO activity_objectives (activity_id, objective_id, amount) VALUES (?, ?, NULL)`,
+      [activity_id, objectiveId]
+    )
+
+    return res.status(201).json({ message: 'Objective added successfully.' })
+  } catch (err) {
+    console.error(err)
+    res.status(500).json({ message: 'Failed to add objective.' })
+  }
+})
+
 
 export default router

@@ -55,6 +55,10 @@ const ActivityOutcome: React.FC<ActivityOutcomeProps> = ({ activityId }) => {
   const [others, setOthers] = useState(0)
   const [othersDescription, setOthersDescription] = useState('')
 
+  const [newObjectiveTitle, setNewObjectiveTitle] = useState('')
+const [newObjectiveMeasurement, setNewObjectiveMeasurement] = useState('')
+
+
   // ============ On Load, fetch project objectives & predator data ============
   useEffect(() => {
     if (!activityId) return
@@ -147,6 +151,32 @@ const ActivityOutcome: React.FC<ActivityOutcomeProps> = ({ activityId }) => {
     setEditingObjId(null)
     setEditAmount('')
   }
+
+  const handleAddNewObjective = async () => {
+    if (!newObjectiveTitle.trim() || !newObjectiveMeasurement.trim()) {
+      alert('Please enter title and measurement.')
+      return
+    }
+  
+    try {
+      await axios.post('/api/activity_objectives_direct', {
+        activity_id: activityId,
+        title: newObjectiveTitle.trim(),
+        measurement: newObjectiveMeasurement.trim(),
+      })
+  
+      // Refresh
+      const resp = await axios.get(`/api/activity_outcome/${activityId}`)
+      setObjectives(resp.data.objectives || [])
+      setNewObjectiveTitle('')
+      setNewObjectiveMeasurement('')
+      alert('Objective added successfully!')
+    } catch (err) {
+      console.error(err)
+      alert('Failed to add objective.')
+    }
+  }
+  
 
   // ============ Predator Add/Edit ============
 
@@ -334,6 +364,38 @@ const ActivityOutcome: React.FC<ActivityOutcomeProps> = ({ activityId }) => {
                   </tr>
                 )}
               </tbody>
+              <tfoot>
+  <tr>
+    <td>
+      <input
+        type="text"
+        className="form-control form-control-sm"
+        placeholder="Objective title..."
+        value={newObjectiveTitle}
+        onChange={(e) => setNewObjectiveTitle(e.target.value)}
+      />
+    </td>
+    <td>
+      <input
+        type="text"
+        className="form-control form-control-sm text-center"
+        placeholder="Measurement"
+        value={newObjectiveMeasurement}
+        onChange={(e) => setNewObjectiveMeasurement(e.target.value)}
+      />
+    </td>
+    <td colSpan={2} className="text-center">
+      <button
+        className="btn btn-sm"
+        style={{ ...btnOceanBlue, width: '90px' }}
+        onClick={handleAddNewObjective}
+      >
+        + Add
+      </button>
+    </td>
+  </tr>
+</tfoot>
+
             </table>
           </div>
         </div>
