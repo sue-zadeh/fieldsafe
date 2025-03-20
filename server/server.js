@@ -138,7 +138,7 @@ app.post('/api/login', async (req, res) => {
 // ================= Validate token - REMOVED / COMMENTED OUT
 //removed
 
-// ================= Forgot Password
+// ================= Forgot Password =====================
 app.post('/api/forgot-password', async (req, res) => {
   const { email } = req.body
   if (!email) {
