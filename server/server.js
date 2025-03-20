@@ -80,7 +80,7 @@ const pool = mysql.createPool({
   connectionLimit: 10,
 })
 
-// Test DB connection
+// Test DB connection ===================
 ;(async () => {
   try {
     const connection = await pool.getConnection()
