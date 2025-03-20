@@ -278,6 +278,7 @@ const AddHazard: React.FC<AddHazardsProps> = ({ isSidebarOpen }) => {
                             )
                           }
                         />
+                        
                       ) : (
                         hazard.hazard_description
                       )}
