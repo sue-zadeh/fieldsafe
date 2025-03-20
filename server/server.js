@@ -168,7 +168,7 @@ app.post('/api/forgot-password', async (req, res) => {
       user.id,
     ])
 
-    // Send email
+    // === Send Email ====
     try {
       await sendEmail(
         email,
