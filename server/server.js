@@ -70,7 +70,7 @@ app.get('/api/ping', (req, res) => {
   res.json({ message: 'pong' })
 })
 
-// MySQL pool
+// MySQL pool ======================
 const pool = mysql.createPool({
   host: process.env.db_host,
   user: process.env.db_user,
