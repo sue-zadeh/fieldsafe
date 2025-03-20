@@ -151,11 +151,14 @@ const AddHazard: React.FC<AddHazardsProps> = ({ isSidebarOpen }) => {
       }}
     >
       <h2
-        style={{ color: '#0094B6', fontWeight: 'bold', paddingBottom: '4rem' }}
+        style={{ color: '#0094B6', fontWeight: 'bold', paddingBottom: '2rem' }}
       >
         Add Hazards
       </h2>
-
+      <h6 className="pb-5">
+        Reminder: A hazard is anything that has the potential to cause harm or
+        damage if we interact with it
+      </h6>
       {notification && (
         <div
           style={{
