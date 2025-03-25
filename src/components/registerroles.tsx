@@ -160,7 +160,6 @@ const RegisterRoles: React.FC<RegisterroleProps> = ({ isSidebarOpen }) => {
 
         You can log in at: http://fieldsafe.org.nz/
 
-        
         Best regards,
         FieldSafe Team
                 `,
