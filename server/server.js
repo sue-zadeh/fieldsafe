@@ -58,6 +58,14 @@ app.use('/api', predatorRouter)
 app.use('/api/activities', activitiesRouter)
 app.use('/api/activities/complete', completeRouter)
 app.use('/api/report', reportRouter)
+
+// app.use((req, res, next) => {
+//   if (req.hostname === 'www.fieldsafe.org.nz') {
+//     return res.redirect(301, 'https://fieldsafe.org.nz' + req.url)
+//   }
+//   next()
+// })
+
 //=================================
 // For a Single-Page App: fallback any other route to index.html
 app.get('*', (req, res) => {
