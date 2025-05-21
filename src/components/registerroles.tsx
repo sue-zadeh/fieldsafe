@@ -149,19 +149,34 @@ const RegisterRoles: React.FC<RegisterroleProps> = ({ isSidebarOpen }) => {
         email: formData.email,
         subject: 'Welcome to FieldSafe!',
         message: `
-        Dear ${formData.firstname} ${formData.lastname},
-        
-        You are now registered as a ${formData.role} in the FieldSafe App.
-        Your login email: ${formData.email}
-        Your password: ${formData.password}
-        
-        Please keep this password secure. 
-        If you wish to change it, use the "Forgot Password" link to get a reset.
+        <div style="font-family: Arial, sans-serif; line-height: 1.6;">
+    <p>Dear ${formData.firstname} ${formData.lastname},</p>
 
-        You can log in at: https://www.fieldsafe.org.nz/
+    <p>You are now registered as a <strong>${formData.role}</strong> in the FieldSafe App.</p>
+    
+    <p><strong>Your login email:</strong> ${formData.email}<br/>
+    <strong>Your password:</strong> ${formData.password}</p>
+    
+    <p>Please keep this password secure.<br/>
+    If you wish to change it, use the "Forgot Password" link to reset it.</p>
 
-        Best regards,
-        FieldSafe Team
+    <p>
+      <a href="https://www.fieldsafe.org.nz/" style="
+        display: inline-block;
+        background-color: #4CAF50;
+        color: white;
+        padding: 10px 20px;
+        text-decoration: none;
+        border-radius: 5px;
+        font-weight: bold;
+      ">
+        Login to FieldSafe
+      </a>
+    </p>
+
+  <p>Best regards,<br/>
+    FieldSafe Team</p>
+  </div>
                 `,
       })
     } catch (error) {
