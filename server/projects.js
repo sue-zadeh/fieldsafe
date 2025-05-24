@@ -126,14 +126,7 @@ router.get('/:id', async (req, res) => {
     }
     const project = projRows[0]
 
-    // bridging table -> objective IDs
-    const [objRows] = await pool.query(
-      'SELECT objective_id FROM project_objectives WHERE project_id = ?',
-      [id]
-    )
-    const objectiveIds = objRows.map((r) => r.objective_id)
-
-    return res.json({ project, objectiveIds })
+    return res.json(project)
   } catch (err) {
     console.error('Error fetching project:', err)
     return res.status(500).json({ message: 'Server error' })
@@ -165,7 +158,6 @@ router.post(
         localHospital,
         primaryContactName,
         primaryContactPhone,
-        objectives,
       } = req.body
 
       const sqlDate = parseDateForMySQL(startDate)
@@ -227,22 +219,6 @@ router.post(
       ])
       const projectId = result.insertId
 
-      // parse objectives
-      let parsedObjectives = []
-      try {
-        parsedObjectives = objectives ? JSON.parse(objectives) : []
-      } catch (err) {
-        console.error('Failed to parse objectives JSON:', err)
-      }
-      if (Array.isArray(parsedObjectives)) {
-        for (const objId of parsedObjectives) {
-          await pool.query(
-            'INSERT INTO project_objectives (project_id, objective_id) VALUES (?, ?)',
-            [projectId, objId]
-          )
-        }
-      }
-
       return res
         .status(201)
         .json({ id: projectId, message: 'Project created successfully' })
@@ -279,7 +255,6 @@ router.put(
         localHospital,
         primaryContactName,
         primaryContactPhone,
-        objectives,
       } = req.body
 
       // Convert date
@@ -378,25 +353,6 @@ router.put(
         id,
       ])
 
-      // bridging: remove old objectives, insert new
-      await pool.query('DELETE FROM project_objectives WHERE project_id = ?', [
-        id,
-      ])
-      let parsedObjectives = []
-      try {
-        parsedObjectives = objectives ? JSON.parse(objectives) : []
-      } catch (err) {
-        console.error('Failed to parse updated objectives JSON:', err)
-      }
-      if (Array.isArray(parsedObjectives)) {
-        for (const objId of parsedObjectives) {
-          await pool.query(
-            'INSERT INTO project_objectives (project_id, objective_id) VALUES (?, ?)',
-            [id, objId]
-          )
-        }
-      }
-
       return res.json({ message: 'Project updated successfully' })
     } catch (err) {
       console.error('Error updating project:', err)
@@ -411,6 +367,7 @@ router.put(
 router.delete('/:id', async (req, res) => {
   const { id } = req.params
   try {
+    // NB project_risks is ON DELETE CASCADE, but project_objectives needs managed at application layer ... for now ...
     await pool.query('DELETE FROM project_objectives WHERE project_id = ?', [
       id,
     ])
@@ -424,5 +381,52 @@ router.delete('/:id', async (req, res) => {
     return res.status(500).json({ message: 'Failed to delete project' })
   }
 })
+
+// -------------------------------------------------------------------
+// GET /api/projects/:id/objectives
+// -------------------------------------------------------------------
+router.get('/:id/objectives', async (req, res) => {
+  const { id } = req.params
+  try {
+    const [rows] = await pool.query(`
+      SELECT o.id
+      FROM project_objectives po
+      JOIN objectives o ON po.objective_id = o.id
+      WHERE po.project_id = ?
+    `, [id])
+
+    const objectiveIds = rows.map(row => row.id)
+    return res.json(objectiveIds)
+  } catch (err) {
+    console.error('Failed to get objectives for project:', err)
+    res.status(500).json({ message: 'Could not fetch project objectives.' })
+  }
+})
+
+// -------------------------------------------------------------------
+// POST /api/projects/:id/objectives (replace all)
+// -------------------------------------------------------------------
+router.post('/:id/objectives', async (req, res) => {
+  const { id } = req.params
+  const objectives  = req.body
+  if (!Array.isArray(objectives)) {
+    return res.status(400).json({ message: 'Expected objectives to be an array.' })
+  }
+
+  try {
+    await pool.query('DELETE FROM project_objectives WHERE project_id = ?', [id])
+    for (const objId of objectives) {
+      await pool.query(
+          'INSERT INTO project_objectives (project_id, objective_id) VALUES (?, ?)',
+          [id, objId]
+      )
+    }
+    res.json({ message: 'Objectives updated.' })
+  } catch (err) {
+    console.error('Failed to update project objectives:', err)
+    res.status(500).json({ message: 'Could not update project objectives.' })
+  }
+})
+
 
 export default router
