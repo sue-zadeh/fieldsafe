@@ -82,7 +82,7 @@ const AddRisk: React.FC<AddRiskProps> = ({ isSidebarOpen }) => {
   }
   const riskOptions = allRisks.map((risk) => ({
     value: risk.id,
-    label: risk.title + (risk.isReadOnly ? ' (Read-Only)' : ''),
+    label: risk.title,
   }))
 
   // ================  Creating a NEW risk with multiple controls  ================
@@ -277,10 +277,14 @@ const AddRisk: React.FC<AddRiskProps> = ({ isSidebarOpen }) => {
       }`}
     >
       <h2
-        style={{ color: '#0094B6', fontWeight: 'bold', paddingBottom: '4rem' }}
+        style={{ color: '#0094B6', fontWeight: 'bold' }}
       >
         Add / Edit Risks
       </h2>
+      <p style={{fontWeight: 'bold'}}>
+        Risks occur typically when you interact with any of the project
+        hazards you have identified.
+      </p>
       {notification && <Alert variant="info">{notification}</Alert>}
       {loading && <div>Loading...</div>}
 
@@ -345,7 +349,7 @@ const AddRisk: React.FC<AddRiskProps> = ({ isSidebarOpen }) => {
                     maxWidth: '100%',
                   }}
                 >
-                  {selectedRisk.title} (Read-Only)
+                  {selectedRisk.title}
                 </h5>
               ) : (
                 <>
