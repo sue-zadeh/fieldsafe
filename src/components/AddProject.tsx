@@ -935,7 +935,7 @@ const AddProject: React.FC<AddProjectProps> = ({ isSidebarOpen }) => {
         )}
         {activeTab === 'risks' && (
           <div className="d-f column pt-2">
-            <AddRisk isSidebarOpen={isSidebarOpen} />
+            <AddRisk isSidebarOpen={isSidebarOpen} projectId={locationState.projectId} />
           </div>
         )}
       </div>
