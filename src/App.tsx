@@ -21,7 +21,6 @@ import AddHazard from './components/addhazard'
 import SearchActivity from './components/searchactivity'
 import Report from './components/report'
 import ActivityTabs from './components/activitytabs'
-// import ParentLayout from './components/parentlayout'
 
 const GOOGLE_MAPS_API_KEY = import.meta.env.VITE_GOOGLE_MAPS_API_KEY || ''
 
