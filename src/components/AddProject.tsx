@@ -109,7 +109,13 @@ const AddProject: React.FC<AddProjectProps> = ({ isSidebarOpen }) => {
 
   // Tab switching
   const [activeTab, setActiveTab] = useState('details')
-  const handleNavClick = (tab: string) => setActiveTab(tab)
+  const handleNavClick = (tab: string) => {
+    if (!isEdit && !projectId && tab !== 'details') {
+      notify('Please save your project before accessing this section.')
+      return
+    }
+    setActiveTab(tab)
+  }
 
   // LOAD objectives and project data if editing
   useEffect(() => {
