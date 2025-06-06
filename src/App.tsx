@@ -15,7 +15,6 @@ import Registervolunteer from './components/registervolunteer'
 import Volunteer from './components/volunteer'
 import AddProject from './components/AddProject'
 import SearchProject from './components/searchproject'
-import AddObjective from './components/addobjective'
 import AddRisk from './components/addrisk'
 import AddHazard from './components/addhazard'
 import SearchActivity from './components/searchactivity'
@@ -237,10 +236,6 @@ const App: React.FC = () => {
                   <Route
                     path="/AddProject"
                     element={<AddProject isSidebarOpen={isSidebarOpen} />}
-                  />
-                  <Route
-                    path="/Addobjective"
-                    element={<AddObjective isSidebarOpen={isSidebarOpen} />}
                   />
                   <Route
                     path="/SearchProject"

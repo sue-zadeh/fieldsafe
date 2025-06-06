@@ -12,20 +12,12 @@ import {
   Button,
   Col,
   Row,
-  Modal,
   Alert,
-  ListGroup,
 } from 'react-bootstrap'
 
 const OCEAN_BLUE = '#0094B6'
 
 type ProjectStatus = 'inprogress' | 'completed' | 'onhold' | 'archived'
-
-interface Objective {
-  id: number
-  title: string
-  measurement: string
-}
 
 interface AddProjectProps {
   isSidebarOpen: boolean
@@ -42,7 +34,6 @@ interface OriginalData {
   localHospital: string
   primaryContactName: string
   primaryContactPhone: string
-  objectiveIds: number[]
   imageUrl?: string
   inductionFileUrl?: string
 }
@@ -75,8 +66,6 @@ const AddProject: React.FC<AddProjectProps> = ({ isSidebarOpen }) => {
 
   const [notification, setNotification] = useState<string | null>(null)
 
-  const [allObjectives, setAllObjectives] = useState<Objective[]>([])
-  const [selectedObjectives, setSelectedObjectives] = useState<number[]>([])
   const [location, setLocation] = useState('')
   const [mapCenter, setMapCenter] = useState(centerDefault)
   const [markerPos, setMarkerPos] = useState(centerDefault)
@@ -103,20 +92,14 @@ const AddProject: React.FC<AddProjectProps> = ({ isSidebarOpen }) => {
   // Original data for no-changes detection
   const [originalData, setOriginalData] = useState<OriginalData | null>(null)
 
-  // For objectives modal
-  const [showObjModal, setShowObjModal] = useState(false)
   const todayString = new Date().toISOString().split('T')[0]
 
   // Tab switching
   const [activeTab, setActiveTab] = useState('details')
   const handleNavClick = (tab: string) => setActiveTab(tab)
 
-  // LOAD objectives and project data if editing
+  // LOAD project data if editing
   useEffect(() => {
-    axios /// fetch objectives
-      .get('/api/objectives')
-      .then((res) => setAllObjectives(res.data))
-      .catch((err) => console.error('Error fetching objectives:', err))
 
     if (locationState?.isEdit && locationState.projectId) {
       setIsEdit(true)
@@ -124,7 +107,7 @@ const AddProject: React.FC<AddProjectProps> = ({ isSidebarOpen }) => {
       axios
         .get(`/api/projects/${locationState.projectId}`)
         .then((res) => {
-          const { project, objectiveIds } = res.data
+          const project = res.data
           setName(project.name || '')
           setStartDate(project.startDate.slice(0, 10))
           setStatus(project.status || 'inprogress')
@@ -142,8 +125,6 @@ const AddProject: React.FC<AddProjectProps> = ({ isSidebarOpen }) => {
           if (project.inductionFileUrl)
             setExistingInductionUrl(project.inductionFileUrl)
 
-          setSelectedObjectives(objectiveIds || [])
-
           setOriginalData({
             name: project.name,
             location: project.location,
@@ -157,22 +138,11 @@ const AddProject: React.FC<AddProjectProps> = ({ isSidebarOpen }) => {
             localHospital: project.localHospital,
             primaryContactName: project.primaryContactName,
             primaryContactPhone: project.primaryContactPhone,
-            objectiveIds: objectiveIds || [],
           })
         })
         .catch((err) => console.error('Error loading project for edit:', err))
     }
   }, [locationState])
-
-  // re-fetch objectives so we can see new ones immediately
-  const reloadObjectives = async () => {
-    try {
-      const response = await axios.get('/api/objectives')
-      setAllObjectives(response.data)
-    } catch (err) {
-      console.error('Error reloading objectives:', err)
-    }
-  }
 
   // Auto-clear notification after 10s
   useEffect(() => {
@@ -186,19 +156,6 @@ const AddProject: React.FC<AddProjectProps> = ({ isSidebarOpen }) => {
 
   // Helper to show a notification
   const notify = (msg: string) => setNotification(msg)
-
-  const toggleObjective = (objId: number) => {
-    setSelectedObjectives((prev) =>
-      prev.includes(objId) ? prev.filter((x) => x !== objId) : [...prev, objId]
-    )
-  }
-  const openObjModal = () => setShowObjModal(true)
-  const closeObjModal = () => setShowObjModal(false)
-
-  const selectedObjectivesText = allObjectives
-    .filter((obj) => selectedObjectives.includes(obj.id))
-    .map((o) => `${o.title} (${o.measurement})`)
-    .join('\n')
 
   const handlePlaceChanged = () => {
     if (autocompleteRef.current) {
@@ -270,7 +227,6 @@ const AddProject: React.FC<AddProjectProps> = ({ isSidebarOpen }) => {
     formData.append('localHospital', localHospital)
     formData.append('primaryContactName', primaryContactName)
     formData.append('primaryContactPhone', primaryContactPhone)
-    formData.append('objectives', JSON.stringify(selectedObjectives))
 
     if (imageFile) formData.append('image', imageFile)
     if (inductionFile) formData.append('inductionFile', inductionFile)
@@ -291,9 +247,7 @@ const AddProject: React.FC<AddProjectProps> = ({ isSidebarOpen }) => {
           originalData.localMedicalCenterPhone === localMedicalCenterPhone &&
           originalData.localHospital === localHospital &&
           originalData.primaryContactName === primaryContactName &&
-          originalData.primaryContactPhone === primaryContactPhone &&
-          JSON.stringify(originalData.objectiveIds.slice().sort()) ===
-            JSON.stringify(selectedObjectives.slice().sort())
+          originalData.primaryContactPhone === primaryContactPhone
 
         if (isNoChange) {
           if (!window.confirm('No changes detected. Save anyway?')) {
@@ -347,7 +301,6 @@ const AddProject: React.FC<AddProjectProps> = ({ isSidebarOpen }) => {
         setInductionFile(null)
         setExistingImageUrl(null)
         setExistingInductionUrl(null)
-        setSelectedObjectives([])
 
         setTimeout(() => {
           navigate('/searchproject', {
@@ -419,7 +372,6 @@ const AddProject: React.FC<AddProjectProps> = ({ isSidebarOpen }) => {
     formData.append('localHospital', localHospital)
     formData.append('primaryContactName', primaryContactName)
     formData.append('primaryContactPhone', primaryContactPhone)
-    formData.append('objectives', JSON.stringify(selectedObjectives))
 
     if (imageFile) formData.append('image', imageFile)
     if (inductionFile) formData.append('inductionFile', inductionFile)
@@ -577,23 +529,6 @@ const AddProject: React.FC<AddProjectProps> = ({ isSidebarOpen }) => {
                     value={name}
                     onChange={(e) => setName(e.target.value)}
                   />
-                </Form.Group>
-
-                <Form.Group className="mb-3 fw-bold">
-                  <Form.Label>Objectives</Form.Label>
-                  <div style={{ display: 'flex', gap: '0.5rem' }}>
-                    <Form.Control
-                      readOnly
-                      as="textarea"
-                      rows={2}
-                      value={selectedObjectivesText}
-                      placeholder="(No objectives selected)"
-                      onClick={openObjModal}
-                    />
-                    <Button variant="secondary" onClick={openObjModal}>
-                      Edit
-                    </Button>
-                  </div>
                 </Form.Group>
 
                 <Row>
@@ -919,12 +854,11 @@ const AddProject: React.FC<AddProjectProps> = ({ isSidebarOpen }) => {
         {/* Additional tabs: Objectives, Hazards, Risks */}
         {activeTab === 'objectives' && (
           <div className="py-2">
-            {/* Pass a callback so can refresh objectives */}
             <AddObjectives
               isSidebarOpen={isSidebarOpen}
-              onNewObjectiveCreated={reloadObjectives}
-              onObjectivesChanged={reloadObjectives}
-              onObjectivesEdited={reloadObjectives}
+              OCEAN_BLUE={OCEAN_BLUE}
+              projectId={locationState.projectId}
+              // handleSubmitProject={handleSubmit}
             />
           </div>
         )}
@@ -939,42 +873,6 @@ const AddProject: React.FC<AddProjectProps> = ({ isSidebarOpen }) => {
           </div>
         )}
       </div>
-
-      {/* Modal for objectives */}
-      <Modal show={showObjModal} onHide={closeObjModal} size="sm">
-        <Modal.Header closeButton>
-          <Modal.Title>Select Objectives</Modal.Title>
-        </Modal.Header>
-        <Modal.Body>
-          <p className="text-muted mb-3 fs-5 fw-bold text-center">
-            Please choose objectives related to your project
-          </p>
-          <ListGroup>
-            {allObjectives.map((obj) => (
-              <ListGroup.Item
-                key={obj.id}
-                className="d-flex justify-content-between align-items-center text-wrap"
-                style={{
-                  maxHeight: '400px',
-                  overflowY: 'auto',
-                  whiteSpace: 'normal',
-                  wordBreak: 'break-word',
-                }}
-                action
-                onClick={() => toggleObjective(obj.id)}
-                active={selectedObjectives.includes(obj.id)}
-              >
-                {obj.title} ({obj.measurement})
-              </ListGroup.Item>
-            ))}
-          </ListGroup>
-        </Modal.Body>
-        <Modal.Footer className="d-flex justify-content-center">
-          <Button variant="success" className="w-50" onClick={closeObjModal}>
-            Done
-          </Button>
-        </Modal.Footer>
-      </Modal>
     </div>
   )
 }
