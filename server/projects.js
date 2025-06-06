@@ -425,4 +425,109 @@ router.delete('/:id', async (req, res) => {
   }
 })
 
+// -------------------------------------------------------------------
+//  GET /api/projects/:id/site_hazards
+// -------------------------------------------------------------------
+router.get('/:id/site_hazards', async (req, res) => {
+  const { id: id } = req.params
+  try {
+    const [rows] = await pool.query(
+        `SELECT site_hazard_id FROM project_site_hazards WHERE project_id = ?`,
+        [id]
+    )
+    res.json(rows.map(row => row.site_hazard_id))
+  } catch (err) {
+    console.error(err)
+    res.status(500).json({ message: 'Failed to fetch project hazards' })
+  }
+})
+
+// -------------------------------------------------------------------
+//  POST /api/projects/:id/site_hazards
+// -------------------------------------------------------------------
+router.post('/:id/site_hazards', async (req, res) => {
+  const { id: id } = req.params
+  const hazardIds = req.body  // expect: [1, 2, 3]
+
+  if (!Array.isArray(hazardIds)) {
+    return res.status(400).json({ message: 'hazardIds must be an array' })
+  }
+
+  const conn = await pool.getConnection()
+  try {
+    await conn.beginTransaction()
+    await conn.query(`DELETE FROM project_site_hazards WHERE project_id = ?`, [id])
+
+    if (hazardIds.length > 0) {
+      const values = hazardIds.map(hid => [id, hid])
+      await conn.query(
+          `INSERT INTO project_site_hazards (project_id, site_hazard_id) VALUES ?`,
+          [values]
+      )
+    }
+
+    await conn.commit()
+    res.json({ message: 'Hazards updated for project' })
+  } catch (err) {
+    await conn.rollback()
+    console.error(err)
+    res.status(500).json({ message: 'Failed to update project hazards' })
+  } finally {
+    conn.release()
+  }
+})
+
+// -------------------------------------------------------------------
+//  GET /api/projects/:id/activity_people_hazards
+// -------------------------------------------------------------------
+router.get('/:id/activity_people_hazards', async (req, res) => {
+  const { id: id } = req.params
+  try {
+    const [rows] = await pool.query(
+        `SELECT activity_people_hazard_id FROM project_activity_people_hazards WHERE project_id = ?`,
+        [id]
+    )
+    res.json(rows.map(row => row.activity_people_hazard_id))
+  } catch (err) {
+    console.error(err)
+    res.status(500).json({ message: 'Failed to fetch project hazards' })
+  }
+})
+
+// -------------------------------------------------------------------
+//  POST /api/projects/:id/activity_people_hazards
+// -------------------------------------------------------------------
+router.post('/:id/activity_people_hazards', async (req, res) => {
+  const { id: id } = req.params
+  const hazardIds = req.body  // expect: [1, 2, 3]
+
+  if (!Array.isArray(hazardIds)) {
+    return res.status(400).json({ message: 'hazardIds must be an array' })
+  }
+
+  const conn = await pool.getConnection()
+  try {
+    await conn.beginTransaction()
+    await conn.query(`DELETE FROM project_activity_people_hazards WHERE project_id = ?`, [id])
+
+    if (hazardIds.length > 0) {
+      const values = hazardIds.map(hid => [id, hid])
+      await conn.query(
+          `INSERT INTO project_activity_people_hazards (project_id, activity_people_hazard_id) VALUES ?`,
+          [values]
+      )
+    }
+
+    await conn.commit()
+    res.json({ message: 'Hazards updated for project' })
+  } catch (err) {
+    await conn.rollback()
+    console.error(err)
+    res.status(500).json({ message: 'Failed to update project hazards' })
+  } finally {
+    conn.release()
+  }
+})
+
+
 export default router

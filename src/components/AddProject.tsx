@@ -930,7 +930,11 @@ const AddProject: React.FC<AddProjectProps> = ({ isSidebarOpen }) => {
         )}
         {activeTab === 'hazards' && (
           <div className="d-f column pt-2">
-            <AddHazard isSidebarOpen={isSidebarOpen} />
+            <AddHazard
+              isSidebarOpen={isSidebarOpen}
+              OCEAN_BLUE={OCEAN_BLUE}
+              projectId={locationState.projectId}
+            />
           </div>
         )}
         {activeTab === 'risks' && (
