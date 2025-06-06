@@ -1,7 +1,7 @@
-import React, { useState, useEffect } from 'react'
+import React, {useState, useEffect} from 'react'
 import Select from 'react-select'
 import axios from 'axios'
-import { Button, Form, Row, Col, Alert, ListGroup } from 'react-bootstrap'
+import {Button, Form, Row, Col, Alert, ListGroup, Modal} from 'react-bootstrap'
 
 interface Risk {
   id: number
@@ -17,10 +17,12 @@ interface RiskControl {
 }
 
 interface AddRiskProps {
-  isSidebarOpen: boolean
+  isSidebarOpen: boolean,
+  projectId?: number
 }
 
-const AddRisk: React.FC<AddRiskProps> = ({ isSidebarOpen }) => {
+const AddRisk: React.FC<AddRiskProps> = ({isSidebarOpen, projectId}) => {
+
   const [allRisks, setAllRisks] = useState<Risk[]>([])
   const [selectedRisk, setSelectedRisk] = useState<Risk | null>(null)
   const [riskControls, setRiskControls] = useState<RiskControl[]>([])
@@ -45,9 +47,26 @@ const AddRisk: React.FC<AddRiskProps> = ({ isSidebarOpen }) => {
   const [showAddSingleControl, setShowAddSingleControl] = useState(false)
   const [newSingleControl, setNewSingleControl] = useState('')
 
+  // For loading template risk titles to a project (project level risk assessment)
+  const [selectedRiskTitleIds, setSelectedRiskTitleIds] = useState<number[]>([])
+
+  // For risks modal
+  const [showRisksModal, setShowRisksModal] = useState(false)
+  const closeRisksModal = () => setShowRisksModal(false)
+
   // Fetch all risk titles on first render
   useEffect(() => {
     fetchAllRisks()
+
+    if (projectId) {
+      axios.get(`/api/projects/${projectId}/risk_titles`)
+        .then(res => {
+          setSelectedRiskTitleIds(res.data || [])
+        })
+        .catch(err => {
+          console.error('Failed to load project risk selections:', err)
+        })
+    }
   }, [])
 
   // Fetch all risk titles from server
@@ -82,7 +101,7 @@ const AddRisk: React.FC<AddRiskProps> = ({ isSidebarOpen }) => {
   }
   const riskOptions = allRisks.map((risk) => ({
     value: risk.id,
-    label: risk.title + (risk.isReadOnly ? ' (Read-Only)' : ''),
+    label: risk.title,
   }))
 
   // ================  Creating a NEW risk with multiple controls  ================
@@ -180,7 +199,7 @@ const AddRisk: React.FC<AddRiskProps> = ({ isSidebarOpen }) => {
       setNotification('Risk title updated successfully!')
       // Immediately update the currently selected risk in local state
       setSelectedRisk((prev) =>
-        prev ? { ...prev, title: editingTitleText.trim() } : null
+        prev ? {...prev, title: editingTitleText.trim()} : null
       )
       // re-fetch everything
       fetchAllRisks()
@@ -262,6 +281,19 @@ const AddRisk: React.FC<AddRiskProps> = ({ isSidebarOpen }) => {
     }
   }
 
+  const handleToggleProjectRisks = async () => {
+    try {
+      await axios.put(`/api/projects/${projectId}/risk_titles`, {
+        risk_title_ids: selectedRiskTitleIds
+      })
+      setNotification('Updated project risks successfully!')
+    } catch (err) {
+      console.error('Error updating project risks:', err)
+      setNotification('Failed to update project risk selection.')
+    }
+  }
+
+
   // Auto-clear notifications after 5 seconds
   useEffect(() => {
     if (notification) {
@@ -275,83 +307,242 @@ const AddRisk: React.FC<AddRiskProps> = ({ isSidebarOpen }) => {
       className={`container-fluid ${
         isSidebarOpen ? 'content-expanded' : 'content-collapsed'
       }`}
+      style={{
+        transition: 'margin 0.3s ease',
+        // paddingTop: '1rem',
+        paddingBottom: '2rem',
+      }}
     >
       <h2
-        style={{ color: '#0094B6', fontWeight: 'bold', paddingBottom: '4rem' }}
+        style={{color: '#0094B6', fontWeight: 'bold'}}
       >
         Add / Edit Risks
       </h2>
-      {notification && <Alert variant="info">{notification}</Alert>}
+      <p style={{fontWeight: 'bold'}}>
+        Risks occur typically when you interact with any of the project
+        hazards you have identified.
+      </p>
+      {notification && (
+        <div
+          style={{
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            width: '100%',
+            zIndex: 9999,
+          }}
+        >
+          <Alert variant="info" className="text-center m-0 rounded-0">
+            {notification}
+          </Alert>
+        </div>
+      )}
       {loading && <div>Loading...</div>}
 
       <Row>
-        {/* ================= Column for Managing EXISTING Risks ================ */}
 
-        <Col className="ml-2" md={6}>
-          <h5 className="fs-5 fw-bold " style={{ color: '#0094B6' }}>
-            Existing Risks
-          </h5>
+        <Col md={9} className="order-1 order-md-1 form-container bg-white rounded shadow p-4"
+             style={{maxWidth: '700px'}}>
+          <h5 className="fs-5 fw-bold mt-4" style={{color: '#0094B6'}}>Select Risks for This Project</h5>
+          <ul style={{listStyle: 'none', paddingLeft: 0}}>
+            {allRisks.map(risk => (
+              <li key={risk.id} style={{marginBottom: '0.5rem'}}>
+                <label>
+                  <input
+                    type="checkbox"
+                    checked={selectedRiskTitleIds.includes(risk.id)}
+                    onChange={(e) => {
+                      const checked = e.target.checked
+                      setSelectedRiskTitleIds((prev) =>
+                        checked
+                          ? [...prev, risk.id]
+                          : prev.filter((id) => id !== risk.id)
+                      )
+                    }}
+                    style={{marginRight: '0.5rem'}}
+                  />
+                  {risk.title}
+                </label>
+              </li>
+            ))}
+          </ul>
+        </Col>
 
-          <Select
-            options={riskOptions}
-            onChange={(option) => {
-              if (!option) {
-                // user cleared the dropdown
-                setSelectedRisk(null)
-                setRiskControls([])
-                return
-              }
-              handleSelectRisk(Number(option.value))
+        <Col
+          md={3}
+          className="order-2"
+          style={{
+            whiteSpace: 'pre-wrap',
+            wordWrap: 'break-word',
+            overflowWrap: 'break-word',
+            maxWidth: '100%',
+          }}
+        >
+
+          <Button
+            variant="secondary"
+            onClick={() => {
+              setShowRisksModal(true)
             }}
-            value={
-              selectedRisk
-                ? riskOptions.find((opt) => opt.value === selectedRisk.id) ||
-                  null
-                : null
-            }
-            placeholder="-- Select Risk --"
-            styles={{
-              option: (base) => ({
-                ...base,
-                whiteSpace: 'pre-wrap',
-                wordWrap: 'break-word',
-                overflowWrap: 'break-word',
-              }),
-              control: (base) => ({
-                ...base,
-                maxWidth: '100%',
-                whiteSpace: 'pre-wrap',
-              }),
-              menu: (base) => ({
-                ...base,
-                whiteSpace: 'pre-wrap',
-                wordWrap: 'break-word',
-                overflowWrap: 'break-word',
-              }),
-            }}
-          />
+          >
+            Manage Global Risks
+          </Button>
 
-          {/* Show the selected risk’s details */}
-          {selectedRisk && (
-            <div style={{ marginBottom: '1.5rem' }}>
-              {/* Show an EDIT TITLE button if not read-only */}
-              {selectedRisk.isReadOnly ? (
-                <h5
-                  className="text-wrap p-1"
-                  style={{
-                    whiteSpace: 'pre-wrap',
-                    wordWrap: 'break-word',
-                    overflowWrap: 'break-word',
-                    maxWidth: '100%',
-                  }}
-                >
-                  {selectedRisk.title} (Read-Only)
-                </h5>
-              ) : (
-                <>
-                  {editingTitle ? (
+
+          <Modal show={showRisksModal} onHide={closeRisksModal} size="xl">
+            <Modal.Header closeButton>
+              <Modal.Title>Manage Global Risks</Modal.Title>
+            </Modal.Header>
+            <Modal.Body>
+              <Row>
+                {/* ================= Column for Managing EXISTING Risks ================ */}
+
+                <Col className="ml-2" md={6}>
+                  <h5 className="fs-5 fw-bold " style={{color: '#0094B6'}}>
+                    Existing Risks
+                  </h5>
+
+                  <Select
+                    options={riskOptions}
+                    onChange={(option) => {
+                      if (!option) {
+                        // user cleared the dropdown
+                        setSelectedRisk(null)
+                        setRiskControls([])
+                        return
+                      }
+                      handleSelectRisk(Number(option.value))
+                    }}
+                    value={
+                      selectedRisk
+                        ? riskOptions.find((opt) => opt.value === selectedRisk.id) ||
+                        null
+                        : null
+                    }
+                    placeholder="-- Select Risk --"
+                    styles={{
+                      option: (base) => ({
+                        ...base,
+                        whiteSpace: 'pre-wrap',
+                        wordWrap: 'break-word',
+                        overflowWrap: 'break-word',
+                      }),
+                      control: (base) => ({
+                        ...base,
+                        maxWidth: '100%',
+                        whiteSpace: 'pre-wrap',
+                      }),
+                      menu: (base) => ({
+                        ...base,
+                        whiteSpace: 'pre-wrap',
+                        wordWrap: 'break-word',
+                        overflowWrap: 'break-word',
+                      }),
+                    }}
+                  />
+
+                  {/* Show the selected risk’s details */}
+                  {selectedRisk && (
+                    <div style={{marginBottom: '1.5rem'}}>
+                      {/* Show an EDIT TITLE button if not read-only */}
+                      {selectedRisk.isReadOnly ? (
+                        <h5
+                          className="text-wrap p-1"
+                          style={{
+                            whiteSpace: 'pre-wrap',
+                            wordWrap: 'break-word',
+                            overflowWrap: 'break-word',
+                            maxWidth: '100%',
+                          }}
+                        >
+                          {selectedRisk.title}
+                        </h5>
+                      ) : (
+                        <>
+                          {editingTitle ? (
+                            <div
+                              className="text-wrap p-1"
+                              style={{
+                                whiteSpace: 'pre-wrap',
+                                wordWrap: 'break-word',
+                                overflowWrap: 'break-word',
+                                maxWidth: '100%',
+                              }}
+                            >
+                              <Form.Control
+                                value={editingTitleText}
+                                onChange={(e) => setEditingTitleText(e.target.value)}
+                              />
+                              <Button
+                                style={{backgroundColor: '#738c40', color: 'white'}}
+                                className="mr-8px mt-4px w-25 rounded"
+                                onClick={handleEditTitle}
+                                variant="success"
+                                size="sm"
+                              >
+                                Save Title
+                              </Button>
+                              <Button
+                                className="mt-4px fs-6 w-15 rounded "
+                                onClick={() => setEditingTitle(false)}
+                                variant="outline-secondary"
+                                size="sm"
+                              >
+                                Cancel
+                              </Button>
+                            </div>
+                          ) : (
+                            <div
+                              style={{
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: '10px',
+                              }}
+                            >
+                              <h5
+                                className="text-wrap p-1"
+                                style={{
+                                  whiteSpace: 'pre-wrap',
+                                  wordWrap: 'break-word',
+                                  overflowWrap: 'break-word',
+                                  maxWidth: '80%',
+                                }}
+                              >
+                                {selectedRisk.title}
+                              </h5>
+                              <Button
+                                style={{backgroundColor: '#0094b6', color: 'white'}}
+                                className="w-25 fs-6 mt-3 rounded"
+                                variant="warning"
+                                size="sm"
+                                onClick={toggleEditTitle}
+                              >
+                                Edit Title
+                              </Button>
+                            </div>
+                          )}
+                        </>
+                      )}
+
+                      {/* Risk Delete button if not read-only */}
+                      {!selectedRisk.isReadOnly && (
+                        <Button
+                          style={{backgroundColor: '#D37B49', color: 'white'}}
+                          className="mt-2 fs-6 w-25 rounded"
+                          variant="danger"
+                          onClick={() => handleDeleteRisk(selectedRisk)}
+                          size="sm"
+                          // style={{ marginTop: '0.5rem' }}
+                        >
+                          Delete Risk
+                        </Button>
+                      )}
+                    </div>
+                  )}
+
+                  {/* List of controls */}
+                  {selectedRisk && (
                     <div
-                      className="text-wrap p-1"
                       style={{
                         whiteSpace: 'pre-wrap',
                         wordWrap: 'break-word',
@@ -359,117 +550,36 @@ const AddRisk: React.FC<AddRiskProps> = ({ isSidebarOpen }) => {
                         maxWidth: '100%',
                       }}
                     >
-                      <Form.Control
-                        value={editingTitleText}
-                        onChange={(e) => setEditingTitleText(e.target.value)}
-                      />
-                      <Button
-                        style={{ backgroundColor: '#738c40', color: 'white' }}
-                        className="mr-8px mt-4px w-25 rounded"
-                        onClick={handleEditTitle}
-                        variant="success"
-                        size="sm"
-                      >
-                        Save Title
-                      </Button>
-                      <Button
-                        className="mt-4px fs-6 w-15 rounded "
-                        onClick={() => setEditingTitle(false)}
-                        variant="outline-secondary"
-                        size="sm"
-                      >
-                        Cancel
-                      </Button>
-                    </div>
-                  ) : (
-                    <div
-                      style={{
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: '10px',
-                      }}
-                    >
-                      <h5
-                        className="text-wrap p-1"
-                        style={{
-                          whiteSpace: 'pre-wrap',
-                          wordWrap: 'break-word',
-                          overflowWrap: 'break-word',
-                          maxWidth: '80%',
-                        }}
-                      >
-                        {selectedRisk.title}
+                      {/* =====Risk Controls Table with bullets==== */}
+                      <h5 className="">
+                        <b>Risk Controls</b>
                       </h5>
-                      <Button
-                        style={{ backgroundColor: '#0094b6', color: 'white' }}
-                        className="w-25 fs-6 mt-3 rounded"
-                        variant="warning"
-                        size="sm"
-                        onClick={toggleEditTitle}
+                      <ListGroup
+                        style={
+                          {
+                            // display: 'flex',
+                            //   whiteSpace: 'pre-wrap',
+                            //   wordWrap: 'break-word',
+                            //   overflowWrap: 'break-word',
+                            //   maxWidth: '100%',
+                          }
+                        }
                       >
-                        Edit Title
-                      </Button>
-                    </div>
-                  )}
-                </>
-              )}
-
-              {/* Risk Delete button if not read-only */}
-              {!selectedRisk.isReadOnly && (
-                <Button
-                  style={{ backgroundColor: '#D37B49', color: 'white' }}
-                  className="mt-2 fs-6 w-25 rounded"
-                  variant="danger"
-                  onClick={() => handleDeleteRisk(selectedRisk)}
-                  size="sm"
-                  // style={{ marginTop: '0.5rem' }}
-                >
-                  Delete Risk
-                </Button>
-              )}
-            </div>
-          )}
-
-          {/* List of controls */}
-          {selectedRisk && (
-            <div
-              style={{
-                whiteSpace: 'pre-wrap',
-                wordWrap: 'break-word',
-                overflowWrap: 'break-word',
-                maxWidth: '100%',
-              }}
-            >
-              {/* =====Risk Controls Table with bullets==== */}
-              <h5 className="">
-                <b>Risk Controls</b>
-              </h5>
-              <ListGroup
-                style={
-                  {
-                    // display: 'flex',
-                    //   whiteSpace: 'pre-wrap',
-                    //   wordWrap: 'break-word',
-                    //   overflowWrap: 'break-word',
-                    //   maxWidth: '100%',
-                  }
-                }
-              >
-                {riskControls.map((ctrl) => (
-                  <ListGroup.Item
-                    key={ctrl.id}
-                    style={{
-                      // display: 'flex',
-                      // alignItems: 'flex-start',
-                      whiteSpace: 'pre-wrap',
-                      overflowWrap: 'break-word',
-                      wordWrap: 'break-word',
-                      wordBreak:
-                        'break-word' /* for too long strings with no spaces */,
-                    }}
-                  >
-                    {/*Bullet for risk control lists */}
-                    <div style={{ display: 'flex', whiteSpace: 'pre-wrap' }}>
+                        {riskControls.map((ctrl) => (
+                          <ListGroup.Item
+                            key={ctrl.id}
+                            style={{
+                              // display: 'flex',
+                              // alignItems: 'flex-start',
+                              whiteSpace: 'pre-wrap',
+                              overflowWrap: 'break-word',
+                              wordWrap: 'break-word',
+                              wordBreak:
+                                'break-word' /* for too long strings with no spaces */,
+                            }}
+                          >
+                            {/*Bullet for risk control lists */}
+                            <div style={{display: 'flex', whiteSpace: 'pre-wrap'}}>
                       <span
                         style={{
                           display: 'flex',
@@ -480,186 +590,202 @@ const AddRisk: React.FC<AddRiskProps> = ({ isSidebarOpen }) => {
                       >
                         •
                       </span>
-                      {/* If editing this control */}
-                      {editingControlId === ctrl.id ? (
-                        <div style={{ flex: 1 }}>
-                          <Form.Control
-                            value={editingControlText}
-                            onChange={(e) =>
-                              setEditingControlText(e.target.value)
-                            }
-                            style={{ marginBottom: '6px' }}
-                          />
+                              {/* If editing this control */}
+                              {editingControlId === ctrl.id ? (
+                                <div style={{flex: 1}}>
+                                  <Form.Control
+                                    value={editingControlText}
+                                    onChange={(e) =>
+                                      setEditingControlText(e.target.value)
+                                    }
+                                    style={{marginBottom: '6px'}}
+                                  />
+                                  <Button
+                                    className="rounded"
+                                    style={{
+                                      backgroundColor: '#738c40',
+                                      color: 'white',
+                                    }}
+                                    onClick={handleSaveControlEdit}
+                                    size="sm"
+                                    variant="success"
+                                  >
+                                    Save
+                                  </Button>
+                                </div>
+                              ) : (
+                                <div style={{flex: 1, whiteSpace: 'pre-wrap'}}>
+                                  {ctrl.control_text}
+                                  {/* Edit / Delete only if not read-only control */}
+                                  {!ctrl.isReadOnly && (
+                                    <div style={{marginTop: '6px'}}>
+                                      <Button
+                                        className="fs-6 px-3 text-light rounded"
+                                        onClick={() => startEditControl(ctrl)}
+                                        variant="warning"
+                                        size="sm"
+                                        style={{
+                                          backgroundColor: '#0094b6',
+                                          marginRight: '4px',
+                                        }}
+                                      >
+                                        Edit
+                                      </Button>
+                                      <Button
+                                        style={{
+                                          backgroundColor: '#D37B40',
+                                          marginRight: '4px',
+                                        }}
+                                        className="fs-6 px-3"
+                                        onClick={() => handleDeleteControl(ctrl)}
+                                        variant="danger"
+                                        size="sm"
+                                      >
+                                        Delete
+                                      </Button>
+                                    </div>
+                                  )}
+                                </div>
+                              )}
+                            </div>
+                          </ListGroup.Item>
+                        ))}
+                      </ListGroup>
+
+                      {/* Add new control to existing risk (only if not read-only) */}
+                      {!selectedRisk.isReadOnly && (
+                        <div style={{marginTop: '1rem'}}>
                           <Button
-                            className="rounded"
-                            style={{
-                              backgroundColor: '#738c40',
-                              color: 'white',
-                            }}
-                            onClick={handleSaveControlEdit}
+                            className="fs-6 px-3"
+                            style={{backgroundColor: '#0094B6'}}
+                            onClick={handleAddRiskControl}
                             size="sm"
-                            variant="success"
                           >
-                            Save
+                            {showAddSingleControl ? 'Cancel' : 'Add New Control'}
                           </Button>
-                        </div>
-                      ) : (
-                        <div style={{ flex: 1, whiteSpace: 'pre-wrap' }}>
-                          {ctrl.control_text}
-                          {/* Edit / Delete only if not read-only control */}
-                          {!ctrl.isReadOnly && (
-                            <div style={{ marginTop: '6px' }}>
+                          {showAddSingleControl && (
+                            <div style={{marginTop: '0.5rem'}}>
+                              <Form.Control
+                                type="text"
+                                value={newSingleControl}
+                                onChange={(e) => setNewSingleControl(e.target.value)}
+                                placeholder="Enter new control text..."
+                                style={{marginBottom: '0.5rem'}}
+                              />
                               <Button
-                                className="fs-6 px-3 text-light rounded"
-                                onClick={() => startEditControl(ctrl)}
-                                variant="warning"
+                                className="fs-6 px-2 m-2"
+                                onClick={handleSaveNewRiskControl}
                                 size="sm"
-                                style={{
-                                  backgroundColor: '#0094b6',
-                                  marginRight: '4px',
-                                }}
+                                variant="primary"
                               >
-                                Edit
-                              </Button>
-                              <Button
-                                style={{
-                                  backgroundColor: '#D37B40',
-                                  marginRight: '4px',
-                                }}
-                                className="fs-6 px-3"
-                                onClick={() => handleDeleteControl(ctrl)}
-                                variant="danger"
-                                size="sm"
-                              >
-                                Delete
+                                Save Control
                               </Button>
                             </div>
                           )}
                         </div>
                       )}
                     </div>
-                  </ListGroup.Item>
-                ))}
-              </ListGroup>
+                  )}
 
-              {/* Add new control to existing risk (only if not read-only) */}
-              {!selectedRisk.isReadOnly && (
-                <div style={{ marginTop: '1rem' }}>
-                  <Button
-                    className="fs-6 px-3"
-                    style={{ backgroundColor: '#0094B6' }}
-                    onClick={handleAddRiskControl}
-                    size="sm"
+                </Col>
+                {/* ================= Column for Creating a NEW Risk ================ */}
+                <Col
+                  md={6}
+                  style={{
+                    whiteSpace: 'pre-wrap',
+                    wordWrap: 'break-word',
+                    overflowWrap: 'break-word',
+                    maxWidth: '100%',
+                  }}
+                >
+                  <h4
+                    style={{
+                      color: '#0094B6',
+                      fontWeight: 'bold',
+                      paddingBottom: '2rem',
+                      textAlign: 'center',
+                    }}
                   >
-                    {showAddSingleControl ? 'Cancel' : 'Add New Control'}
-                  </Button>
-                  {showAddSingleControl && (
-                    <div style={{ marginTop: '0.5rem' }}>
+                    Create a New Risk
+                  </h4>
+                  <Form.Group
+                    className="mb-3"
+                    style={{
+                      whiteSpace: 'pre-wrap',
+                      wordWrap: 'break-word',
+                      overflowWrap: 'break-word',
+                      maxWidth: '100%',
+                    }}
+                  >
+                    <Form.Label
+                      className="fs-5 fw-bold px-5"
+                      style={{color: '#0094B6'}}
+                    >
+                      Risk Title
+                    </Form.Label>
+                    <Form.Control
+                      type="text"
+                      value={newRiskTitle}
+                      onChange={(e) => setNewRiskTitle(e.target.value)}
+                      style={{
+                        whiteSpace: 'pre-wrap',
+                        wordWrap: 'break-word',
+                        overflowWrap: 'break-word',
+                        maxWidth: '100%',
+                      }}
+                    />
+                  </Form.Group>
+                  {newRiskControls.map((ctrl, i) => (
+                    <Form.Group key={i} className="mb-2">
+                      <Form.Label>Control #{i + 1}</Form.Label>
                       <Form.Control
                         type="text"
-                        value={newSingleControl}
-                        onChange={(e) => setNewSingleControl(e.target.value)}
-                        placeholder="Enter new control text..."
-                        style={{ marginBottom: '0.5rem' }}
+                        value={ctrl}
+                        onChange={(e) => handleControlChange(e.target.value, i)}
+                        style={{
+                          whiteSpace: 'pre-wrap',
+                          wordWrap: 'break-word',
+                          overflowWrap: 'break-word',
+                          maxWidth: '100%',
+                        }}
                       />
-                      <Button
-                        className="fs-6 px-2 m-2"
-                        onClick={handleSaveNewRiskControl}
-                        size="sm"
-                        variant="primary"
-                      >
-                        Save Control
-                      </Button>
-                    </div>
-                  )}
-                </div>
-              )}
-            </div>
-          )}
-        </Col>
-        {/* ================= Column for Creating a NEW Risk ================ */}
-        <Col
-          md={6}
-          style={{
-            whiteSpace: 'pre-wrap',
-            wordWrap: 'break-word',
-            overflowWrap: 'break-word',
-            maxWidth: '100%',
-          }}
-        >
-          <h4
-            style={{
-              color: '#0094B6',
-              fontWeight: 'bold',
-              paddingBottom: '2rem',
-              textAlign: 'center',
-            }}
-          >
-            Create a New Risk
-          </h4>
-          <Form.Group
-            className="mb-3"
-            style={{
-              whiteSpace: 'pre-wrap',
-              wordWrap: 'break-word',
-              overflowWrap: 'break-word',
-              maxWidth: '100%',
-            }}
-          >
-            <Form.Label
-              className="fs-5 fw-bold px-5"
-              style={{ color: '#0094B6' }}
-            >
-              Risk Title
-            </Form.Label>
-            <Form.Control
-              type="text"
-              value={newRiskTitle}
-              onChange={(e) => setNewRiskTitle(e.target.value)}
-              style={{
-                whiteSpace: 'pre-wrap',
-                wordWrap: 'break-word',
-                overflowWrap: 'break-word',
-                maxWidth: '100%',
-              }}
-            />
-          </Form.Group>
-          {newRiskControls.map((ctrl, i) => (
-            <Form.Group key={i} className="mb-2">
-              <Form.Label>Control #{i + 1}</Form.Label>
-              <Form.Control
-                type="text"
-                value={ctrl}
-                onChange={(e) => handleControlChange(e.target.value, i)}
-                style={{
-                  whiteSpace: 'pre-wrap',
-                  wordWrap: 'break-word',
-                  overflowWrap: 'break-word',
-                  maxWidth: '100%',
-                }}
-              />
-            </Form.Group>
-          ))}
-          <Button
-            className="w-50 fs-6  mx-5 align-center justify-content-center rounded"
-            style={{ backgroundColor: '#738c40', marginRight: '4px' }}
-            onClick={addNewControlInput}
-            variant="secondary"
-            size="sm"
-          >
-            + Add Control
-          </Button>{' '}
-          <Button
-            className="w-50 fs-6 mt-2 mx-5 rounded"
-            style={{ backgroundColor: '#0094B6' }}
-            onClick={handleCreateRisk}
-            variant="primary"
-            size="sm"
-          >
-            Create Risk
-          </Button>
+                    </Form.Group>
+                  ))}
+                  <Button
+                    className="w-50 fs-6  mx-5 align-center justify-content-center rounded"
+                    style={{backgroundColor: '#738c40', marginRight: '4px'}}
+                    onClick={addNewControlInput}
+                    variant="secondary"
+                    size="sm"
+                  >
+                    + Add Control
+                  </Button>{' '}
+                  <Button
+                    className="w-50 fs-6 mt-2 mx-5 rounded"
+                    style={{backgroundColor: '#0094B6'}}
+                    onClick={handleCreateRisk}
+                    variant="primary"
+                    size="sm"
+                  >
+                    Create Risk
+                  </Button>
+                </Col>
+              </Row>
+            </Modal.Body>
+          </Modal>
         </Col>
       </Row>
+
+      {/* FIXME template this and make it linear nav? */}
+      <div className="d-flex justify-content-center mt-3">
+        <Button
+          variant="success"
+          className="px-4"
+          onClick={handleToggleProjectRisks}
+        >
+          Save
+        </Button>
+      </div>
     </div>
   )
 }

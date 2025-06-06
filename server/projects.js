@@ -425,4 +425,114 @@ router.delete('/:id', async (req, res) => {
   }
 })
 
+// -------------------------------------------------------------------
+//  GET /api/projects/:projectId/risk_titles
+//      - get a project's linked risk titles
+// -------------------------------------------------------------------
+router.get('/:projectId/risk_titles', async (req, res) => {
+  const { projectId } = req.params
+  try {
+    const [rows] = await pool.query(
+        'SELECT risk_title_id FROM project_risk_titles WHERE project_id = ?',
+        [projectId]
+    )
+    res.json(rows.map(r => r.risk_title_id)) // returns [1, 2, 3]
+  } catch (err) {
+    console.error('Error fetching project risk titles:', err)
+    res.status(500).json({ message: 'Failed to fetch project risk titles.' })
+  }
+})
+
+// -------------------------------------------------------------------
+//  PUT /api/projects/:projectId/risk_titles
+//      - link risk titles to a project (replace the set)
+// -------------------------------------------------------------------
+router.put('/:projectId/risk_titles', async (req, res) => {
+  const { projectId } = req.params
+  const { risk_title_ids } = req.body
+
+  if (!Array.isArray(risk_title_ids)) {
+    return res.status(400).json({ message: 'risk_title_ids must be an array.' })
+  }
+
+  const conn = await pool.getConnection()
+
+  try {
+    await conn.beginTransaction()
+
+    await conn.query('DELETE FROM project_risk_titles WHERE project_id = ?', [projectId])
+
+    if (risk_title_ids.length > 0) {
+      const values = risk_title_ids.map(rid => [projectId, rid])
+      await conn.query(
+          'INSERT INTO project_risk_titles (project_id, risk_title_id) VALUES ?',
+          [values]
+      )
+    }
+
+    await conn.commit()
+    res.json({ message: 'Risks set successfully.' })
+  } catch (err) {
+    await conn.rollback()
+    console.error('Error setting project risks:', err)
+    res.status(500).json({ message: 'Failed to set project risks.' })
+  } finally {
+    conn.release()
+  }
+})
+
+// -------------------------------------------------------------------
+//  POST /api/projects/:projectId/risk_titles
+//      - add risk titles to a project (create links)
+// -------------------------------------------------------------------
+router.post('/:projectId/risk_titles', async (req, res) => {
+  const { projectId } = req.params
+  const { risk_title_ids } = req.body
+
+  if (!Array.isArray(risk_title_ids) || risk_title_ids.length === 0) {
+    return res.status(400).json({ message: 'risk_title_ids must be a non-empty array.' })
+  }
+
+  try {
+    for (const riskId of risk_title_ids) {
+      await pool.query(
+          'INSERT IGNORE INTO project_risk_titles (project_id, risk_title_id) VALUES (?, ?)',
+          [projectId, riskId]
+      )
+    }
+    res.status(201).json({ message: 'Risks linked to project.' })
+  } catch (err) {
+    console.error('Error linking risks to project :', err)
+    res.status(500).json({ message: 'Failed to link risks to project.' })
+  }
+})
+
+// -------------------------------------------------------------------
+//  DELETE /projects/:projectId/risk_titles
+//      - remove risk titles from a project (destroy links)
+// -------------------------------------------------------------------
+router.delete('/:projectId/risk_titles', async (req, res) => {
+  const { projectId } = req.params
+  const { risk_title_ids } = req.body
+
+  if (!Array.isArray(risk_title_ids) || risk_title_ids.length === 0) {
+    return res.status(400).json({ message: 'risk_title_ids must be a non-empty array.' })
+  }
+
+  try {
+    for (const riskId of risk_title_ids) {
+      await pool.query(
+          'DELETE FROM project_risk_titles WHERE project_id = ? AND risk_title_id = ?',
+          [projectId, riskId]
+      )
+    }
+    res.json({ message: 'Risks unlinked from project.' })
+  } catch (err) {
+    console.error('Error unlinking risks from project:', err)
+    res.status(500).json({ message: 'Failed to unlink risks from project.' })
+  }
+})
+
+
+
 export default router
